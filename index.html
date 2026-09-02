@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Monthly Budget & Paycheck Calculator</title>
+
+    <!-- PWA / iOS "Add to Home Screen" support -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Budget Tracker">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <style>
         :root {
             --primary: #2563eb;
@@ -25,6 +36,10 @@
             color: var(--text-main);
             margin: 0;
             padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
         }
 
         .header-container { max-width: 1200px; margin: 0 auto 28px auto; padding-bottom: 18px; border-bottom: 2px solid var(--border-color); }
@@ -1152,6 +1167,8 @@
             const thumb = document.getElementById('themeToggleThumb');
             if (input) input.checked = (theme === 'dark');
             if (thumb) thumb.textContent = (theme === 'dark') ? '🌙' : '☀️';
+            const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#2563eb');
         }
 
         function setTheme(theme) {
@@ -2501,6 +2518,15 @@
             loadState();
             setTimeout(() => { isFirstRender = false; }, 60);
         };
+
+        // Register the service worker so the app keeps working offline once
+        // installed to the Home Screen. Safe to skip silently if unsupported
+        // or if the page isn't served over HTTPS (e.g. opened as a local file).
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching just won't be available */ });
+            });
+        }
 
         window.addEventListener('pageshow', (event) => {
             if (event.persisted) {
