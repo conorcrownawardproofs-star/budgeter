@@ -267,8 +267,9 @@
 
         /* ===== CC card accessories: color label ===== */
         .cc-row-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-        .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; flex: 1 1 auto; }
-        .cc-account-name { min-width: 0; }
+        .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; flex: 1 1 auto; }
+        .cc-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cc-detail-toggle { flex-shrink: 0; white-space: nowrap; }
         .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
 
         .cc-color-picker-wrap { position: relative; }
