@@ -16,6 +16,7 @@
             --positive: #16a34a;
             --negative: #dc2626;
             --floating-bg: #0f172a;
+            --surface-muted: #f1f5f9;
         }
 
         body {
@@ -34,6 +35,24 @@
         .header-title { color: var(--text-main); margin: 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
         .header-subtitle { margin: 3px 0 0 0; color: var(--text-muted); font-size: 0.92rem; }
         .sync-widget { display: none; align-items: center; gap: 8px; }
+        .header-widgets { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+        .theme-toggle { display: inline-flex; align-items: center; cursor: pointer; flex-shrink: 0; }
+        .theme-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .theme-toggle-track {
+            width: 44px; height: 24px; border-radius: 999px; position: relative; flex-shrink: 0;
+            background-color: var(--border-color);
+            transition: background-color 0.25s ease;
+        }
+        .theme-toggle-thumb {
+            position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+            background: white; display: flex; align-items: center; justify-content: center; font-size: 11px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: transform 0.25s ease, background-color 0.25s ease;
+        }
+        .theme-toggle input:checked + .theme-toggle-track { background-color: var(--primary); }
+        .theme-toggle input:checked + .theme-toggle-track .theme-toggle-thumb { transform: translateX(20px); background-color: #0f172a; }
+        .theme-toggle input:focus-visible + .theme-toggle-track { outline: 2px solid var(--primary); outline-offset: 2px; }
         .sync-badge { font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; background-color: #f1f5f9; color: var(--text-muted); white-space: nowrap; }
         .sync-badge.live { background-color: #dcfce7; color: #15803d; }
         .sync-badge.connecting { background-color: #fef9c3; color: #a16207; }
@@ -158,6 +177,9 @@
         .goal-projection-row:last-child { margin-bottom: 0; }
         .goal-projection-row strong { color: #92400e; }
         .edit-icon-btn { position: absolute; top: 18px; right: 20px; background: transparent; color: #ca8a04; border: none; font-size: 0.75rem; cursor: pointer; padding: 0; font-weight: 600; }
+        .savings-edit-btn { color: #94a3b8; }
+        .savings-balance-card { background-color: #ecfdf5; border-color: #a7f3d0; }
+        .savings-balance-heading { border-bottom-color: #a7f3d0; color: var(--positive); margin-bottom: 10px; }
         .edit-icon-btn:hover { text-decoration: underline; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1001; justify-content: center; align-items: center; }
@@ -294,6 +316,122 @@
         .misc-exp-row td { vertical-align: top; padding-top: 12px; }
         .misc-remove-btn { padding: 2px 6px; font-size: 0.72rem; margin-left: 6px; color: var(--negative); }
         .add-misc-row td { text-align: center; padding: 10px; }
+
+        /* =======================================================
+           DARK MODE
+           Base theme vars first (covers everything already built
+           on var()), then explicit dark equivalents for the
+           surfaces that use one-off accent colors, then form
+           controls, which browsers otherwise render with a
+           default white background regardless of page theme.
+           ======================================================= */
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --primary: #60a5fa;
+            --primary-hover: #3b82f6;
+            --bg-color: #0b1220;
+            --card-bg: #141b2d;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #2c3a52;
+            --positive: #4ade80;
+            --negative: #f87171;
+            --floating-bg: #05070d;
+            --surface-muted: #1e293b;
+        }
+
+        html[data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-main); }
+
+        /* Panels / subtle surfaces */
+        html[data-theme="dark"] .sync-badge,
+        html[data-theme="dark"] .sync-badge.disconnected,
+        html[data-theme="dark"] .input-group input[readonly],
+        html[data-theme="dark"] .iq-btn,
+        html[data-theme="dark"] th,
+        html[data-theme="dark"] .btn-action,
+        html[data-theme="dark"] .week-selector,
+        html[data-theme="dark"] .cc-item-text:hover,
+        html[data-theme="dark"] .cc-color-clear { background-color: #1e293b; color: var(--text-main); }
+
+        html[data-theme="dark"] .card-header:hover,
+        html[data-theme="dark"] .total-row,
+        html[data-theme="dark"] .log-details,
+        html[data-theme="dark"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
+        html[data-theme="dark"] .budget-planner,
+        html[data-theme="dark"] .cc-breakdown-row td { background-color: #172033; }
+
+        html[data-theme="dark"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
+
+        html[data-theme="dark"] .iq-btn { border-color: #475569; }
+        html[data-theme="dark"] .iq-btn:hover,
+        html[data-theme="dark"] .btn-action:hover,
+        html[data-theme="dark"] .btn-subtle-reset:hover,
+        html[data-theme="dark"] .arrow-btn:hover { background-color: #334155; }
+
+        /* Blue accents (badges, hover states, editing highlight) */
+        html[data-theme="dark"] .summary-badge,
+        html[data-theme="dark"] .link-btn:hover,
+        html[data-theme="dark"] .mode-tag.auto,
+        html[data-theme="dark"] .cc-item.editing { background-color: #1e3a5f; }
+
+        /* Red accents */
+        html[data-theme="dark"] .summary-badge.negative-badge,
+        html[data-theme="dark"] .btn-reset-subtle:hover { background-color: #3f1d1d; }
+        html[data-theme="dark"] .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
+
+        /* Green accents (sync live badge) */
+        html[data-theme="dark"] .sync-badge.live { background-color: #14532d; color: #4ade80; }
+
+        /* Amber accents (sync connecting badge) */
+        html[data-theme="dark"] .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
+
+        /* Orange accents (manual savings mode tag) */
+        html[data-theme="dark"] .mode-tag.manual { background-color: #431407; color: #fb923c; }
+
+        /* Savings balance card */
+        html[data-theme="dark"] .savings-balance-card { background-color: #0d2818; border-color: #1e5636; }
+        html[data-theme="dark"] .savings-balance-heading { border-bottom-color: #1e5636; }
+        html[data-theme="dark"] .savings-edit-btn { color: #64748b; }
+
+        /* Savings goal card + progress bar */
+        html[data-theme="dark"] .savings-goal-card { background-color: #2a1c04; border-color: #6b4a10; }
+        html[data-theme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #6b4a10; }
+        html[data-theme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #6b4a10; }
+        html[data-theme="dark"] .goal-progress-text { color: #fcd34d; }
+        html[data-theme="dark"] .goal-pct { color: #fbbf24; }
+        html[data-theme="dark"] .goal-projections { border-top-color: #6b4a10; }
+        html[data-theme="dark"] .goal-projection-row { color: #eab308; }
+        html[data-theme="dark"] .goal-projection-row strong { color: #fcd34d; }
+        html[data-theme="dark"] .edit-icon-btn { color: #facc15; }
+
+        /* Edit-mode log table */
+        html[data-theme="dark"] .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
+
+        /* End-of-week sweep box */
+        html[data-theme="dark"] .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
+
+        /* Modals, CC breakdown panels, and other literal-white surfaces */
+        html[data-theme="dark"] .modal-content,
+        html[data-theme="dark"] .cc-item,
+        html[data-theme="dark"] .cc-add-form,
+        html[data-theme="dark"] .cc-color-popover,
+        html[data-theme="dark"] .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
+
+        /* Form controls: browsers default these to white regardless of page theme */
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea {
+            background-color: #1e293b;
+            color: var(--text-main);
+            border-color: var(--border-color);
+        }
+        html[data-theme="dark"] input[readonly] { background-color: #1e293b; color: var(--primary); }
+        html[data-theme="dark"] .header-icon img { opacity: 0.95; }
+
+        body, .card, .card-header, .modal-content, .disc-balance-banner,
+        input, select, textarea, .theme-toggle-track {
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
     </style>
 </head>
 <body>
@@ -360,7 +498,7 @@
                 <div id="aiBudgetOutput"></div>
             </div>
 
-            <h4 style="margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Transaction History</h4>
+            <h4 style="margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Transaction History</h4>
             <div style="max-height: 150px; overflow-y: auto;">
                 <table style="margin-bottom: 0;">
                     <tbody id="purchaseHistoryBody"></tbody>
@@ -479,9 +617,17 @@
                     <p class="header-subtitle">Plan your pay, debts, and savings all in one place.</p>
                 </div>
             </div>
-            <div class="sync-widget" id="syncWidget">
-                <span class="sync-badge" id="syncStatusBadge">⚪ Not Connected</span>
-                <button type="button" class="link-btn" onclick="openModal('syncSetupModal')">⚙ Sync Settings</button>
+            <div class="header-widgets" id="headerWidgets">
+                <div class="sync-widget" id="syncWidget">
+                    <span class="sync-badge" id="syncStatusBadge">⚪ Not Connected</span>
+                    <button type="button" class="link-btn" onclick="openModal('syncSetupModal')">⚙ Sync Settings</button>
+                </div>
+                <label class="theme-toggle" for="themeToggleInput" title="Toggle dark mode">
+                    <input type="checkbox" id="themeToggleInput" onchange="setTheme(this.checked ? 'dark' : 'light')">
+                    <span class="theme-toggle-track">
+                        <span class="theme-toggle-thumb" id="themeToggleThumb">☀️</span>
+                    </span>
+                </label>
             </div>
         </div>
     </div>
@@ -804,9 +950,9 @@
                 <span class="disc-balance-amount" id="floatingDiscretionary">$0.00</span>
             </div>
 
-            <div class="card" style="background-color: #ecfdf5; border-color: #a7f3d0;">
-                <button style="position: absolute; top: 10px; right: 10px; background: transparent; color: #94a3b8; border: none; font-size: 0.75rem; cursor: pointer; padding: 0;" onclick="editSavingsBalance()" title="Edit Savings Balance">✎ Edit</button>
-                <h2 style="border-bottom-color: #a7f3d0; color: var(--positive); margin-bottom: 10px;">Total Savings Balance</h2>
+            <div class="card savings-balance-card">
+                <button class="savings-edit-btn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 0.75rem; cursor: pointer; padding: 0;" onclick="editSavingsBalance()" title="Edit Savings Balance">✎ Edit</button>
+                <h2 class="savings-balance-heading">Total Savings Balance</h2>
                 <div style="font-size: 2.5rem; font-weight: bold; text-align: center; color: var(--positive);" id="totalSavingsDisplay">
                     $0.00
                 </div>
@@ -905,7 +1051,7 @@
                     </div>
                 </div>
 
-                <div class="input-group total-row" style="background-color: #f1f5f9; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                <div class="input-group total-row" style="background-color: var(--surface-muted); padding: 15px; border-radius: 4px; margin-top: 15px;">
                     <label>Final Discretionary Balance</label>
                     <span id="weeklyBudgetRemaining" class="highlight" style="font-size: 1.2rem;">$0.00</span>
                 </div>
@@ -996,6 +1142,33 @@
         // Per-card customization (color label + tiny photo) — persists globally, not per-week
         let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
         const CC_LABEL_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
+
+        // =======================
+        // DARK MODE
+        // =======================
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const input = document.getElementById('themeToggleInput');
+            const thumb = document.getElementById('themeToggleThumb');
+            if (input) input.checked = (theme === 'dark');
+            if (thumb) thumb.textContent = (theme === 'dark') ? '🌙' : '☀️';
+        }
+
+        function setTheme(theme) {
+            applyTheme(theme);
+            try { localStorage.setItem('budgetThemePref', theme); } catch (e) { /* storage unavailable — theme still applies for this session */ }
+        }
+
+        function initTheme() {
+            let saved = null;
+            try { saved = localStorage.getItem('budgetThemePref'); } catch (e) { /* storage unavailable */ }
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+        }
+
+        // Applied immediately (not deferred to window.onload) so the page never
+        // flashes the wrong theme before the rest of the app finishes loading.
+        initTheme();
 
         function flashEl(el) {
             if (!el || isFirstRender || prefersReducedMotion) return;
@@ -2073,7 +2246,7 @@
                                 <div style="max-height: 100px; overflow-y: auto; margin-top: 5px;">${purchasesHtml}</div>
                             </div>
                         </div>
-                        ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #cbd5e1;"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
+                        ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border-color);"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
                     </td>
                 `;
                 tbody.appendChild(detailsRow);
@@ -2286,7 +2459,7 @@
                 <div class="budget-row"><span>🍔 Groceries & Dining (45%)</span> <strong>${formatCurrency(bal * 0.45)}</strong></div>
                 <div class="budget-row"><span>🎬 Fun & Entertainment (30%)</span> <strong>${formatCurrency(bal * 0.30)}</strong></div>
                 <div class="budget-row"><span>🛍️ Shopping & Misc (15%)</span> <strong>${formatCurrency(bal * 0.15)}</strong></div>
-                <div class="budget-row" style="border-top: 1px solid #cbd5e1; padding-top: 5px; margin-top: 5px;">
+                <div class="budget-row" style="border-top: 1px solid var(--border-color); padding-top: 5px; margin-top: 5px;">
                     <span>🛡️ Buffer (10%)</span> <strong style="color:var(--positive);">${formatCurrency(bal * 0.10)}</strong>
                 </div>
             `;
