@@ -265,26 +265,11 @@
             }
         }
 
-        /* ===== CC card accessories: color label + mini photo ===== */
-        .cc-row-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-        .cc-row-name { display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
-        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-        .cc-photo-wrap { position: relative; display: inline-flex; }
-        .cc-photo-thumb {
-            width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border-color);
-            background: #f1f5f9; padding: 0; cursor: pointer; overflow: hidden;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            transition: transform 0.15s ease, border-color 0.15s ease;
-        }
-        .cc-photo-thumb:hover { border-color: var(--primary); transform: scale(1.08); }
-        .cc-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .cc-photo-placeholder { font-size: 9px; line-height: 1; color: var(--text-muted); }
-        .cc-photo-remove {
-            position: absolute; top: -6px; right: -6px; width: 13px; height: 13px; border-radius: 50%;
-            background: var(--negative); color: white; border: 1px solid white; font-size: 9px; line-height: 1;
-            cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;
-        }
+        /* ===== CC card accessories: color label ===== */
+        .cc-row-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; flex: 1 1 auto; }
+        .cc-account-name { min-width: 0; }
+        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
 
         .cc-color-picker-wrap { position: relative; }
         .cc-color-swatch {
@@ -294,9 +279,9 @@
         .cc-color-swatch:hover { transform: scale(1.1); }
         .cc-color-swatch.is-empty { background-image: linear-gradient(135deg, transparent 42%, var(--border-color) 42%, var(--border-color) 58%, transparent 58%); }
         .cc-color-popover {
-            position: absolute; top: 20px; right: 0; background: white; border: 1px solid var(--border-color);
+            position: fixed; background: white; border: 1px solid var(--border-color);
             border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); padding: 6px;
-            display: none; grid-template-columns: repeat(6, 18px); gap: 5px; z-index: 20;
+            display: none; grid-template-columns: repeat(6, 18px); gap: 5px; z-index: 500;
         }
         .cc-color-popover.open { display: grid; }
         .cc-color-option { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.12); cursor: pointer; padding: 0; transition: transform 0.1s ease; }
@@ -566,18 +551,10 @@
                                 <td>
                                     <div class="cc-row-line">
                                         <div class="cc-row-name">
-                                            <span>BoFA Customized Cash Rewards</span>
+                                            <span class="cc-account-name">BoFA Customized Cash Rewards</span>
                                             <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc1" onclick="toggleCC('cc1')"><span class="chevron">▾</span> Details</button>
                                         </div>
                                         <div class="cc-card-accessories">
-                                            <div class="cc-photo-wrap">
-                                                <button class="cc-photo-thumb" id="ccPhotoBtn-cc1" onclick="triggerCCPhotoUpload('cc1')" title="Upload a tiny card photo">
-                                                    <img id="ccPhotoImg-cc1" alt="" style="display:none;">
-                                                    <span class="cc-photo-placeholder">🖼</span>
-                                                </button>
-                                                <button class="cc-photo-remove" id="ccPhotoRemove-cc1" style="display:none;" onclick="event.stopPropagation(); removeCCPhoto('cc1')" title="Remove photo">×</button>
-                                                <input type="file" id="ccPhotoInput-cc1" accept="image/*" style="display:none;" onchange="handleCCPhotoUpload('cc1', this)">
-                                            </div>
                                             <div class="cc-color-picker-wrap">
                                                 <button class="cc-color-swatch is-empty" id="ccColorBtn-cc1" onclick="toggleColorPicker('cc1')" title="Card color label"></button>
                                                 <div class="cc-color-popover" id="ccColorPopover-cc1"></div>
@@ -624,18 +601,10 @@
                                 <td>
                                     <div class="cc-row-line">
                                         <div class="cc-row-name">
-                                            <span>BoFA Unlimited Cash Rewards</span>
+                                            <span class="cc-account-name">BoFA Unlimited Cash Rewards</span>
                                             <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc2" onclick="toggleCC('cc2')"><span class="chevron">▾</span> Details</button>
                                         </div>
                                         <div class="cc-card-accessories">
-                                            <div class="cc-photo-wrap">
-                                                <button class="cc-photo-thumb" id="ccPhotoBtn-cc2" onclick="triggerCCPhotoUpload('cc2')" title="Upload a tiny card photo">
-                                                    <img id="ccPhotoImg-cc2" alt="" style="display:none;">
-                                                    <span class="cc-photo-placeholder">🖼</span>
-                                                </button>
-                                                <button class="cc-photo-remove" id="ccPhotoRemove-cc2" style="display:none;" onclick="event.stopPropagation(); removeCCPhoto('cc2')" title="Remove photo">×</button>
-                                                <input type="file" id="ccPhotoInput-cc2" accept="image/*" style="display:none;" onchange="handleCCPhotoUpload('cc2', this)">
-                                            </div>
                                             <div class="cc-color-picker-wrap">
                                                 <button class="cc-color-swatch is-empty" id="ccColorBtn-cc2" onclick="toggleColorPicker('cc2')" title="Card color label"></button>
                                                 <div class="cc-color-popover" id="ccColorPopover-cc2"></div>
@@ -682,18 +651,10 @@
                                 <td>
                                     <div class="cc-row-line">
                                         <div class="cc-row-name">
-                                            <span>Wells Fargo Unlimited</span>
+                                            <span class="cc-account-name">Wells Fargo Unlimited</span>
                                             <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc3" onclick="toggleCC('cc3')"><span class="chevron">▾</span> Details</button>
                                         </div>
                                         <div class="cc-card-accessories">
-                                            <div class="cc-photo-wrap">
-                                                <button class="cc-photo-thumb" id="ccPhotoBtn-cc3" onclick="triggerCCPhotoUpload('cc3')" title="Upload a tiny card photo">
-                                                    <img id="ccPhotoImg-cc3" alt="" style="display:none;">
-                                                    <span class="cc-photo-placeholder">🖼</span>
-                                                </button>
-                                                <button class="cc-photo-remove" id="ccPhotoRemove-cc3" style="display:none;" onclick="event.stopPropagation(); removeCCPhoto('cc3')" title="Remove photo">×</button>
-                                                <input type="file" id="ccPhotoInput-cc3" accept="image/*" style="display:none;" onchange="handleCCPhotoUpload('cc3', this)">
-                                            </div>
                                             <div class="cc-color-picker-wrap">
                                                 <button class="cc-color-swatch is-empty" id="ccColorBtn-cc3" onclick="toggleColorPicker('cc3')" title="Card color label"></button>
                                                 <div class="cc-color-popover" id="ccColorPopover-cc3"></div>
@@ -1010,6 +971,7 @@
 
     <script>
         const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount) || 0);
+        const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
         let currentNetIncome = 0, currentDebt = 0, currentExp = 0, currentSavings = 0, currentRemaining = 0;
 
@@ -1031,7 +993,7 @@
         let lastTotals = { ccTotal: null };
 
         // Per-card customization (color label + tiny photo) — persists globally, not per-week
-        let ccCardMeta = { cc1: { color: '', photo: '' }, cc2: { color: '', photo: '' }, cc3: { color: '', photo: '' } };
+        let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
         const CC_LABEL_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
 
         function flashEl(el) {
@@ -1495,7 +1457,20 @@
 
             const finish = () => {
                 weeklyDrafts[currentWeekKey].ccBreakdowns[cardId].splice(index, 1);
-                if (ccEditIndex[cardId] === index) cancelCCEdit(cardId);
+
+                if (ccEditIndex[cardId] === index) {
+                    // The item currently being edited was just removed — reset the form
+                    ccEditIndex[cardId] = null;
+                    document.getElementById(`ccDesc-${cardId}`).value = '';
+                    document.getElementById(`ccAmt-${cardId}`).value = '0.00';
+                    document.getElementById(`ccSubmitBtn-${cardId}`).innerText = '+ Add';
+                    document.getElementById(`ccCancelBtn-${cardId}`).style.display = 'none';
+                } else if (ccEditIndex[cardId] !== null && ccEditIndex[cardId] > index) {
+                    // An earlier item was removed — shift the tracked edit index down so it
+                    // still points at the same item being edited, not whatever slid into its place
+                    ccEditIndex[cardId] -= 1;
+                }
+
                 renderCCItems(cardId);
                 updateCCTotalUI(cardId);
                 calculateAll('other');
@@ -1518,7 +1493,7 @@
             }
             list.innerHTML = items.map((item, i) => `
                 <div class="cc-item${i === ccEditIndex[cardId] ? ' editing' : ''}${i === animateNewIndex ? ' cc-item-enter' : ''}" data-index="${i}">
-                    <span class="cc-item-text" title="Click to edit" onclick="startCCEdit('${cardId}', ${i})">${item.desc}</span>
+                    <span class="cc-item-text" title="Click to edit" onclick="startCCEdit('${cardId}', ${i})">${escapeHtml(item.desc)}</span>
                     <span>${formatCurrency(item.amt)} <button style="color:var(--negative); background:none; border:none; cursor:pointer;" title="Remove" onclick="removeCCItem('${cardId}', ${i})">❌</button></span>
                 </div>
             `).join('');
@@ -1552,23 +1527,6 @@
                 swatchBtn.style.backgroundColor = meta.color || 'transparent';
                 swatchBtn.classList.toggle('is-empty', !meta.color);
             }
-
-            const img = document.getElementById(`ccPhotoImg-${cardId}`);
-            const placeholder = document.querySelector(`#ccPhotoBtn-${cardId} .cc-photo-placeholder`);
-            const removeBtn = document.getElementById(`ccPhotoRemove-${cardId}`);
-            if (img) {
-                if (meta.photo) {
-                    img.src = meta.photo;
-                    img.style.display = 'block';
-                    if (placeholder) placeholder.style.display = 'none';
-                    if (removeBtn) removeBtn.style.display = 'flex';
-                } else {
-                    img.style.display = 'none';
-                    img.removeAttribute('src');
-                    if (placeholder) placeholder.style.display = 'flex';
-                    if (removeBtn) removeBtn.style.display = 'none';
-                }
-            }
         }
 
         function toggleColorPicker(cardId) {
@@ -1576,16 +1534,24 @@
                 if (p.id !== `ccColorPopover-${cardId}`) p.classList.remove('open');
             });
             const pop = document.getElementById(`ccColorPopover-${cardId}`);
-            if (!pop.classList.contains('open')) {
+            const btn = document.getElementById(`ccColorBtn-${cardId}`);
+            const willOpen = !pop.classList.contains('open');
+
+            if (willOpen) {
                 pop.innerHTML = CC_LABEL_COLORS.map(c =>
                     `<button class="cc-color-option" style="background-color:${c};" onclick="setCCColor('${cardId}', '${c}')" title="Set label color"></button>`
                 ).join('') + `<button class="cc-color-option cc-color-clear" onclick="setCCColor('${cardId}', '')" title="Clear label">✕</button>`;
+
+                const rect = btn.getBoundingClientRect();
+                pop.style.top = `${rect.bottom + 4}px`;
+                pop.style.right = `${Math.max(4, window.innerWidth - rect.right)}px`;
+                pop.style.left = 'auto';
             }
-            pop.classList.toggle('open');
+            pop.classList.toggle('open', willOpen);
         }
 
         function setCCColor(cardId, color) {
-            ccCardMeta[cardId] = ccCardMeta[cardId] || { color: '', photo: '' };
+            ccCardMeta[cardId] = ccCardMeta[cardId] || { color: '' };
             ccCardMeta[cardId].color = color;
             applyCCCardMetaUI(cardId);
             document.getElementById(`ccColorPopover-${cardId}`).classList.remove('open');
@@ -1598,46 +1564,13 @@
             }
         });
 
-        function triggerCCPhotoUpload(cardId) {
-            document.getElementById(`ccPhotoInput-${cardId}`).click();
-        }
-
-        function handleCCPhotoUpload(cardId, inputEl) {
-            const file = inputEl.files && inputEl.files[0];
-            inputEl.value = '';
-            if (!file || !file.type.startsWith('image/')) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    // Store at a modest fixed resolution; displayed as a tiny (~18px) thumbnail via CSS
-                    const SIZE = 64;
-                    const canvas = document.createElement('canvas');
-                    canvas.width = SIZE;
-                    canvas.height = SIZE;
-                    const ctx = canvas.getContext('2d');
-                    const scale = Math.max(SIZE / img.width, SIZE / img.height);
-                    const sw = SIZE / scale, sh = SIZE / scale;
-                    const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
-                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
-
-                    ccCardMeta[cardId] = ccCardMeta[cardId] || { color: '', photo: '' };
-                    ccCardMeta[cardId].photo = canvas.toDataURL('image/jpeg', 0.82);
-                    applyCCCardMetaUI(cardId);
-                    saveState();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeCCPhoto(cardId) {
-            ccCardMeta[cardId] = ccCardMeta[cardId] || { color: '', photo: '' };
-            ccCardMeta[cardId].photo = '';
-            applyCCCardMetaUI(cardId);
-            saveState();
-        }
+        // Close the popover on table scroll — with fixed positioning it won't
+        // follow the button, so don't leave it floating in the wrong spot.
+        document.querySelectorAll('.table-container').forEach(tc => {
+            tc.addEventListener('scroll', () => {
+                document.querySelectorAll('.cc-color-popover.open').forEach(p => p.classList.remove('open'));
+            });
+        });
 
         // =======================
         // DYNAMIC OTHER/MISC EXPENSE ROWS
@@ -1655,7 +1588,7 @@
                 <tr class="misc-exp-row${i === animateNewIndex ? ' cc-item-enter' : ''}" data-index="${i}">
                     <td>
                         Other/Misc
-                        <input type="text" class="misc-note-input" placeholder="Note (e.g., Subscriptions)" value="${(item.note || '').replace(/"/g, '&quot;')}" oninput="saveState()">
+                        <input type="text" class="misc-note-input" placeholder="Note (e.g., Subscriptions)" value="${escapeHtml(item.note)}" oninput="saveState()">
                         <button class="btn-action btn-small misc-remove-btn" title="Remove this category" onclick="removeMiscExpenseRow(${i})">✕</button>
                     </td>
                     <td style="text-align: right;">
@@ -1769,7 +1702,13 @@
             logsData = saved.logsData || [];
             purchasesData = saved.purchasesData || [];
             weeklyDrafts = saved.weeklyDrafts || {};
-            ccCardMeta = saved.ccCardMeta || { cc1: { color: '', photo: '' }, cc2: { color: '', photo: '' }, cc3: { color: '', photo: '' } };
+            // Photo feature was removed — keep only the color label, drop any legacy photo data
+            const savedMeta = saved.ccCardMeta || {};
+            ccCardMeta = {
+                cc1: { color: (savedMeta.cc1 && savedMeta.cc1.color) || '' },
+                cc2: { color: (savedMeta.cc2 && savedMeta.cc2.color) || '' },
+                cc3: { color: (savedMeta.cc3 && savedMeta.cc3.color) || '' }
+            };
             applyAllCCCardMetaUI();
 
             currentWeekKey = getWeekKey();
@@ -2091,7 +2030,7 @@
                 const hasNote = log.note && log.note.trim() !== "";
 
                 row.innerHTML = `
-                    <td class="log-cell editable"><strong>${log.date}</strong></td>
+                    <td class="log-cell editable"><strong>${escapeHtml(log.date)}</strong></td>
                     <td class="log-cell editable positive-text">${formatCurrency(log.net)}</td>
                     <td class="log-cell editable negative-text">${formatCurrency(log.debt)}</td>
                     <td class="log-cell editable negative-text">${formatCurrency(log.exp)}</td>
@@ -2112,12 +2051,12 @@
                 detailsRow.className = "log-details";
                 detailsRow.style.display = "none";
 
-                let debtsHtml = log.debtsList ? log.debtsList.filter(d => d.val > 0).map(d => `<div>${d.name}: ${formatCurrency(d.val)}</div>`).join('') : 'None logged.';
-                let expsHtml = log.expsList ? log.expsList.map(e => `<div>${e.name}: ${formatCurrency(e.val)}</div>`).join('') : 'None logged.';
+                let debtsHtml = log.debtsList ? log.debtsList.filter(d => d.val > 0).map(d => `<div>${escapeHtml(d.name)}: ${formatCurrency(d.val)}</div>`).join('') : 'None logged.';
+                let expsHtml = log.expsList ? log.expsList.map(e => `<div>${escapeHtml(e.name)}: ${formatCurrency(e.val)}</div>`).join('') : 'None logged.';
 
                 let purchasesHtml = 'No transactions recorded.';
                 if (log.purchasesSnapshot && log.purchasesSnapshot.length > 0) {
-                    purchasesHtml = log.purchasesSnapshot.map(p => `<div>• ${p.name} (${p.category}): ${formatCurrency(p.amount)}</div>`).join('');
+                    purchasesHtml = log.purchasesSnapshot.map(p => `<div>• ${escapeHtml(p.name)} (${escapeHtml(p.category)}): ${formatCurrency(p.amount)}</div>`).join('');
                 }
 
                 detailsRow.innerHTML = `
@@ -2133,7 +2072,7 @@
                                 <div style="max-height: 100px; overflow-y: auto; margin-top: 5px;">${purchasesHtml}</div>
                             </div>
                         </div>
-                        ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #cbd5e1;"><strong>Note:</strong> ${log.note}</div>` : ''}
+                        ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #cbd5e1;"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
                     </td>
                 `;
                 tbody.appendChild(detailsRow);
@@ -2263,8 +2202,8 @@
                 const isAdd = p.amount > 0;
                 row.innerHTML = `
                     <td>
-                        <div>${p.name}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">${p.category}</div>
+                        <div>${escapeHtml(p.name)}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category)}</div>
                     </td>
                     <td class="${isAdd ? 'positive-text' : 'negative-text'}" style="text-align: right; vertical-align: middle;">
                         ${isAdd ? '+' : ''}${formatCurrency(p.amount)}
