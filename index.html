@@ -30,6 +30,15 @@
             --surface-muted: #f1f5f9;
         }
 
+        /* Without this, every element's declared width excludes its own
+           padding and border, so anything with a fixed width (inputs,
+           selects, buttons) renders wider than intended. Barely visible on
+           a roomy desktop screen; causes real overflow/misalignment on a
+           narrow phone screen. */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -94,11 +103,11 @@
 
         .input-group { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
         .input-group label { flex: 1; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
-        .input-group select { width: 160px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center; text-align-last: center; font-size: 0.95rem; }
+        .input-group select { width: 100%; max-width: 160px; min-width: 0; flex: 1 1 140px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center; text-align-last: center; font-size: 0.95rem; }
         .input-group input[readonly] { background-color: #f1f5f9; font-weight: bold; color: var(--primary); text-align: right; width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; }
         .input-group input[type="text"]:not([readonly]),
-        .input-group > input[type="number"] { text-align: left; width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem;}
-        .input-group > input[type="number"] { text-align: right; }
+        .input-group input[type="number"] { text-align: left; width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem;}
+        .input-group input[type="number"] { text-align: right; }
 
         /* ===== Money / percent prefixed fields ===== */
         .money-field { position: relative; display: inline-flex; align-items: center; }
@@ -198,7 +207,7 @@
         .edit-icon-btn:hover { text-decoration: underline; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1001; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 
@@ -447,6 +456,63 @@
         input, select, textarea, .theme-toggle-track {
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
+
+        /* =======================================================
+           MOBILE / iPHONE REFINEMENTS
+           ======================================================= */
+        @media (max-width: 480px) {
+            /* A little extra breathing room above the header, on top of
+               the safe-area inset that already clears the notch/status bar. */
+            body {
+                padding-top: max(38px, calc(env(safe-area-inset-top) + 18px));
+            }
+
+            /* iOS Safari auto-zooms the whole page when a focused input's
+               font-size is under 16px — this keeps every field at 16px on
+               phone screens specifically, so tapping in to enter an amount
+               doesn't trigger an unwanted zoom. */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+
+            /* Larger tap targets (Apple HIG recommends ~44pt minimum) for
+               the fields people are actually typing dollar amounts into. */
+            .input-group input[type="number"],
+            .input-group input[type="text"]:not([readonly]),
+            .input-group input[readonly],
+            .input-with-controls input[type="number"],
+            .money-field input,
+            .percent-field input,
+            td input[type="number"],
+            .misc-note-input,
+            #purchaseAmount {
+                min-height: 44px;
+                padding-top: 11px;
+                padding-bottom: 11px;
+            }
+
+            /* The +1/+5/+10/+100 quick-adjust buttons are the fiddliest
+               things to tap accurately on a phone — give them more room. */
+            .iq-btn {
+                padding: 6px 9px;
+                font-size: 0.78rem;
+                min-height: 30px;
+            }
+
+            /* Select boxes (e.g. transaction category) get the same
+               minimum tap height as text fields. */
+            .input-group select {
+                min-height: 44px;
+            }
+
+            /* The Saved Weekly Logs table has 7 columns — it will always
+               need some horizontal scroll on a phone, but tightening it up
+               reduces how much. */
+            #logTable th, #logTable td {
+                padding: 8px 6px;
+                font-size: 0.82rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -484,7 +550,7 @@
                 <div class="input-with-controls">
                     <div class="money-field">
                         <span class="currency-symbol">$</span>
-                        <input type="number" id="purchaseAmount" class="money-input" value="0.00" step="0.01">
+                        <input type="number" inputmode="decimal" id="purchaseAmount" class="money-input" value="0.00" step="0.01">
                     </div>
                     <div class="inline-quick-bar">
                         <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -100)">-100</button>
@@ -578,7 +644,7 @@
                 <label>Exact Savings Balance</label>
                 <div class="money-field">
                     <span class="currency-symbol">$</span>
-                    <input type="number" id="savingsBalanceEditInput" class="money-input" step="0.01" value="0.00">
+                    <input type="number" inputmode="decimal" id="savingsBalanceEditInput" class="money-input" step="0.01" value="0.00">
                 </div>
             </div>
             <button class="btn" onclick="saveSavingsBalanceEdit()">💾 Save Balance</button>
@@ -596,7 +662,7 @@
                 <label>Target Savings Goal</label>
                 <div class="money-field">
                     <span class="currency-symbol">$</span>
-                    <input type="number" id="goalEditInput" class="money-input" step="0.01" value="16000.00">
+                    <input type="number" inputmode="decimal" id="goalEditInput" class="money-input" step="0.01" value="16000.00">
                 </div>
             </div>
             <button class="btn" onclick="saveGoalEdit()">💾 Save Goal</button>
@@ -614,7 +680,7 @@
                 <label>Current Savings Balance</label>
                 <div class="money-field">
                     <span class="currency-symbol">$</span>
-                    <input type="number" id="onboardSavingsInput" class="money-input" step="0.01" value="0.00">
+                    <input type="number" inputmode="decimal" id="onboardSavingsInput" class="money-input" step="0.01" value="0.00">
                 </div>
             </div>
             <button class="btn" onclick="completeOnboarding()">🚀 Get Started</button>
@@ -663,12 +729,12 @@
                         <label>Hourly Rate</label>
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="calculateAll('other')">
+                            <input type="number" inputmode="decimal" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="calculateAll('other')">
                         </div>
                     </div>
                     <div class="input-group">
                         <label>Hours per Week</label>
-                        <input type="number" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other')">
+                        <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other')">
                     </div>
                     <div class="input-group">
                         <label>Gross Weekly Income</label>
@@ -677,7 +743,7 @@
                     <div class="input-group">
                         <label>Estimated Tax Rate</label>
                         <div class="percent-field">
-                            <input type="number" id="taxRate" value="19.25" step="0.01" oninput="calculateAll('other')" style="width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; text-align: right;">
+                            <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="calculateAll('other')">
                             <span class="percent-symbol">%</span>
                         </div>
                     </div>
@@ -727,7 +793,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="debt-input money-input" data-name="BoFA Customized Cash Rewards" id="debt-cc1" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="BoFA Customized Cash Rewards" id="debt-cc1" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -748,7 +814,7 @@
                                         <input type="text" id="ccDesc-cc1" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc1').focus();} if(event.key==='Escape'){cancelCCEdit('cc1');}">
                                         <div class="money-field">
                                             <span class="currency-symbol">$</span>
-                                            <input type="number" id="ccAmt-cc1" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc1');} if(event.key==='Escape'){cancelCCEdit('cc1');}">
+                                            <input type="number" inputmode="decimal" id="ccAmt-cc1" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc1');} if(event.key==='Escape'){cancelCCEdit('cc1');}">
                                         </div>
                                         <button class="btn-action btn-small" id="ccSubmitBtn-cc1" onclick="addCCItem('cc1')">+ Add</button>
                                         <button class="link-btn" id="ccCancelBtn-cc1" style="display:none;" onclick="cancelCCEdit('cc1')">Cancel</button>
@@ -777,7 +843,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="debt-input money-input" data-name="BoFA Unlimited Cash Rewards" id="debt-cc2" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="BoFA Unlimited Cash Rewards" id="debt-cc2" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -798,7 +864,7 @@
                                         <input type="text" id="ccDesc-cc2" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc2').focus();} if(event.key==='Escape'){cancelCCEdit('cc2');}">
                                         <div class="money-field">
                                             <span class="currency-symbol">$</span>
-                                            <input type="number" id="ccAmt-cc2" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc2');} if(event.key==='Escape'){cancelCCEdit('cc2');}">
+                                            <input type="number" inputmode="decimal" id="ccAmt-cc2" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc2');} if(event.key==='Escape'){cancelCCEdit('cc2');}">
                                         </div>
                                         <button class="btn-action btn-small" id="ccSubmitBtn-cc2" onclick="addCCItem('cc2')">+ Add</button>
                                         <button class="link-btn" id="ccCancelBtn-cc2" style="display:none;" onclick="cancelCCEdit('cc2')">Cancel</button>
@@ -827,7 +893,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="debt-input money-input" data-name="Wells Fargo Unlimited" id="debt-cc3" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="Wells Fargo Unlimited" id="debt-cc3" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -848,7 +914,7 @@
                                         <input type="text" id="ccDesc-cc3" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc3').focus();} if(event.key==='Escape'){cancelCCEdit('cc3');}">
                                         <div class="money-field">
                                             <span class="currency-symbol">$</span>
-                                            <input type="number" id="ccAmt-cc3" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc3');} if(event.key==='Escape'){cancelCCEdit('cc3');}">
+                                            <input type="number" inputmode="decimal" id="ccAmt-cc3" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc3');} if(event.key==='Escape'){cancelCCEdit('cc3');}">
                                         </div>
                                         <button class="btn-action btn-small" id="ccSubmitBtn-cc3" onclick="addCCItem('cc3')">+ Add</button>
                                         <button class="link-btn" id="ccCancelBtn-cc3" style="display:none;" onclick="cancelCCEdit('cc3')">Cancel</button>
@@ -893,7 +959,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="exp-input exp-input-fixed money-input" data-name="Rent" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Rent" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -910,7 +976,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="exp-input exp-input-fixed money-input" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -927,7 +993,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" class="exp-input exp-input-fixed money-input" data-name="Other Bills" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Other Bills" value="0.00" step="0.01" oninput="calculateAll('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -1052,7 +1118,7 @@
                     <div class="input-with-controls">
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" id="savingsThisWeek" class="money-input" step="0.01" oninput="calculateAll('savings')">
+                            <input type="number" inputmode="decimal" id="savingsThisWeek" class="money-input" step="0.01" oninput="calculateAll('savings')">
                         </div>
                         <div class="inline-quick-bar">
                             <button class="iq-btn neg" onclick="adjustSpecificField('savingsThisWeek', -100, 'savings')">-100</button>
@@ -1089,7 +1155,7 @@
                         <span>Sweep Custom Amount:</span>
                         <div class="money-field" style="display:none;" id="customSweepWrap">
                             <span class="currency-symbol">$</span>
-                            <input type="number" id="customSweepAmount" class="money-input" value="0.00" step="0.01" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="number" inputmode="decimal" id="customSweepAmount" class="money-input" value="0.00" step="0.01" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
                         </div>
                     </label>
                 </div>
@@ -1785,7 +1851,7 @@
                     <td style="text-align: right;">
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" class="exp-input money-input" value="${item.amt || '0.00'}" step="0.01" oninput="calculateAll('other')">
+                            <input type="number" inputmode="decimal" class="exp-input money-input" value="${item.amt || '0.00'}" step="0.01" oninput="calculateAll('other')">
                         </div>
                         <div class="inline-quick-bar">
                             <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
