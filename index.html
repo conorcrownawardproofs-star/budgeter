@@ -234,33 +234,101 @@
         .log-empty-state .emoji { font-size: 1.8rem; display: block; margin-bottom: 8px; }
 
         .disc-balance-banner { display: flex; justify-content: space-between; align-items: center; background-color: var(--floating-bg); color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); transition: transform 0.15s, box-shadow 0.15s; }
-        .disc-balance-banner:hover { transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(0, 0, 0, 0.2); }
+        .disc-balance-banner { transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, background-color 0.25s ease, color 0.25s ease; }
+        .disc-balance-banner:hover { transform: translateY(-2px); box-shadow: 0 10px 18px -6px rgba(0, 0, 0, 0.32); }
+        .disc-balance-banner:active { transform: translateY(0) scale(0.995); }
         .disc-balance-amount { color: #34d399; font-weight: 800; font-size: 1.1rem; }
 
-        .savings-goal-card { background-color: #fffbeb; border: 1px solid #fde68a; }
-        .savings-goal-card h2 { color: #b45309; border-bottom-color: #fde68a; }
+        .savings-goal-card {
+            background: linear-gradient(158deg, #fffbeb 0%, #fef3c7 62%, #fde68a 100%);
+            border: 1px solid #fcd34d; position: relative; overflow: hidden;
+        }
+        .savings-goal-card h2 { color: #b45309; border-bottom-color: #fcd34d; position: relative; }
         .goal-progress-wrap { margin-bottom: 16px; }
-        .goal-progress-bar { width: 100%; height: 16px; background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 20px; overflow: hidden; }
-        .goal-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #f59e0b, #ca8a04); border-radius: 20px 0 0 20px; transition: width 0.5s ease; }
-        .goal-progress-text { display: flex; justify-content: space-between; margin-top: 7px; font-size: 0.85rem; color: #92400e; font-weight: 600; }
-        .goal-pct { font-weight: 800; color: #b45309; }
+        .goal-progress-bar {
+            width: 100%; height: 22px; background-color: #fef3c7;
+            border: 1px solid #fcd34d; border-radius: 20px; overflow: hidden; position: relative;
+            box-shadow: inset 0 2px 4px rgba(146, 64, 14, 0.14);
+        }
+        /* Quarter marks give the bar a scale to read against -- without them
+           a lone fill tells you the ratio but not roughly where you stand. */
+        .goal-progress-bar::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 20px;
+            background: repeating-linear-gradient(90deg,
+                transparent 0 calc(25% - 1px), rgba(146, 64, 14, 0.18) calc(25% - 1px) 25%);
+        }
+        .goal-progress-fill {
+            height: 100%; width: 0%; border-radius: 20px 0 0 20px; position: relative; overflow: hidden;
+            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 55%, #d97706 100%);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+            transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1), background 0.4s ease, box-shadow 0.4s ease;
+        }
+        .goal-progress-fill::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(115deg, transparent 0 38%, rgba(255, 255, 255, 0.6) 50%, transparent 62% 100%);
+            transform: translateX(-100%);
+            animation: goalShine 4.5s ease-in-out infinite;
+        }
+        @keyframes goalShine {
+            0% { transform: translateX(-100%); }
+            55%, 100% { transform: translateX(260%); }
+        }
+        /* Hitting the target is the one moment in this app worth celebrating,
+           so the bar changes character rather than just filling up. */
+        .savings-goal-card.goal-complete { border-color: #34d399; box-shadow: 0 0 0 1px #6ee7b7, 0 8px 24px -10px rgba(16, 185, 129, 0.55); }
+        .savings-goal-card.goal-complete .goal-progress-fill {
+            background: linear-gradient(90deg, #34d399 0%, #10b981 55%, #059669 100%);
+            border-radius: 20px; box-shadow: 0 0 16px rgba(16, 185, 129, 0.65);
+        }
+        .savings-goal-card.goal-complete .goal-pct { color: #047857; }
+        .goal-progress-text { display: flex; justify-content: space-between; margin-top: 9px; font-size: 0.85rem; color: #92400e; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .goal-pct { font-weight: 800; color: #b45309; font-variant-numeric: tabular-nums; }
         .goal-projections { border-top: 1px dashed #fde68a; padding-top: 12px; }
         .goal-projection-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 7px; color: #78350f; }
         .goal-projection-row:last-child { margin-bottom: 0; }
         .goal-projection-row strong { color: #92400e; }
-        .edit-icon-btn { position: absolute; top: 18px; right: 20px; background: transparent; color: #ca8a04; border: none; font-size: 0.75rem; cursor: pointer; padding: 0; font-weight: 600; }
-        .savings-edit-btn { color: #94a3b8; }
-        .savings-balance-card { background-color: #ecfdf5; border-color: #a7f3d0; }
-        .savings-balance-heading { border-bottom-color: #a7f3d0; color: var(--positive); margin-bottom: 10px; }
+        /* Both card headings are position:relative (so their text sits above
+           the cards' decorative highlight), which puts them in the positioned
+           paint layer at z-index auto -- and since both edit buttons come
+           BEFORE the <h2> in the markup, the full-width heading box painted
+           over them and ate the clicks. Give the buttons an explicit layer. */
+        .edit-icon-btn { position: absolute; top: 18px; right: 20px; z-index: 2; background: transparent; color: #ca8a04; border: none; font-size: 0.75rem; cursor: pointer; padding: 4px 2px; font-weight: 600; }
+        .savings-edit-btn { color: #94a3b8; z-index: 2; padding: 4px 2px; }
+        .savings-balance-card {
+            background: linear-gradient(152deg, #ecfdf5 0%, #d1fae5 58%, #a7f3d0 100%);
+            border-color: #6ee7b7; position: relative; overflow: hidden;
+        }
+        .savings-balance-card::before {
+            content: ''; position: absolute; top: -60px; right: -50px; width: 190px; height: 190px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 68%);
+            pointer-events: none;
+        }
+        .savings-balance-heading { border-bottom-color: #6ee7b7; color: #047857; margin-bottom: 10px; position: relative; }
+        .savings-amount {
+            font-size: 2.6rem; font-weight: 800; text-align: center; color: #047857;
+            letter-spacing: -0.025em; font-variant-numeric: tabular-nums;
+            position: relative; line-height: 1.1;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+        /* Fires only when the balance actually changes, so it reads as
+           "that number just moved" rather than idle decoration. */
+        .savings-amount.bump { animation: savingsBump 0.65s cubic-bezier(0.2, 0.9, 0.25, 1.2); }
+        @keyframes savingsBump {
+            0%   { transform: scale(1); }
+            32%  { transform: scale(1.07); text-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+            100% { transform: scale(1); }
+        }
         .edit-icon-btn:hover { text-decoration: underline; }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5); z-index: 1001; justify-content: center; align-items: center;
+            background: rgba(15, 23, 42, 0.45); z-index: 1001; justify-content: center; align-items: center;
             padding: 20px; box-sizing: border-box;
-            opacity: 0; transition: opacity 0.2s ease;
+            opacity: 0;
+            -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px);
+            transition: opacity 0.26s ease, -webkit-backdrop-filter 0.32s ease, backdrop-filter 0.32s ease;
         }
-        .modal-overlay.open { opacity: 1; }
+        .modal-overlay.open { opacity: 1; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
         /* Every overlay shared one z-index, so stacking fell back to DOM
            order -- and the confirm dialog sits ABOVE #purchaseModal but
            BELOW #addPastLogModal in the markup. Asking "a log already exists
@@ -270,13 +338,32 @@
            thing on screen; say so explicitly. */
         #confirmModal { z-index: 1002; }
         .modal-content {
-            background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; overflow-x: hidden;
-            transform: scale(0.95) translateY(8px);
-            transition: transform 0.2s ease;
+            background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px;
+            box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35); max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+            transform: scale(0.94) translateY(16px);
+            opacity: 0;
+            /* Decelerating curve -- fast off the mark, settling gently -- so
+               the panel feels like it's being placed rather than popped. */
+            transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+                        opacity 0.22s ease,
+                        background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
-        .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
-        .modal-content-wide { max-width: 1280px; width: 96%; max-height: 94vh; }
+        .modal-overlay.open .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .modal-content-wide { max-width: 1280px; width: 94%; max-height: 94vh; }
+
+        /* The balance menu is three tall columns; bringing them in together
+           reads as one heavy slab landing. A short stagger lets the eye go
+           left-to-right the way the content is meant to be read. */
+        .modal-overlay.open .balance-menu-grid > .bm-column {
+            animation: bmColumnIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .modal-overlay.open .balance-menu-grid > .bm-column:nth-child(1) { animation-delay: 0.08s; }
+        .modal-overlay.open .balance-menu-grid > .bm-column:nth-child(2) { animation-delay: 0.14s; }
+        .modal-overlay.open .balance-menu-grid > .bm-column:nth-child(3) { animation-delay: 0.20s; }
+        @keyframes bmColumnIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: none; }
+        }
 
         .balance-menu-grid { display: flex; gap: 14px; align-items: flex-start; }
         .bm-column { display: flex; flex-direction: column; gap: 14px; min-width: 0; flex: 1; }
@@ -564,13 +651,16 @@
 
         html[data-theme="dark"] .mode-tag.manual { background-color: #431407; color: #fb923c; }
 
-        html[data-theme="dark"] .savings-balance-card { background-color: #0d2818; border-color: #1e5636; }
-        html[data-theme="dark"] .savings-balance-heading { border-bottom-color: #1e5636; }
+        html[data-theme="dark"] .savings-balance-card { background: linear-gradient(152deg, #0d2818 0%, #10321e 58%, #14432a 100%); border-color: #2f7a4d; }
+        html[data-theme="dark"] .savings-balance-card::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0) 68%); }
+        html[data-theme="dark"] .savings-balance-heading { border-bottom-color: #2f7a4d; color: #34d399; }
+        html[data-theme="dark"] .savings-amount { color: #34d399; text-shadow: none; }
         html[data-theme="dark"] .savings-edit-btn { color: #64748b; }
 
-        html[data-theme="dark"] .savings-goal-card { background-color: #2a1c04; border-color: #6b4a10; }
-        html[data-theme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #6b4a10; }
-        html[data-theme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #6b4a10; }
+        html[data-theme="dark"] .savings-goal-card { background: linear-gradient(158deg, #2a1c04 0%, #332206 62%, #402b08 100%); border-color: #8a6114; }
+        html[data-theme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #8a6114; }
+        html[data-theme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #8a6114; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4); }
+        html[data-theme="dark"] .goal-progress-bar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(253, 230, 138, 0.22) calc(25% - 1px) 25%); }
         html[data-theme="dark"] .goal-progress-text { color: #fcd34d; }
         html[data-theme="dark"] .goal-pct { color: #fbbf24; }
         html[data-theme="dark"] .goal-projections { border-top-color: #6b4a10; }
@@ -598,7 +688,27 @@
         html[data-theme="dark"] input[readonly] { background-color: #1e293b; color: var(--primary); }
         html[data-theme="dark"] .header-icon img { opacity: 0.95; }
 
-        body, .card, .card-header, .modal-content, .disc-balance-banner,
+        /* This shared rule sits AFTER .modal-content and .disc-balance-banner
+           in the stylesheet and sets the whole `transition` shorthand, which
+           replaced (not extended) the transform transitions those two rules
+           had declared earlier. Net effect: the modal's scale-in never
+           animated at all and the balance banner's hover lift snapped. Both
+           now carry their own complete transition lists, so they're off this
+           shared one. */
+        /* Everything decorative above is motion; honour the OS setting. The
+           progress bar still moves to the right width, it just gets there
+           without the travel and without the looping shine. */
+        @media (prefers-reduced-motion: reduce) {
+            .modal-overlay, .modal-content { transition: opacity 0.01s linear; }
+            .modal-content { transform: none; }
+            .modal-overlay.open .balance-menu-grid > .bm-column { animation: none; }
+            .goal-progress-fill { transition: none; }
+            .goal-progress-fill::after { animation: none; display: none; }
+            .savings-amount.bump { animation: none; }
+            .disc-balance-banner { transition: none; }
+        }
+
+        body, .card, .card-header,
         input, select, textarea, .theme-toggle-track {
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
@@ -1066,9 +1176,7 @@
             <div class="card savings-balance-card">
                 <button class="savings-edit-btn" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 0.75rem; cursor: pointer; padding: 0;" onclick="editSavingsBalance()" title="Edit Savings Balance">✎ Edit</button>
                 <h2 class="savings-balance-heading">Total Savings Balance</h2>
-                <div style="font-size: 2.5rem; font-weight: bold; text-align: center; color: var(--positive);" id="totalSavingsDisplay">
-                    $0.00
-                </div>
+                <div class="savings-amount" id="totalSavingsDisplay">$0.00</div>
             </div>
 
             <div class="card savings-goal-card">
@@ -1461,6 +1569,50 @@
             el.classList.remove('shake');
             void el.offsetWidth;
             el.classList.add('shake');
+        }
+
+        // updateDisplays() runs on nearly every keystroke, so these two
+        // helpers only do anything when the underlying number has actually
+        // changed. Otherwise the savings figure would re-animate constantly
+        // while you typed an unrelated bill amount.
+        const lastAnimatedValues = {};
+
+        function animateValue(key, el, to, render) {
+            if (!el) return;
+            const from = lastAnimatedValues[key];
+            lastAnimatedValues[key] = to;
+
+            const unchanged = from !== undefined && Math.abs(from - to) < 0.005;
+            if (unchanged) return;
+
+            // First paint of a session gets one count-up from zero; that's the
+            // single orchestrated moment. After that, animate only real edits.
+            const start = (from === undefined) ? (isFirstRender ? 0 : to) : from;
+            if (prefersReducedMotion || start === to) { el.innerText = render(to); return; }
+
+            const duration = 650;
+            const t0 = performance.now();
+            if (el._countRaf) cancelAnimationFrame(el._countRaf);
+
+            const step = (now) => {
+                const p = Math.min(1, (now - t0) / duration);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.innerText = render(start + (to - start) * eased);
+                if (p < 1) {
+                    el._countRaf = requestAnimationFrame(step);
+                } else {
+                    el._countRaf = null;
+                    el.innerText = render(to);
+                }
+            };
+            el._countRaf = requestAnimationFrame(step);
+        }
+
+        function bumpEl(el) {
+            if (!el || prefersReducedMotion) return;
+            el.classList.remove('bump');
+            void el.offsetWidth;
+            el.classList.add('bump');
         }
 
         document.addEventListener('focusout', (e) => {
@@ -1861,6 +2013,34 @@
             if (header) header.setAttribute('aria-expanded', String(!cardCollapseState[cardId]));
             localStorage.setItem('budgetCardCollapse', JSON.stringify(cardCollapseState));
             updatePaycheckLaunchLayout();
+            if (!cardCollapseState[cardId]) revealCard(card);
+        }
+
+        // Opening a card lower down the page used to expand it mostly below
+        // the fold, so you'd tap "Details" and see nothing happen. Bring the
+        // card into view -- but only nudge when it actually needs it, and
+        // never yank the page when the whole card already fits on screen.
+        function revealCard(card) {
+            if (!card) return;
+            // Wait for the expand transition to settle so we measure the
+            // card's real height, not its collapsed one.
+            const delay = prefersReducedMotion ? 0 : 260;
+            setTimeout(() => {
+                const rect = card.getBoundingClientRect();
+                const topGap = 16;
+                const viewportH = window.innerHeight;
+                if (rect.top >= topGap && rect.bottom <= viewportH) return;
+
+                // Prefer showing the whole card; if it's taller than the
+                // screen, pin its header to the top instead of centring it.
+                let target;
+                if (rect.height + topGap * 2 > viewportH || rect.top < topGap) {
+                    target = window.scrollY + rect.top - topGap;
+                } else {
+                    target = window.scrollY + rect.bottom - viewportH + topGap;
+                }
+                window.scrollTo({ top: Math.max(0, target), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+            }, delay);
         }
 
         function initCardCollapseState() {
@@ -2471,12 +2651,18 @@
         }
 
         function updateSavingsProjections() {
-            document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
+            const savingsEl = document.getElementById('totalSavingsDisplay');
+            const prevSavings = lastAnimatedValues.savingsBalance;
+            animateValue('savingsBalance', savingsEl, globalSavingsBalance, formatCurrency);
+            if (prevSavings !== undefined && globalSavingsBalance > prevSavings + 0.005) bumpEl(savingsEl);
 
             const pct = savingsGoal > 0 ? Math.min(100, Math.max(0, (globalSavingsBalance / savingsGoal) * 100)) : 0;
             document.getElementById('goalProgressFill').style.width = pct.toFixed(1) + '%';
             document.getElementById('goalProgressAmount').innerText = `${formatCurrency(globalSavingsBalance)} / ${formatCurrency(savingsGoal)}`;
-            document.getElementById('goalProgressPct').innerText = pct.toFixed(1) + '%';
+            animateValue('goalPct', document.getElementById('goalProgressPct'), pct, v => v.toFixed(1) + '%');
+
+            const goalCard = document.querySelector('.savings-goal-card');
+            if (goalCard) goalCard.classList.toggle('goal-complete', savingsGoal > 0 && globalSavingsBalance >= savingsGoal);
 
             // Rough, back-of-envelope paycheck math -- after tax, and
             // deliberately NOT netted against credit card debt or bills
@@ -3443,7 +3629,9 @@
         function updateDisplays() {
             document.getElementById('floatingDiscretionary').innerText = formatCurrency(globalDiscretionaryBalance);
             document.getElementById('modalBalanceDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
-            document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
+            // totalSavingsDisplay is set by updateSavingsProjections() at the
+            // end of calculateAll() below -- writing it here too would stamp
+            // the final figure over the top of the count-up as it ran.
 
             renderLiminalPanel();
             renderHistoryList();
