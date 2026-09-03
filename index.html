@@ -2734,6 +2734,16 @@
 
             isFirstRender = false;
         });
+
+        // Register the service worker (offline app-shell caching for the
+        // installed PWA). Safe to skip if unsupported or opened as a local
+        // file. This was missing from this copy of the file -- restoring it
+        // so an updated sw.js actually gets installed and takes over.
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching just won't be available */ });
+            });
+        }
     </script>
 </body>
 </html>
