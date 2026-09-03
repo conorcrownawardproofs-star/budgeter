@@ -89,12 +89,96 @@
         .sync-badge.disconnected { background-color: #f1f5f9; color: var(--text-muted); }
         .sync-badge.error { background-color: #fee2e2; color: #b91c1c; }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; align-items: start; }
-        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; } }
-        .left-col, .right-col { min-width: 0; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; align-items: stretch; }
+        @media (max-width: 768px) { .dashboard { grid-template-columns: 1fr; align-items: start; } }
+        .left-col, .right-col { min-width: 0; display: flex; flex-direction: column; }
+        #card-bills:not(.collapsed) { flex: 1 1 auto; min-height: 0; }
 
+/* Keep the full left-side stack aligned with the bottom of Current Week Tracker.
+   The dashboard grid stretches both columns to the same height; letting the
+   Weekly Debts & Bills card absorb the remaining left-column space makes its
+   bottom border line up with the tracker's bottom border. */
+.left-col {
+    min-height: 0;
+}
+
+#card-bills:not(.collapsed) {
+    min-height: 0;
+}
+
+/* On launch, keep the three accordion controls visually grouped while the
+   left stack still reaches the same bottom edge as Current Week Tracker. */
+.dashboard.paycheck-launch-layout #card-bills.collapsed {
+    margin-top: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.dashboard.paycheck-launch-layout #card-bills.collapsed .card-body {
+    min-height: 0;
+}
+        
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; position: relative; }
         .card h2 { font-size: 1.25rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
+
+
+        /* ===== Desktop compact mode =====
+           Keep the full dashboard and Saved Weekly Logs visible in a normal
+           desktop viewport without changing the mobile sizing rules. */
+        @media (min-width: 769px) {
+            body {
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+            .header-container {
+                margin-bottom: 14px;
+                padding-bottom: 10px;
+            }
+            .header-title { font-size: 1.55rem; }
+            .header-subtitle { font-size: 0.82rem; }
+            .header-icon { width: 42px; height: 42px; }
+
+            .dashboard {
+                gap: 14px;
+            }
+            .card {
+                padding: 14px;
+                margin-bottom: 10px;
+            }
+            .card-header {
+                padding: 12px 14px;
+            }
+            .card-header-left h2 { font-size: 1.03rem; }
+            .summary-badge { font-size: 0.84rem; padding: 4px 9px; }
+            .card-body {
+                padding: 0 14px 14px 14px;
+                padding-top: 12px;
+            }
+            .input-group { margin-bottom: 8px; }
+            .input-group label { font-size: 0.88rem; }
+            .input-group input[readonly],
+            .input-group input[type="text"]:not([readonly]),
+            .input-group input[type="number"],
+            .input-with-controls input[type="number"] {
+                padding: 6px;
+            }
+            table { margin-bottom: 8px; }
+            th, td { padding: 7px 8px; font-size: 0.86rem; }
+            .inline-quick-bar { gap: 2px; }
+            .iq-btn { padding: 2px 4px; font-size: 0.64rem; }
+
+            .week-selector { padding: 7px; }
+            .btn-today { padding: 6px 8px; }
+            .sweep-box { padding: 10px; margin-top: 10px; font-size: 0.84rem; }
+            .sweep-option { margin-bottom: 7px; }
+            .btn { padding: 9px; margin-top: 10px; font-size: 0.9rem; }
+
+            .log-section { margin-top: 12px; }
+            .log-section .card { margin-bottom: 8px; }
+            .log-section .card h2 { margin-bottom: 10px; padding-bottom: 7px; font-size: 1.05rem; }
+            #logTable th, #logTable td { padding: 6px; font-size: 0.82rem; }
+            .footer-section { margin-top: 12px; margin-bottom: 4px; }
+        }
 
         /* ===== Accordion cards ===== */
         .accordion-card { padding: 0; overflow: hidden; }
@@ -182,7 +266,7 @@
 
         .log-section { max-width: 1200px; margin: 20px auto 0; }
         .log-details { background-color: #f8fafc; border-bottom: 2px solid var(--border-color); }
-        .log-details td { padding: 15px; font-size: 0.9rem; }
+        .log-details td { padding: 0; font-size: 0.9rem; }
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 600px) { .details-grid { grid-template-columns: 1fr; } }
 
@@ -213,14 +297,88 @@
         .savings-balance-heading { border-bottom-color: #a7f3d0; color: var(--positive); margin-bottom: 10px; }
         .edit-icon-btn:hover { text-decoration: underline; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1001; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 1001; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box;
+            opacity: 0; transition: opacity 0.2s ease;
+        }
+        .modal-overlay.open { opacity: 1; }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+            transform: scale(0.95) translateY(8px);
+            transition: transform 0.2s ease;
+        }
+        .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
+        .modal-content-wide { max-width: 1280px; width: 96%; max-height: 94vh; }
+
+        /* Named-area grid: balance/log widget sits top-right and spans both
+           rows; plan + review fill the top-left/middle, history + totals
+           fill the bottom-left/middle. Compact spacing throughout so the
+           whole thing fits without scrolling on a normal desktop screen. */
+        .balance-menu-grid {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .bm-column {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+        }
+        .bm-column:nth-child(2) { flex: 1.1; }
+
+        .balance-menu-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; min-width: 0; font-size: 0.88rem; }
+        .balance-menu-section h4 { margin-top: 0; margin-bottom: 10px; color: var(--primary); font-size: 0.92rem; }
+        .balance-menu-section .input-group { margin-bottom: 8px; }
+        .balance-menu-section #historyList { max-height: 220px; overflow-y: auto; }
+        .balance-menu-section #weeklyReviewRows, .balance-menu-section #liminalRows { overflow: visible; }
+        .bm-balance-display { text-align: center; background-color: var(--surface-muted); border-radius: 6px; padding: 10px; }
+        .bm-subhead { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.02em; }
+        .balance-menu-section .btn { padding: 9px; font-size: 0.88rem; margin-top: 10px; }
+        .balance-menu-section .btn-subtle-reset { padding: 6px 10px; font-size: 0.74rem; margin-top: 6px; }
+
+        /* Denser row styling, scoped to this modal only — the same
+           components (cc-item, budget-row) are used elsewhere in the app
+           at their normal size and shouldn't shrink there too. */
+        .bm-balance .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .bm-balance .input-group label { font-size: 0.82rem; flex: none; }
+        .bm-balance .input-group input[type="text"],
+        .bm-balance .input-group select,
+        .bm-balance .input-with-controls,
+        .bm-balance .money-field {
+            width: 100%;
+            max-width: none;
+            flex: none;
+        }
+        .bm-balance .money-field input { width: 100%; }
+        .bm-balance .input-with-controls { align-items: stretch; }
+        .balance-menu-section .liminal-row { padding: 4px 0; }
+        .balance-menu-section .liminal-cat-name { font-size: 0.8rem; margin-bottom: 2px; }
+        .balance-menu-section .liminal-planned input { width: 84px; padding: 5px 8px; }
+        .balance-menu-section .liminal-suggested { font-size: 0.72rem; }
+        .balance-menu-section .liminal-suggested strong { font-size: 0.85rem; }
+        .balance-menu-section .liminal-summary { padding: 8px 10px; margin-top: 4px; }
+        .balance-menu-section .liminal-summary-row { font-size: 0.78rem; margin-bottom: 3px; }
+        .balance-menu-section .cc-item { padding: 5px 8px; font-size: 0.76rem; }
+        .balance-menu-section .budget-row { font-size: 0.79rem; margin-bottom: 3px; }
+
+        @media (max-width: 900px) {
+            .balance-menu-grid { flex-direction: column; }
+        }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 
         .edit-mode td.editable { background-color: #fef3c7; border: 1px dashed #d97706; cursor: text; }
-        .budget-planner { background-color: #f8fafc; border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; margin-top: 20px; }
-        .budget-planner h4 { margin-top: 0; margin-bottom: 10px; color: var(--primary); }
         .budget-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
 
         /* CC Breakdown Styles */
@@ -348,6 +506,75 @@
         .misc-remove-btn { padding: 2px 6px; font-size: 0.72rem; margin-left: 6px; color: var(--negative); }
         .add-misc-row td { text-align: center; padding: 10px; }
 
+        /* ===== Liminal Budget Allocation (left column) ===== */
+        .liminal-row { padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .liminal-row:last-child { border-bottom: none; }
+        .liminal-cat-name { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+        .liminal-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .liminal-planned { flex-shrink: 0; }
+        .liminal-planned input {
+            width: 110px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+        .liminal-suggested { text-align: right; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; flex-shrink: 0; }
+        .liminal-suggested strong { display: block; color: var(--primary); font-size: 0.98rem; }
+        .liminal-suggested:hover strong { text-decoration: underline; }
+        .liminal-summary { background-color: var(--surface-muted); border-radius: 6px; padding: 12px 14px; margin-top: 14px; }
+        .liminal-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; }
+        .liminal-summary-row:last-child { margin-bottom: 0; padding-top: 6px; border-top: 1px dashed var(--border-color); font-weight: 700; }
+
+        /* ===== Transaction History (right column) ===== */
+        .history-empty { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 10px; }
+        /* max-height for #historyList is set by .balance-menu-section #historyList above */
+
+        /* ===== Weekly Review: Projected vs Actual ===== */
+        .review-diff-over { color: var(--negative); font-weight: 700; }
+        .review-diff-under { color: var(--positive); font-weight: 700; }
+
+        /* ===== Redesigned "More Details" toggle (Weekly Logs) ===== */
+        .details-toggle-btn {
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px !important;
+            font-size: 0.75rem !important; background-color: var(--surface-muted); border: 1px solid var(--border-color);
+            border-radius: 20px; color: var(--text-main); cursor: pointer;
+        }
+        .details-toggle-btn .chevron { font-size: 0.85rem; transform: rotate(-90deg); transition: transform 0.25s ease; }
+        .details-toggle-btn.expanded .chevron { transform: rotate(0deg); }
+
+        /* Animated details drawer — same grid-rows expand/collapse trick
+           used elsewhere in the app, so it opens smoothly instead of
+           snapping open/shut. */
+        .log-details {
+            min-height: 0;
+        }
+        .log-details td {
+            padding: 0;
+            border-bottom: 0;
+        }
+
+        .log-details-wrap {
+            display: grid;
+            grid-template-rows: minmax(0, 0fr);
+            min-height: 0;
+            overflow: hidden;
+            transition: grid-template-rows 0.3s ease;
+        }
+        .log-details-wrap.expanded { grid-template-rows: minmax(0, 1fr); }
+        .log-details-inner { overflow: hidden; min-height: 0; min-width: 0; padding: 15px; }
+
+        .log-summary-totals { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .log-summary-pill { background-color: var(--surface-muted); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; }
+        .log-summary-pill strong { display: block; font-size: 1.02rem; margin-top: 2px; }
+
+        /* ===== Color picker: native swatch + hex input ===== */
+        .cc-color-popover-custom { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); }
+        .cc-color-native { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: none; }
+        .cc-color-hex-input { width: 76px; padding: 4px 6px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; text-transform: uppercase; }
+
         /* =======================================================
            DARK MODE
            Base theme vars first (covers everything already built
@@ -388,7 +615,6 @@
         html[data-theme="dark"] .total-row,
         html[data-theme="dark"] .log-details,
         html[data-theme="dark"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
-        html[data-theme="dark"] .budget-planner,
         html[data-theme="dark"] .cc-breakdown-row td { background-color: #172033; }
 
         html[data-theme="dark"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
@@ -526,71 +752,102 @@
 
     <!-- Purchase & Budget Modal -->
     <div class="modal-overlay" id="purchaseModal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-wide">
             <div class="modal-header">
-                <h3 style="margin: 0;">Manage Spendable Balance</h3>
+                <h3 style="margin: 0;">🛒 Discretionary Balance</h3>
                 <button class="close-btn" onclick="closeModal('purchaseModal')">&times;</button>
             </div>
 
-            <div style="margin-bottom: 15px; text-align: center;">
-                <span style="font-size: 0.9rem; color: var(--text-muted);">Current Balance:</span><br>
-                <span style="font-size: 1.8rem; font-weight: bold; color: var(--positive);" id="modalBalanceDisplay">$0.00</span>
-            </div>
-
-            <div class="input-group">
-                <label>Item Name / Note</label>
-                <input type="text" id="purchaseName" placeholder="e.g., Target, Refund">
-            </div>
-            <div class="input-group">
-                <label>Category (Required)</label>
-                <select id="purchaseCategory" onchange="document.getElementById('purchaseCategoryError').classList.remove('show')">
-                    <option value="" disabled selected>Select Category...</option>
-                    <option value="Groceries & Dining">🍔 Groceries & Dining</option>
-                    <option value="Fun & Entertainment">🎬 Fun & Entertainment</option>
-                    <option value="Shopping & Misc">🛍️ Shopping & Misc</option>
-                    <option value="Buffer / Other">🛡️ Buffer / Other</option>
-                </select>
-            </div>
-            <div class="field-error" id="purchaseCategoryError">Please select a category before logging this transaction.</div>
-            <div class="input-group">
-                <label>Amount ($)</label>
-                <div class="input-with-controls">
-                    <div class="money-field">
-                        <span class="currency-symbol">$</span>
-                        <input type="number" inputmode="decimal" id="purchaseAmount" class="money-input" value="0.00" step="0.01">
+            <div class="balance-menu-grid">
+                <!-- LEFT COLUMN: current balance + log form, then history below it -->
+                <div class="bm-column">
+                    <!-- BALANCE + LOG: current balance and add/subtract -->
+                    <div class="balance-menu-section bm-balance">
+                        <div class="bm-balance-display">
+                            <span style="font-size: 0.82rem; color: var(--text-muted);">Available Balance</span><br>
+                            <span style="font-size: 1.7rem; font-weight: bold; color: var(--positive);" id="modalBalanceDisplay">$0.00</span>
+                        </div>
+                        <h4 style="margin-top: 14px;">💵 Log a Transaction</h4>
+                        <div class="input-group">
+                            <label>Name</label>
+                            <input type="text" id="purchaseName" placeholder="e.g., Target, Refund">
+                        </div>
+                        <div class="input-group">
+                            <label>Category</label>
+                            <select id="purchaseCategory" onchange="document.getElementById('purchaseCategoryError').classList.remove('show')">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="Groceries">🛒 Groceries</option>
+                                <option value="Fast Food">🍔 Fast Food</option>
+                                <option value="Dining Out">🍽️ Dining Out</option>
+                                <option value="Gas (Car)">⛽ Gas (Car)</option>
+                                <option value="Coffee & Snacks">☕ Coffee & Snacks</option>
+                                <option value="Entertainment">🎬 Entertainment</option>
+                                <option value="Shopping & Misc">🛍️ Shopping & Misc</option>
+                                <option value="Subscriptions">📱 Subscriptions</option>
+                                <option value="Personal Care">🧴 Personal Care</option>
+                                <option value="Health & Pharmacy">💊 Health & Pharmacy</option>
+                            </select>
+                        </div>
+                        <div class="field-error" id="purchaseCategoryError">Select a category first.</div>
+                        <div class="input-group">
+                            <label>Amount ($)</label>
+                            <div class="input-with-controls">
+                                <div class="money-field">
+                                    <span class="currency-symbol">$</span>
+                                    <input type="number" inputmode="decimal" id="purchaseAmount" class="money-input" value="0.00" step="0.01">
+                                </div>
+                                <div class="inline-quick-bar">
+                                    <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -100)">-100</button>
+                                    <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -10)">-10</button>
+                                    <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -5)">-5</button>
+                                    <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -1)">-1</button>
+                                    <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 1)">+1</button>
+                                    <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 5)">+5</button>
+                                    <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 10)">+10</button>
+                                    <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 100)">+100</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 8px;">
+                            <button class="btn btn-half btn-sub" onclick="logTransaction('sub')">Subtract (-)</button>
+                            <button class="btn btn-half btn-add" onclick="logTransaction('add')">Add (+)</button>
+                        </div>
+                        <button class="btn-subtle-reset" onclick="resetPurchaseFields()">🔄 Reset Fields</button>
                     </div>
-                    <div class="inline-quick-bar">
-                        <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -100)">-100</button>
-                        <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -10)">-10</button>
-                        <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -5)">-5</button>
-                        <button class="iq-btn neg" onclick="adjustSpecificField('purchaseAmount', -1)">-1</button>
-                        <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 1)">+1</button>
-                        <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 5)">+5</button>
-                        <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 10)">+10</button>
-                        <button class="iq-btn pos" onclick="adjustSpecificField('purchaseAmount', 100)">+100</button>
+
+                    <!-- HISTORY: Transaction History -->
+                    <div class="balance-menu-section bm-history">
+                        <h4>🧾 History</h4>
+                        <div id="historyList"></div>
                     </div>
                 </div>
-            </div>
 
-            <div style="display: flex; justify-content: space-between;">
-                <button class="btn btn-half btn-sub" onclick="logTransaction('sub')">Subtract (-)</button>
-                <button class="btn btn-half btn-add" onclick="logTransaction('add')">Add Funds (+)</button>
-            </div>
-            <button class="btn-subtle-reset" onclick="resetPurchaseFields()">🔄 Reset Current Fields</button>
+                <!-- CENTER COLUMN: Liminal Budget Allocation -->
+                <div class="bm-column">
+                    <div class="balance-menu-section bm-plan">
+                        <h4>🧭 Liminal Plan</h4>
+                        <div id="liminalRows"></div>
+                        <div class="liminal-summary" id="liminalSummary"></div>
+                    </div>
+                </div>
 
-            <div class="budget-planner">
-                <h4>📊 Category Spending Totals</h4>
-                <div id="categoryTotalsOutput" style="margin-bottom: 15px;"></div>
+                <!-- RIGHT COLUMN: Weekly Review, then Totals & Suggestion below it -->
+                <div class="bm-column">
+                    <!-- REVIEW: Weekly Review, Projected vs Actual -->
+                    <div class="balance-menu-section bm-review">
+                        <h4>📊 Weekly Review</h4>
+                        <div id="weeklyReviewRows"></div>
+                    </div>
 
-                <h4>✨ Auto-Budget Suggestion</h4>
-                <div id="aiBudgetOutput"></div>
-            </div>
-
-            <h4 style="margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Transaction History</h4>
-            <div style="max-height: 150px; overflow-y: auto;">
-                <table style="margin-bottom: 0;">
-                    <tbody id="purchaseHistoryBody"></tbody>
-                </table>
+                    <!-- Category totals + auto-budget suggestion -->
+                    <div class="balance-menu-section bm-totals">
+                        <h4>✨ Totals &amp; Suggestion</h4>
+                        <div class="bm-subhead">Spent so far this week</div>
+                        <div id="categoryTotalsOutput"></div>
+                        <div class="bm-subhead">Auto-budget suggestion</div>
+                        <div id="aiBudgetOutput"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1190,6 +1447,7 @@
                             <th>Bills</th>
                             <th>Total Saved</th>
                             <th>Discretionary Added</th>
+                            <th>Savings Balance</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1230,6 +1488,150 @@
         // Per-card customization (color label + tiny photo) — persists globally, not per-week
         let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
         const CC_LABEL_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
+
+        // =======================
+        // LIMINAL BUDGET ALLOCATION
+        // Categories share their percentages with the modal's Auto-Budget
+        // Suggestion, and their "value" strings match the purchase category
+        // dropdown, so Weekly Review can compare planned vs. real spend.
+        // =======================
+        const LIMINAL_CATEGORIES = [
+            { key: 'groceries', label: 'Groceries', icon: '🛒', value: 'Groceries', pct: 0.25 },
+            { key: 'fastfood', label: 'Fast Food', icon: '🍔', value: 'Fast Food', pct: 0.10 },
+            { key: 'dining', label: 'Dining Out', icon: '🍽️', value: 'Dining Out', pct: 0.10 },
+            { key: 'gas', label: 'Gas (Car)', icon: '⛽', value: 'Gas (Car)', pct: 0.12 },
+            { key: 'coffee', label: 'Coffee & Snacks', icon: '☕', value: 'Coffee & Snacks', pct: 0.08 },
+            { key: 'entertainment', label: 'Entertainment', icon: '🎬', value: 'Entertainment', pct: 0.10 },
+            { key: 'shopping', label: 'Shopping & Misc', icon: '🛍️', value: 'Shopping & Misc', pct: 0.10 },
+            { key: 'subscriptions', label: 'Subscriptions', icon: '📱', value: 'Subscriptions', pct: 0.05 },
+            { key: 'personalcare', label: 'Personal Care', icon: '🧴', value: 'Personal Care', pct: 0.05 },
+            { key: 'health', label: 'Health & Pharmacy', icon: '💊', value: 'Health & Pharmacy', pct: 0.05 }
+        ];
+        let plannedAllocations = { groceries: 0, fastfood: 0, dining: 0, gas: 0, coffee: 0, entertainment: 0, shopping: 0, subscriptions: 0, personalcare: 0, health: 0 };
+
+        function getSuggestedAmount(pct) {
+            return globalDiscretionaryBalance > 0 ? globalDiscretionaryBalance * pct : 0;
+        }
+
+        function getTotalPlanned() {
+            return LIMINAL_CATEGORIES.reduce((sum, c) => sum + (parseFloat(plannedAllocations[c.key]) || 0), 0);
+        }
+
+        function setPlannedAmount(key, value) {
+            const amt = parseFloat(value);
+            plannedAllocations[key] = isNaN(amt) || amt < 0 ? 0 : amt;
+            // Update the balance displays and summary live, but deliberately do NOT
+            // rebuild the row inputs here — that would reformat the field the user
+            // is actively typing in (e.g. "1" -> "1.00") on every keystroke.
+            const available = globalDiscretionaryBalance - getTotalPlanned();
+            document.getElementById('floatingDiscretionary').innerText = formatCurrency(available);
+            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(available);
+            updateLiminalSummary();
+            renderWeeklyReview();
+            saveState();
+        }
+
+        function useSuggestedAmount(key, pct) {
+            const input = document.getElementById(`liminalPlanned-${key}`);
+            if (input) {
+                input.value = getSuggestedAmount(pct).toFixed(2);
+                setPlannedAmount(key, input.value);
+            }
+        }
+
+        function updateLiminalSummary() {
+            const totalPlanned = getTotalPlanned();
+            const summary = document.getElementById('liminalSummary');
+            if (summary) {
+                summary.innerHTML = `
+                    <div class="liminal-summary-row"><span>Discretionary Balance</span><span>${formatCurrency(globalDiscretionaryBalance)}</span></div>
+                    <div class="liminal-summary-row"><span>Total Planned (Liminal)</span><span>− ${formatCurrency(totalPlanned)}</span></div>
+                    <div class="liminal-summary-row"><span>Available to Spend</span><span class="${(globalDiscretionaryBalance - totalPlanned) < 0 ? 'negative-text' : 'positive-text'}">${formatCurrency(globalDiscretionaryBalance - totalPlanned)}</span></div>
+                `;
+            }
+        }
+
+        // Rebuilds the row inputs themselves — only called when something that
+        // actually changes the underlying numbers happens (balance changed,
+        // week saved, state restored), never on every keystroke.
+        function renderLiminalPanel() {
+            const wrap = document.getElementById('liminalRows');
+            if (!wrap) return;
+
+            wrap.innerHTML = LIMINAL_CATEGORIES.map(cat => {
+                const planned = plannedAllocations[cat.key] || 0;
+                const suggested = getSuggestedAmount(cat.pct);
+                return `
+                    <div class="liminal-row">
+                        <div class="liminal-cat-name">${cat.icon} ${cat.label}</div>
+                        <div class="liminal-controls">
+                            <div class="liminal-planned money-field">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" inputmode="decimal" class="money-input" id="liminalPlanned-${cat.key}" value="${planned.toFixed(2)}" step="0.01" oninput="setPlannedAmount('${cat.key}', this.value)">
+                            </div>
+                            <div class="liminal-suggested" title="Click to use this suggestion" onclick="useSuggestedAmount('${cat.key}', ${cat.pct})">
+                                Suggested (${Math.round(cat.pct * 100)}%)
+                                <strong>${formatCurrency(suggested)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateLiminalSummary();
+        }
+
+        // =======================
+        // WEEKLY REVIEW: Projected vs. Actual
+        // Real Spent comes from this week's live transaction list (spending
+        // only, i.e. negative amounts); Projected comes from what's
+        // currently planned in the Liminal panel for that category.
+        // =======================
+        function getRealSpentByCategory(purchases) {
+            const totals = {};
+            (purchases || []).forEach(p => {
+                if (p.amount < 0) {
+                    totals[p.category] = (totals[p.category] || 0) + Math.abs(p.amount);
+                }
+            });
+            return totals;
+        }
+
+        function renderWeeklyReview() {
+            const wrap = document.getElementById('weeklyReviewRows');
+            if (!wrap) return;
+
+            const realSpent = getRealSpentByCategory(purchasesData);
+            let totalReal = 0, totalPlanned = 0;
+            let rows = '';
+
+            LIMINAL_CATEGORIES.forEach(cat => {
+                const real = realSpent[cat.value] || 0;
+                const planned = parseFloat(plannedAllocations[cat.key]) || 0;
+                totalReal += real;
+                totalPlanned += planned;
+                const diff = planned - real;
+                const diffClass = diff < 0 ? 'negative-text' : (diff > 0 ? 'positive-text' : '');
+
+                rows += `
+                    <div class="budget-row">
+                        <span>${cat.icon} ${cat.label}:</span>
+                        <strong class="${diffClass}">${formatCurrency(real)} / ${formatCurrency(planned)}</strong>
+                    </div>
+                `;
+            });
+
+            const totalDiff = totalPlanned - totalReal;
+            const totalDiffClass = totalDiff < 0 ? 'negative-text' : (totalDiff > 0 ? 'positive-text' : '');
+            rows += `
+                <div class="budget-row" style="border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 2px; font-weight: 700;">
+                    <span>Total</span>
+                    <strong class="${totalDiffClass}">${formatCurrency(totalReal)} / ${formatCurrency(totalPlanned)}</strong>
+                </div>
+            `;
+
+            wrap.innerHTML = rows;
+        }
 
         // =======================
         // DARK MODE
@@ -1442,12 +1844,23 @@
         // =======================
         let cardCollapseState = {};
 
+        function updatePaycheckLaunchLayout() {
+            const dashboard = document.querySelector('.dashboard');
+            if (!dashboard) return;
+            const launchLayout = !cardCollapseState.paycheck &&
+                                 cardCollapseState.cc &&
+                                 cardCollapseState.bills &&
+                                 cardCollapseState.tracker;
+            dashboard.classList.toggle('paycheck-launch-layout', launchLayout);
+        }
+
         function toggleCard(cardId) {
             const card = document.getElementById(`card-${cardId}`);
             if (!card) return;
             card.classList.toggle('collapsed');
             cardCollapseState[cardId] = card.classList.contains('collapsed');
             localStorage.setItem('budgetCardCollapse', JSON.stringify(cardCollapseState));
+            updatePaycheckLaunchLayout();
         }
 
         function initCardCollapseState() {
@@ -1463,6 +1876,11 @@
                     card.classList.toggle('collapsed', !!cardCollapseState[id]);
                 }
             });
+
+            // In the initial layout, the paycheck calculator is the only
+            // expanded accordion. Anchor the collapsed bills card to the
+            // bottom of the left column for a clean bottom-edge alignment.
+            updatePaycheckLaunchLayout();
         }
 
         // =======================
@@ -1802,9 +2220,16 @@
             const willOpen = !pop.classList.contains('open');
 
             if (willOpen) {
+                const meta = ccCardMeta[cardId] || {};
+                const currentColor = /^#[0-9A-Fa-f]{6}$/.test(meta.color) ? meta.color : '#94a3b8';
                 pop.innerHTML = CC_LABEL_COLORS.map(c =>
                     `<button class="cc-color-option" style="background-color:${c};" onclick="setCCColor('${cardId}', '${c}')" title="Set label color"></button>`
-                ).join('') + `<button class="cc-color-option cc-color-clear" onclick="setCCColor('${cardId}', '')" title="Clear label">✕</button>`;
+                ).join('') + `<button class="cc-color-option cc-color-clear" onclick="setCCColor('${cardId}', '')" title="Clear label">✕</button>`
+                + `<div class="cc-color-popover-custom">
+                    <input type="color" class="cc-color-native" id="ccColorNative-${cardId}" value="${currentColor}" onchange="setCCColor('${cardId}', this.value)" title="Pick any custom color">
+                    <input type="text" class="cc-color-hex-input" id="ccColorHex-${cardId}" placeholder="#RRGGBB" maxlength="7" onkeydown="if(event.key==='Enter'){applyCCHexColor('${cardId}');}">
+                    <button class="btn-action btn-small" style="padding:4px 8px; font-size:0.72rem;" onclick="applyCCHexColor('${cardId}')">Set</button>
+                </div>`;
 
                 const rect = btn.getBoundingClientRect();
                 pop.style.top = `${rect.bottom + 4}px`;
@@ -1812,6 +2237,22 @@
                 pop.style.left = 'auto';
             }
             pop.classList.toggle('open', willOpen);
+        }
+
+        function applyCCHexColor(cardId) {
+            const input = document.getElementById(`ccColorHex-${cardId}`);
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!val.startsWith('#')) val = '#' + val;
+
+            if (!/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                input.style.borderColor = 'var(--negative)';
+                shakeEl(input);
+                return;
+            }
+            input.style.borderColor = '';
+            setCCColor(cardId, val);
         }
 
         function setCCColor(cardId, color) {
@@ -1939,7 +2380,8 @@
                 logsData,
                 purchasesData,
                 weeklyDrafts,
-                ccCardMeta
+                ccCardMeta,
+                plannedAllocations
             };
             localStorage.setItem('budgetTrackerData', JSON.stringify(state));
 
@@ -1966,6 +2408,13 @@
             logsData = saved.logsData || [];
             purchasesData = saved.purchasesData || [];
             weeklyDrafts = saved.weeklyDrafts || {};
+            // Restore planned allocations, sanitized to the known category keys only
+            const savedPlanned = saved.plannedAllocations || {};
+            plannedAllocations = {};
+            LIMINAL_CATEGORIES.forEach(cat => {
+                const v = parseFloat(savedPlanned[cat.key]);
+                plannedAllocations[cat.key] = isNaN(v) || v < 0 ? 0 : v;
+            });
             // Photo feature was removed — keep only the color label, drop any legacy photo data
             const savedMeta = saved.ccCardMeta || {};
             ccCardMeta = {
@@ -2240,10 +2689,14 @@
                 debtsList: debtsList,
                 expsList: expsList,
                 purchasesSnapshot: weeklyPurchasesSnapshot,
+                plannedSnapshot: { ...plannedAllocations },
+                savingsSnapshot: globalSavingsBalance,
                 note: ""
             });
 
             purchasesData = [];
+            // Planning restarts fresh each week
+            LIMINAL_CATEGORIES.forEach(cat => { plannedAllocations[cat.key] = 0; });
 
             // Clear the just-logged week's draft, then reset the on-screen fields to
             // blank defaults BEFORE navigating to the next week. This prevents
@@ -2276,7 +2729,7 @@
             if (logsData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="log-empty-state">
                                 <span class="emoji">📈</span>
                                 No weeks logged yet. Save your first week above to start building your history.
@@ -2292,6 +2745,8 @@
                 row.className = index % 2 === 0 ? 'log-row-even' : '';
                 const isNeg = val => parseFloat(val) < 0;
                 const hasNote = log.note && log.note.trim() !== "";
+                const savingsSnapshotValue = Number(log.savingsSnapshot);
+                const hasSavingsSnapshot = Number.isFinite(savingsSnapshotValue);
 
                 row.innerHTML = `
                     <td class="log-cell editable"><strong>${escapeHtml(log.date)}</strong></td>
@@ -2300,9 +2755,12 @@
                     <td class="log-cell editable negative-text">${formatCurrency(log.exp)}</td>
                     <td class="log-cell editable positive-text">${formatCurrency(log.save)}</td>
                     <td class="log-cell editable ${isNeg(log.disc) ? 'negative-text' : 'highlight'}">${formatCurrency(log.disc)}</td>
+                    <td class="positive-text">${hasSavingsSnapshot ? formatCurrency(savingsSnapshotValue) : '—'}</td>
                     <td>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn-small btn-action" onclick="toggleDetails(${index})" title="View Details">🔍</button>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <button class="details-toggle-btn" id="detailsToggleBtn-${index}" onclick="toggleDetails(${index})" title="Show or hide this week's full breakdown">
+                                <span class="chevron">▾</span> Details
+                            </button>
                             <button class="btn-small btn-action" onclick="openNoteModal(${index})" title="Add/Edit Note">${hasNote ? '📝*' : '📝'}</button>
                             ${isEditMode ? `<button class="btn-small" style="background-color: var(--negative);" onclick="deleteLog(${index})" title="Delete Log">❌</button>` : ''}
                         </div>
@@ -2313,7 +2771,6 @@
                 const detailsRow = document.createElement('tr');
                 detailsRow.id = `details-${index}`;
                 detailsRow.className = "log-details";
-                detailsRow.style.display = "none";
 
                 let debtsHtml = log.debtsList ? log.debtsList.filter(d => d.val > 0).map(d => `<div>${escapeHtml(d.name)}: ${formatCurrency(d.val)}</div>`).join('') : 'None logged.';
                 let expsHtml = log.expsList ? log.expsList.map(e => `<div>${escapeHtml(e.name)}: ${formatCurrency(e.val)}</div>`).join('') : 'None logged.';
@@ -2323,13 +2780,41 @@
                     purchasesHtml = log.purchasesSnapshot.map(p => `<div>• ${escapeHtml(p.name)} (${escapeHtml(p.category)}): ${formatCurrency(p.amount)}</div>`).join('');
                 }
 
+                // Planned vs. Actual, from that week's snapshot (older logs saved
+                // before this feature existed won't have one — show a note instead).
+                let plannedVsActualHtml = `<div style="color:var(--text-muted); font-size:0.82rem;">No plan was recorded for this week.</div>`;
+                if (log.plannedSnapshot) {
+                    const realSpentThatWeek = getRealSpentByCategory(log.purchasesSnapshot || []);
+                    plannedVsActualHtml = LIMINAL_CATEGORIES.map(cat => {
+                        const planned = parseFloat(log.plannedSnapshot[cat.key]) || 0;
+                        const real = realSpentThatWeek[cat.value] || 0;
+                        if (planned === 0 && real === 0) return '';
+                        const diff = planned - real;
+                        const diffClass = diff < 0 ? 'review-diff-over' : (diff > 0 ? 'review-diff-under' : '');
+                        return `<div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:4px;">
+                            <span>${cat.icon} ${cat.label}</span>
+                            <span>${formatCurrency(real)} spent / ${formatCurrency(planned)} planned <span class="${diffClass}">(${diff < 0 ? 'over' : 'under'})</span></span>
+                        </div>`;
+                    }).join('') || `<div style="color:var(--text-muted); font-size:0.82rem;">Nothing was planned or spent by category this week.</div>`;
+                }
+
                 detailsRow.innerHTML = `
-                    <td colspan="7">
+                    <td colspan="8">
+                        <div class="log-details-wrap" id="detailsWrap-${index}">
+                        <div class="log-details-inner">
+                        <div class="log-summary-totals">
+                            <div class="log-summary-pill">CC Debt Total<strong class="negative-text">${formatCurrency(log.debt)}</strong></div>
+                            <div class="log-summary-pill">Bills/Expenses Total<strong class="negative-text">${formatCurrency(log.exp)}</strong></div>
+                            <div class="log-summary-pill">Spendable Balance<strong class="${isNeg(log.disc) ? 'negative-text' : 'highlight'}">${formatCurrency(log.disc)}</strong></div>
+                            <div class="log-summary-pill">Savings Balance<strong class="positive-text">${hasSavingsSnapshot ? formatCurrency(savingsSnapshotValue) : '—'}</strong></div>
+                        </div>
                         <div class="details-grid">
                             <div>
                                 <strong>Debt Breakdown:</strong><br>${debtsHtml || 'None logged.'}
                                 <br><br><strong>Bills Breakdown:</strong><br>${expsHtml}
                                 ${log.swept > 0 ? `<div style="margin-top:10px; color:var(--positive);"><em>Swept Spendable Balance: ${formatCurrency(log.swept)}</em></div>` : ''}
+                                <br><strong>Planned vs. Actual:</strong>
+                                <div style="margin-top:5px;">${plannedVsActualHtml}</div>
                             </div>
                             <div>
                                 <strong>Spendable Balance Activity:</strong><br>
@@ -2337,6 +2822,8 @@
                             </div>
                         </div>
                         ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border-color);"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
+                        </div>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(detailsRow);
@@ -2353,6 +2840,7 @@
                 <td class="negative-text">${formatCurrency(sum('exp'))}</td>
                 <td class="positive-text">${formatCurrency(sum('save'))}</td>
                 <td class="${totalDisc < 0 ? 'negative-text' : 'highlight'}">${formatCurrency(totalDisc)}</td>
+                <td>—</td>
                 <td></td>
             `;
             tbody.appendChild(totalsRow);
@@ -2364,8 +2852,15 @@
         }
 
         function toggleDetails(index) {
-            const detailsRow = document.getElementById(`details-${index}`);
-            detailsRow.style.display = detailsRow.style.display === "none" ? "table-row" : "none";
+            const wrap = document.getElementById(`detailsWrap-${index}`);
+            const btn = document.getElementById(`detailsToggleBtn-${index}`);
+            if (!wrap) return;
+            const nowExpanded = !wrap.classList.contains('expanded');
+            wrap.classList.toggle('expanded', nowExpanded);
+            if (btn) {
+                btn.classList.toggle('expanded', nowExpanded);
+                btn.innerHTML = `<span class="chevron">▾</span> ${nowExpanded ? 'Hide' : 'Details'}`;
+            }
         }
 
         function openNoteModal(index) {
@@ -2459,25 +2954,28 @@
         }
 
         function renderPurchases() {
-            const tbody = document.getElementById('purchaseHistoryBody');
-            tbody.innerHTML = '';
-            purchasesData.forEach((p, index) => {
-                const row = document.createElement('tr');
-                const isAdd = p.amount > 0;
-                row.innerHTML = `
-                    <td>
-                        <div>${escapeHtml(p.name)}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category)}</div>
-                    </td>
-                    <td class="${isAdd ? 'positive-text' : 'negative-text'}" style="text-align: right; vertical-align: middle;">
-                        ${isAdd ? '+' : ''}${formatCurrency(p.amount)}
-                    </td>
-                    <td style="text-align: right; width: 40px; vertical-align: middle;">
-                        <button style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" onclick="deleteTransaction(${index})">❌</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            const list = document.getElementById('historyList');
+            if (list) {
+                if (purchasesData.length === 0) {
+                    list.innerHTML = `<div class="history-empty">No transactions logged yet this week.</div>`;
+                } else {
+                    list.innerHTML = purchasesData.map((p, index) => {
+                        const isAdd = p.amount > 0;
+                        return `
+                            <div class="cc-item">
+                                <span>
+                                    <div>${escapeHtml(p.name)}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category)}</div>
+                                </span>
+                                <span style="display:flex; align-items:center; gap:8px;">
+                                    <span class="${isAdd ? 'positive-text' : 'negative-text'}">${isAdd ? '+' : ''}${formatCurrency(p.amount)}</span>
+                                    <button style="background:none; border:none; cursor:pointer; font-size: 1.05rem;" onclick="deleteTransaction(${index})" title="Delete">❌</button>
+                                </span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
             generateCategoryTotals();
         }
 
@@ -2524,16 +3022,11 @@
         }
 
         function generateCategoryTotals() {
-            const totals = { "Groceries & Dining": 0, "Fun & Entertainment": 0, "Shopping & Misc": 0, "Buffer / Other": 0 };
-            purchasesData.forEach(p => { if (p.amount < 0 && totals[p.category] !== undefined) totals[p.category] += Math.abs(p.amount); });
-
+            const totals = getRealSpentByCategory(purchasesData);
             const out = document.getElementById('categoryTotalsOutput');
-            out.innerHTML = `
-                <div class="budget-row"><span>🍔 Groceries & Dining:</span> <strong>${formatCurrency(totals["Groceries & Dining"])}</strong></div>
-                <div class="budget-row"><span>🎬 Fun & Entertainment:</span> <strong>${formatCurrency(totals["Fun & Entertainment"])}</strong></div>
-                <div class="budget-row"><span>🛍️ Shopping & Misc:</span> <strong>${formatCurrency(totals["Shopping & Misc"])}</strong></div>
-                <div class="budget-row"><span>🛡️ Buffer / Other:</span> <strong>${formatCurrency(totals["Buffer / Other"])}</strong></div>
-            `;
+            out.innerHTML = LIMINAL_CATEGORIES.map(cat =>
+                `<div class="budget-row"><span>${cat.icon} ${cat.label}:</span> <strong>${formatCurrency(totals[cat.value] || 0)}</strong></div>`
+            ).join('');
         }
 
         function generateBudget() {
@@ -2545,27 +3038,44 @@
                 return;
             }
 
-            out.innerHTML = `
-                <div class="budget-row"><span>🍔 Groceries & Dining (45%)</span> <strong>${formatCurrency(bal * 0.45)}</strong></div>
-                <div class="budget-row"><span>🎬 Fun & Entertainment (30%)</span> <strong>${formatCurrency(bal * 0.30)}</strong></div>
-                <div class="budget-row"><span>🛍️ Shopping & Misc (15%)</span> <strong>${formatCurrency(bal * 0.15)}</strong></div>
-                <div class="budget-row" style="border-top: 1px solid var(--border-color); padding-top: 5px; margin-top: 5px;">
-                    <span>🛡️ Buffer (10%)</span> <strong style="color:var(--positive);">${formatCurrency(bal * 0.10)}</strong>
-                </div>
-            `;
+            out.innerHTML = LIMINAL_CATEGORIES.map(cat =>
+                `<div class="budget-row"><span>${cat.icon} ${cat.label} (${Math.round(cat.pct * 100)}%)</span> <strong>${formatCurrency(bal * cat.pct)}</strong></div>`
+            ).join('') + `<div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">Tip: set these as Planned amounts in the Liminal Budget Allocation panel to hold them aside.</div>`;
         }
 
         function updateBalancesUI() {
-            document.getElementById('floatingDiscretionary').innerText = formatCurrency(globalDiscretionaryBalance);
-            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
+            const available = globalDiscretionaryBalance - getTotalPlanned();
+            document.getElementById('floatingDiscretionary').innerText = formatCurrency(available);
+            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(available);
             document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
             document.getElementById('sweepRolloverDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
             generateBudget();
             updateSavingsGoalUI();
+            renderLiminalPanel();
+            renderWeeklyReview();
         }
 
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; if (modalId === 'purchaseModal') updateBalancesUI(); }
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        function openModal(modalId) {
+            const overlay = document.getElementById(modalId);
+            overlay.style.display = 'flex';
+            // Force a reflow so the browser registers the pre-transition state
+            // before .open is added — otherwise the transition wouldn't play.
+            void overlay.offsetWidth;
+            overlay.classList.add('open');
+            if (modalId === 'purchaseModal') {
+                updateBalancesUI();
+            }
+        }
+        function closeModal(modalId) {
+            const overlay = document.getElementById(modalId);
+            overlay.classList.remove('open');
+            const finish = () => { overlay.style.display = 'none'; };
+            if (prefersReducedMotion) {
+                finish();
+            } else {
+                setTimeout(finish, 200);
+            }
+        }
 
         let _confirmResolve = null;
         function showConfirm(title, body, confirmLabel = 'Confirm') {
