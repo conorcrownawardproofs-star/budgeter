@@ -1172,7 +1172,7 @@
                         <span>Sweep Custom Amount:</span>
                         <div class="money-field" style="display:none;" id="customSweepWrap">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="customSweepAmount" class="money-input" value="0.00" step="0.01" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="number" inputmode="decimal" id="customSweepAmount" class="money-input" value="0.00" step="0.01" min="0" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
                         </div>
                     </label>
                 </div>
@@ -1276,9 +1276,16 @@
         function setPlannedAmount(key, value) {
             const amt = parseFloat(value);
             plannedAllocations[key] = isNaN(amt) || amt < 0 ? 0 : amt;
-            const available = globalDiscretionaryBalance - getTotalPlanned();
-            document.getElementById('floatingDiscretionary').innerText = formatCurrency(available);
-            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(available);
+            // The header banner and the modal's "Available Balance" are both
+            // meant to show the real spendable balance (globalDiscretionaryBalance)
+            // everywhere else in the app (see updateDisplays()) -- planning
+            // out a liminal category here was overwriting them with
+            // "balance minus planned" instead, so the header would show a
+            // smaller number than you actually had until some unrelated
+            // action (a purchase, switching weeks, etc.) happened to call
+            // updateDisplays() and reset it back. The "minus planned"
+            // figure already has its own place: the Liminal Plan's
+            // "Available to Spend" row, via updateLiminalSummary() below.
             updateLiminalSummary();
             renderWeeklyReview();
             saveState();
@@ -1816,9 +1823,18 @@
 
         function initCardCollapseState() {
             const saved = localStorage.getItem('budgetCardCollapse');
-            cardCollapseState = saved ? JSON.parse(saved) : { paycheck: true, cc: true, bills: true, tracker: false };
-            cardCollapseState.paycheck = false;
-            cardCollapseState.tracker = true;
+            // toggleCard() persists all four cards' collapsed state to
+            // localStorage on every click, but this used to force paycheck
+            // open and tracker closed unconditionally on every load -- so
+            // collapsing the Paycheck card (or expanding the Tracker card)
+            // never actually stuck across a reload, even though it looked
+            // saved. Only apply those defaults on a true first run, when
+            // there's nothing saved yet.
+            if (saved) {
+                cardCollapseState = JSON.parse(saved);
+            } else {
+                cardCollapseState = { paycheck: false, cc: true, bills: true, tracker: true };
+            }
 
             ['paycheck', 'cc', 'bills', 'tracker'].forEach(id => {
                 const card = document.getElementById(`card-${id}`);
@@ -1992,14 +2008,36 @@
             }
         }
 
+        // renderCreditCards() rebuilds every card row from scratch with each
+        // Payment field hardcoded back to "0.00" -- it relies on the caller
+        // to repopulate real values afterward (loadCurrentWeekDraft() does
+        // this). addNewCreditCard() and deleteCreditCard() used to skip that
+        // step, so adding or deleting a card silently zeroed out every OTHER
+        // card's already-entered payment, and the very next
+        // saveCurrentWeekDraft() call would then persist those zeros,
+        // permanently wiping the real numbers. Snapshot current values into
+        // the draft right before the rebuild, then restore them after.
+        function restoreDebtInputsFromDraft() {
+            if (!currentWeekKey) return;
+            const draft = weeklyDrafts[currentWeekKey];
+            if (!draft || !Array.isArray(draft.cards)) return;
+            draft.cards.forEach(dc => {
+                const input = document.getElementById(`debt-${dc.id}`);
+                if (input && document.activeElement !== input) input.value = parseFloat(dc.payment || 0).toFixed(2);
+            });
+        }
+
         function addNewCreditCard() {
             const newId = 'cc_' + Date.now();
+
+            saveCurrentWeekDraft();
 
             creditCards.push({ id: newId, name: 'New Credit Card' });
             ccBreakdowns[newId] = [];
             ccCardMeta[newId] = { color: '' };
 
             renderCreditCards();
+            restoreDebtInputsFromDraft();
             calculateAll('other');
             saveCurrentWeekDraft();
 
@@ -2032,6 +2070,11 @@
             showConfirmModal(`Are you sure you want to delete "${card.name}"? This will remove its breakdown items and payments.`, (confirmed) => {
                 if (!confirmed) return;
 
+                // Capture the payments currently on screen for the cards
+                // we're KEEPING before renderCreditCards() below rebuilds
+                // the table and resets every Payment field to "0.00".
+                saveCurrentWeekDraft();
+
                 creditCards = creditCards.filter(c => c.id !== id);
                 delete ccBreakdowns[id];
                 delete ccCardMeta[id];
@@ -2050,6 +2093,7 @@
                 });
 
                 renderCreditCards();
+                restoreDebtInputsFromDraft();
                 calculateAll('other');
                 saveCurrentWeekDraft();
             });
@@ -2140,6 +2184,17 @@
             if (!ccBreakdowns[ccId]) return;
             ccBreakdowns[ccId].splice(idx, 1);
             if (ccEditIndex[ccId] === idx) cancelCCEdit(ccId);
+            if (ccBreakdowns[ccId].length === 0) {
+                // renderCCBreakdown() only re-syncs the Payment field from
+                // the item total while items exist -- that's needed so
+                // merely opening the details panel on a card with no items
+                // doesn't clobber a manually-typed payment. But that also
+                // meant deleting your last itemized charge left the Payment
+                // field showing the old (now-wrong) total instead of the $0
+                // the item list itself was showing. Zero it explicitly here.
+                const debtInput = document.getElementById(`debt-${ccId}`);
+                if (debtInput) debtInput.value = '0.00';
+            }
             renderCCBreakdown(ccId);
             calculateAll('other');
             saveCurrentWeekDraft();
@@ -2340,9 +2395,18 @@
             document.getElementById('goalProgressAmount').innerText = `${formatCurrency(globalSavingsBalance)} / ${formatCurrency(savingsGoal)}`;
             document.getElementById('goalProgressPct').innerText = pct.toFixed(1) + '%';
 
-            const annualAfterTax = currentNetIncome * 52;
-            const nextYearProj = globalSavingsBalance + (annualAfterTax * 0.6);
-            document.getElementById('goalProjCurrent').innerText = formatCurrency(annualAfterTax);
+            // This card is labeled "Remaining Income (After Tax)" / "Next Year
+            // Forecast", so it needs to project what's actually left over
+            // after debt payments and bills (remainingBeforeSavings) -- not
+            // gross weekly net pay (currentNetIncome), which ignores every
+            // expense on the page. Using currentNetIncome here was inflating
+            // both figures by however much goes to debt/bills each week.
+            // Mirror the same Math.max(0, ...) floor calculateAll() uses for
+            // the actual weekly auto-savings amount, so the forecast lines up
+            // with what auto-savings would really sock away.
+            const annualRemaining = remainingBeforeSavings * 52;
+            const nextYearProj = globalSavingsBalance + (Math.max(0, annualRemaining) * 0.6);
+            document.getElementById('goalProjCurrent').innerText = formatCurrency(annualRemaining);
             document.getElementById('goalProjNext').innerText = formatCurrency(nextYearProj);
         }
 
@@ -2583,10 +2647,20 @@
             let addedToDiscretionary = finalDiscretionary;
 
             if (sweepAction === 'sweep_all') {
+                // In a deficit week (finalDiscretionary < 0) there's nothing
+                // positive to sweep, but the deficit itself still needs to
+                // hit the spendable balance -- forcing addedToDiscretionary
+                // to a flat 0 was making that shortfall vanish into thin air
+                // instead of reducing the balance, unlike "Keep in Spendable
+                // Balance" and "Sweep Custom Amount" (below), which both
+                // handle a negative finalDiscretionary correctly.
                 addedToSavings += Math.max(0, finalDiscretionary);
-                addedToDiscretionary = 0;
+                addedToDiscretionary = Math.min(0, finalDiscretionary);
             } else if (sweepAction === 'sweep_custom') {
-                const customAmt = parseFloat(document.getElementById('customSweepAmount').value) || 0;
+                // Clamp out a negative custom amount too -- the field has no
+                // min="0", and a negative value here would otherwise pull
+                // money OUT of savings and back into discretionary.
+                const customAmt = Math.max(0, parseFloat(document.getElementById('customSweepAmount').value) || 0);
                 const sweepAmt = Math.min(Math.max(0, finalDiscretionary), customAmt);
                 addedToSavings += sweepAmt;
                 addedToDiscretionary = finalDiscretionary - sweepAmt;
