@@ -399,9 +399,11 @@
             }
         }
 
+        .cc-table { table-layout: fixed; width: 100%; }
+        .cc-table td { overflow: hidden; }
         .cc-row-line { display: flex; flex-direction: column; gap: 6px; }
         .cc-name-input {
-            width: 100%; box-sizing: border-box;
+            width: 100%; box-sizing: border-box; min-width: 0;
             font: inherit; font-weight: 600; font-size: 0.98rem; color: var(--text-main);
             background: transparent; border: 1px solid transparent; border-radius: 4px;
             padding: 4px 6px; margin: -4px -6px;
@@ -919,7 +921,11 @@
                 <div class="card-body" id="body-cc">
                 <div class="card-body-inner">
                 <div class="table-container">
-                    <table>
+                    <table class="cc-table">
+                        <colgroup>
+                            <col style="width: 62%;">
+                            <col style="width: 38%;">
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th>Debt Account</th>
@@ -1543,6 +1549,11 @@
                 setSaveStatus('error');
             }
 
+            setupRealtimeChannel();
+        }
+
+        function setupRealtimeChannel() {
+            if (!supabaseClient || !syncCode) return;
             try {
                 if (syncChannel) supabaseClient.removeChannel(syncChannel);
                 syncChannel = supabaseClient
@@ -1561,14 +1572,19 @@
                             updateSyncStatus('live');
                         } else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR' || status === 'CLOSED') {
                             // The live-push websocket dropped, but basic save/load
-                            // already succeeded above over plain REST, so don't flip
-                            // the badge to "Not Connected" over a background
-                            // websocket hiccup -- that was the bug. Just quietly
-                            // retry the live channel in the background.
+                            // already succeeds over plain REST regardless, so don't
+                            // flip the badge to "Not Connected" over a background
+                            // websocket hiccup.
+                            //
+                            // CRITICAL: only retry the realtime channel itself here.
+                            // This used to call the full startSync(), which re-runs
+                            // the data pull and a full re-render every retry -- if the
+                            // channel kept failing (e.g. never successfully
+                            // subscribing), that meant a fresh re-render every 8
+                            // seconds forever, silently resetting whatever you were
+                            // typing. That was the periodic-reset bug.
                             clearTimeout(syncReconnectTimer);
-                            syncReconnectTimer = setTimeout(() => {
-                                if (supabaseClient && syncCode) startSync();
-                            }, 8000);
+                            syncReconnectTimer = setTimeout(setupRealtimeChannel, 8000);
                         }
                     });
             } catch (err) {
