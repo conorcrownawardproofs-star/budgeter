@@ -724,6 +724,16 @@
             </div>
             <button class="btn" onclick="saveSyncCode()">Connect</button>
             <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 10px; margin-bottom: 0;">Connecting a new device pulls down whatever is already saved under this code — any local numbers on that device will be replaced.</p>
+
+            <div id="syncStatusSection" style="display:none; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom: 8px;">
+                    <span class="sync-badge" id="syncStatusBadgeModal">⚪ Not Connected</span>
+                    <span class="sync-badge" id="syncSaveBadge">💾 Saved</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 14px 0;" id="syncLastSavedText">Not yet saved.</p>
+                <button class="btn btn-sub" onclick="overwriteSyncSave()">⬆️ Overwrite Sync Save With This Device</button>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 6px; margin-bottom: 0;">Forces whatever is currently on this screen — balances, bills, credit cards, and logs — to replace the saved sync data. Any changes made on other devices that haven't synced here yet will be lost.</p>
+            </div>
         </div>
     </div>
 
@@ -795,7 +805,8 @@
             <div class="header-widgets" id="headerWidgets">
                 <div class="sync-widget" id="syncWidget">
                     <span class="sync-badge" id="syncStatusBadge">⚪ Not Connected</span>
-                    <button type="button" class="link-btn" onclick="openModal('syncSetupModal')">⚙ Sync Settings</button>
+                    <span class="sync-badge" id="syncSaveBadgeHeader" style="display:none;">💾 Saved</span>
+                    <button type="button" class="link-btn" onclick="openSyncSettingsModal()">⚙ Sync Settings</button>
                 </div>
                 <label class="theme-toggle" for="themeToggleInput" title="Toggle dark mode">
                     <input type="checkbox" id="themeToggleInput" onchange="setTheme(this.checked ? 'dark' : 'light')">
@@ -823,12 +834,12 @@
                         <label>Hourly Rate</label>
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="calculateAll('other')">
+                            <input type="number" inputmode="decimal" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="calculateAll('other'); saveState();">
                         </div>
                     </div>
                     <div class="input-group">
                         <label>Hours per Week</label>
-                        <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other')">
+                        <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other'); saveState();">
                     </div>
                     <div class="input-group">
                         <label>Gross Weekly Income</label>
@@ -837,7 +848,7 @@
                     <div class="input-group">
                         <label>Estimated Tax Rate</label>
                         <div class="percent-field">
-                            <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="calculateAll('other')">
+                            <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="calculateAll('other'); saveState();">
                             <span class="percent-symbol">%</span>
                         </div>
                     </div>
@@ -912,7 +923,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Rent" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Rent" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -929,7 +940,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -946,7 +957,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Other Bills" value="0.00" step="0.01" oninput="calculateAll('other')">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Other Bills" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -1071,7 +1082,7 @@
                     <div class="input-with-controls">
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="savingsThisWeek" class="money-input" step="0.01" oninput="calculateAll('savings')">
+                            <input type="number" inputmode="decimal" id="savingsThisWeek" class="money-input" step="0.01" oninput="calculateAll('savings'); saveCurrentWeekDraft();">
                         </div>
                         <div class="inline-quick-bar">
                             <button class="iq-btn neg" onclick="adjustSpecificField('savingsThisWeek', -100, 'savings')">-100</button>
@@ -1371,6 +1382,8 @@
         let syncPushTimer = null;
         let syncConnectTimeout = null;
         let isApplyingRemoteState = false;
+        let syncSaveStatus = 'idle'; // 'idle' | 'saved' | 'unsaved' | 'saving' | 'error'
+        let lastSyncSavedAt = null;
 
         function loadSupabaseScript(callback) {
             const existing = document.getElementById('supabase-js-lib');
@@ -1399,6 +1412,21 @@
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 startSync();
             });
+        }
+
+        function openSyncSettingsModal() {
+            const syncInput = document.getElementById('syncCodeInput');
+            if (syncInput) syncInput.value = syncCode;
+            const section = document.getElementById('syncStatusSection');
+            if (section) section.style.display = (SYNC_ENABLED && syncCode) ? 'block' : 'none';
+            const headerBadge = document.getElementById('syncStatusBadge');
+            const modalBadge = document.getElementById('syncStatusBadgeModal');
+            if (headerBadge && modalBadge) {
+                modalBadge.innerText = headerBadge.innerText;
+                modalBadge.className = headerBadge.className;
+            }
+            refreshSaveStatusUI();
+            openModal('syncSetupModal');
         }
 
         function saveSyncCode() {
@@ -1431,6 +1459,7 @@
                 applyRemoteState(data.data);
             } else if (error) {
                 updateSyncStatus('error');
+                setSaveStatus('error');
             } else {
                 pushStateToSupabase();
             }
@@ -1461,15 +1490,18 @@
             isApplyingRemoteState = true;
             applyStateObject(remoteData);
             isApplyingRemoteState = false;
+            setSaveStatus('saved');
         }
 
         function queueSyncPush(state) {
+            if (SYNC_ENABLED && syncCode) setSaveStatus('unsaved');
             clearTimeout(syncPushTimer);
             syncPushTimer = setTimeout(() => pushStateToSupabase(state), 800);
         }
 
         async function pushStateToSupabase(state) {
             if (!supabaseClient || !syncCode) return;
+            setSaveStatus('saving');
             const payload = state || JSON.parse(localStorage.getItem('budgetTrackerData') || '{}');
             const { error } = await supabaseClient
                 .from('budget_state')
@@ -1480,30 +1512,114 @@
             if (error) {
                 console.error('Sync push failed', error);
                 updateSyncStatus('error');
+                setSaveStatus('error');
             } else {
                 updateSyncStatus('live');
+                setSaveStatus('saved');
             }
         }
 
+        function overwriteSyncSave() {
+            if (!supabaseClient || !syncCode) return;
+            closeModal('syncSetupModal');
+            setTimeout(() => {
+                showConfirmModal(
+                    "This will replace the saved sync data with exactly what's currently on this screen — including credit cards, balances, bills, and logs. Any changes made on other devices that haven't synced here yet will be lost. Continue?",
+                    (confirmed) => {
+                        if (!confirmed) {
+                            openSyncSettingsModal();
+                            return;
+                        }
+                        clearTimeout(syncPushTimer);
+                        const state = getStateObject();
+                        localStorage.setItem('budgetTrackerData', JSON.stringify(state));
+                        pushStateToSupabase(state).then(() => {
+                            openSyncSettingsModal();
+                        });
+                    },
+                    '⬆️ Overwrite Sync Save?'
+                );
+            }, 220);
+        }
+
         function updateSyncStatus(status) {
-            const el = document.getElementById('syncStatusBadge');
-            if (!el) return;
+            const targets = [document.getElementById('syncStatusBadge'), document.getElementById('syncStatusBadgeModal')].filter(Boolean);
+            if (targets.length === 0) return;
             clearTimeout(syncConnectTimeout);
 
+            let text, cls;
             if (status === 'live') {
-                el.innerText = '🟢 Synced';
-                el.className = 'sync-badge live';
+                text = '🟢 Synced'; cls = 'sync-badge live';
             } else if (status === 'error') {
-                el.innerText = '🔴 Sync error';
-                el.className = 'sync-badge error';
+                text = '🔴 Sync error'; cls = 'sync-badge error';
             } else if (status === 'disconnected') {
-                el.innerText = '⚪ Not Connected';
-                el.className = 'sync-badge disconnected';
+                text = '⚪ Not Connected'; cls = 'sync-badge disconnected';
             } else {
-                el.innerText = '🟡 Connecting…';
-                el.className = 'sync-badge connecting';
+                text = '🟡 Connecting…'; cls = 'sync-badge connecting';
                 syncConnectTimeout = setTimeout(() => updateSyncStatus('disconnected'), 6000);
             }
+            targets.forEach(el => { el.innerText = text; el.className = cls; });
+        }
+
+        function setSaveStatus(status) {
+            syncSaveStatus = status;
+            if (status === 'saved') lastSyncSavedAt = Date.now();
+            refreshSaveStatusUI();
+        }
+
+        function refreshSaveStatusUI() {
+            const badge = document.getElementById('syncSaveBadge');
+            const headerBadge = document.getElementById('syncSaveBadgeHeader');
+            const textEl = document.getElementById('syncLastSavedText');
+            const connected = SYNC_ENABLED && !!syncCode;
+
+            let text, cls;
+            if (syncSaveStatus === 'saved') {
+                text = '💾 Saved'; cls = 'sync-badge live';
+            } else if (syncSaveStatus === 'saving') {
+                text = '💾 Saving…'; cls = 'sync-badge connecting';
+            } else if (syncSaveStatus === 'unsaved') {
+                text = '🟡 Unsaved changes'; cls = 'sync-badge connecting';
+            } else if (syncSaveStatus === 'error') {
+                text = '⚠️ Save failed'; cls = 'sync-badge error';
+            } else {
+                text = '💾 Saved'; cls = 'sync-badge disconnected';
+            }
+
+            if (badge) { badge.innerText = text; badge.className = cls; }
+            if (headerBadge) {
+                headerBadge.style.display = connected ? 'inline-flex' : 'none';
+                headerBadge.innerText = text;
+                headerBadge.className = cls;
+            }
+
+            if (textEl) {
+                if (!connected) {
+                    textEl.innerText = 'Not connected to a sync code yet.';
+                } else if (syncSaveStatus === 'unsaved') {
+                    textEl.innerText = "You have changes that haven't been saved to the sync yet.";
+                } else if (syncSaveStatus === 'saving') {
+                    textEl.innerText = 'Saving to sync…';
+                } else if (syncSaveStatus === 'error') {
+                    textEl.innerText = 'Last save attempt failed. Try again or use Overwrite below.';
+                } else if (lastSyncSavedAt) {
+                    textEl.innerText = `Last saved ${formatRelativeTime(lastSyncSavedAt)}.`;
+                } else {
+                    textEl.innerText = 'Not yet saved.';
+                }
+            }
+        }
+
+        function formatRelativeTime(ts) {
+            const seconds = Math.round((Date.now() - ts) / 1000);
+            if (seconds < 5) return 'just now';
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.round(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.round(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.round(hours / 24);
+            return `${days}d ago`;
         }
 
         // Accordion Cards
@@ -1705,6 +1821,18 @@
                 delete ccBreakdowns[id];
                 delete ccCardMeta[id];
                 delete ccEditIndex[id];
+
+                // Purge this card from every saved weekly draft too, otherwise
+                // switching to another week (or a synced device applying an
+                // older draft) will silently re-add the "deleted" card.
+                Object.values(weeklyDrafts).forEach(draft => {
+                    if (Array.isArray(draft.cards)) {
+                        draft.cards = draft.cards.filter(c => c.id !== id);
+                    }
+                    if (draft.ccBreakdowns) {
+                        delete draft.ccBreakdowns[id];
+                    }
+                });
 
                 renderCreditCards();
                 calculateAll('other');
@@ -2511,7 +2639,7 @@
             if (Array.isArray(state.purchasesData)) purchasesData = state.purchasesData;
             if (state.plannedAllocations) plannedAllocations = { ...plannedAllocations, ...state.plannedAllocations };
             if (state.weeklyDrafts) weeklyDrafts = state.weeklyDrafts;
-            if (Array.isArray(state.creditCards) && state.creditCards.length > 0) creditCards = state.creditCards;
+            if (Array.isArray(state.creditCards)) creditCards = state.creditCards;
             if (state.ccBreakdowns) ccBreakdowns = state.ccBreakdowns;
             if (state.ccCardMeta) ccCardMeta = state.ccCardMeta;
 
