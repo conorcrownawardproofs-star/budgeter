@@ -90,7 +90,6 @@
         #card-bills:not(.collapsed) { flex: 1 1 auto; min-height: 0; }
 
         .left-col { min-height: 0; }
-        #card-bills:not(.collapsed) { min-height: 0; }
 
         .dashboard.paycheck-launch-layout #card-bills.collapsed {
             margin-top: 0; flex: 1 1 auto; min-height: 0;
@@ -262,6 +261,14 @@
             opacity: 0; transition: opacity 0.2s ease;
         }
         .modal-overlay.open { opacity: 1; }
+        /* Every overlay shared one z-index, so stacking fell back to DOM
+           order -- and the confirm dialog sits ABOVE #purchaseModal but
+           BELOW #addPastLogModal in the markup. Asking "a log already exists
+           for this week, replace it?" therefore drew the question behind the
+           still-open Add a Missing Week dialog, leaving a dimmed screen with
+           no reachable answer. The confirm dialog is always the topmost
+           thing on screen; say so explicitly. */
+        #confirmModal { z-index: 1002; }
         .modal-content {
             background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto; overflow-x: hidden;
@@ -739,7 +746,7 @@
             </div>
             <p id="confirmModalBody" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;"></p>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button class="btn btn-half btn-action" onclick="closeConfirmModal(false)">Cancel</button>
+                <button class="btn btn-half btn-action" id="confirmModalCancelBtn" onclick="closeConfirmModal(false)">Cancel</button>
                 <button class="btn btn-half btn-sub" id="confirmModalConfirmBtn" onclick="closeConfirmModal(true)">Confirm</button>
             </div>
         </div>
@@ -750,7 +757,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 style="margin: 0;">🔄 Set Up Live Sync</h3>
-                <button class="close-btn" onclick="closeModal('syncSetupModal')">&times;</button>
+                <button class="close-btn" onclick="dismissSyncSetup()">&times;</button>
             </div>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Enter the same private sync code on every device you want kept in sync. Treat it like a password — anyone with this code (and your Supabase project) can read or change this data.</p>
             <div class="input-group">
@@ -1228,6 +1235,11 @@
 
     <script>
         const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount) || 0);
+        // Older/partial log entries (or anything that arrives from a synced
+        // device running a different version) can be missing a numeric field.
+        // renderLogsTable() called .toFixed(2) straight on those, which threw
+        // and left the entire Saved Weekly Logs table blank. Coerce safely.
+        const safeNum = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
         const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
         let currentNetIncome = 0, currentDebt = 0, currentExp = 0, currentSavings = 0, currentRemaining = 0;
@@ -1496,6 +1508,15 @@
 
             if (!syncCode) {
                 updateSyncStatus('disconnected');
+                // On a genuine first run the welcome dialog is also opening,
+                // and both overlays landed on screen at once -- dismissing
+                // one revealed a second unexpected dialog underneath. Let
+                // onboarding go first; completeOnboarding() calls this back.
+                if (!localStorage.getItem('onboardingComplete')) return;
+                // Closing this dialog without entering a code used to be
+                // pointless -- it reopened on every single load. Remember the
+                // dismissal; ⚙ Sync Settings in the header still reopens it.
+                if (localStorage.getItem('syncPromptDismissed')) return;
                 openModal('syncSetupModal');
                 return;
             }
@@ -1519,6 +1540,17 @@
             }
             refreshSaveStatusUI();
             openModal('syncSetupModal');
+        }
+
+        function dismissSyncSetup() {
+            closeModal('syncSetupModal');
+            // Only treat it as "no thanks" when there's still no code set --
+            // closing the same dialog reopened from the header's Sync
+            // Settings button must not silently suppress the prompt for a
+            // user who simply wanted to look at their settings.
+            if (!syncCode) {
+                try { localStorage.setItem('syncPromptDismissed', '1'); } catch (e) {}
+            }
         }
 
         function saveSyncCode() {
@@ -1825,6 +1857,8 @@
             if (!card) return;
             card.classList.toggle('collapsed');
             cardCollapseState[cardId] = card.classList.contains('collapsed');
+            const header = card.querySelector('.card-header');
+            if (header) header.setAttribute('aria-expanded', String(!cardCollapseState[cardId]));
             localStorage.setItem('budgetCardCollapse', JSON.stringify(cardCollapseState));
             updatePaycheckLaunchLayout();
         }
@@ -1838,10 +1872,18 @@
             // never actually stuck across a reload, even though it looked
             // saved. Only apply those defaults on a true first run, when
             // there's nothing saved yet.
+            // This ran unguarded inside the DOMContentLoaded handler, so one
+            // malformed value here threw before anything else initialised --
+            // no logs, no drafts, no sync, just a dead-looking page. Fall
+            // back to the defaults instead of taking the app down.
+            cardCollapseState = { paycheck: false, cc: true, bills: true, tracker: true };
             if (saved) {
-                cardCollapseState = JSON.parse(saved);
-            } else {
-                cardCollapseState = { paycheck: false, cc: true, bills: true, tracker: true };
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object') cardCollapseState = parsed;
+                } catch (e) {
+                    console.error('Ignoring corrupt card collapse state:', e);
+                }
             }
 
             ['paycheck', 'cc', 'bills', 'tracker'].forEach(id => {
@@ -1849,6 +1891,24 @@
                 if (card) {
                     card.classList.toggle('collapsed', !!cardCollapseState[id]);
                 }
+                // The headers are plain <div>s with an onclick, so they were
+                // unreachable by keyboard and announced as nothing in
+                // particular by a screen reader. Make them behave like the
+                // buttons they already look like.
+                const header = card ? card.querySelector('.card-header') : null;
+                if (header && !header.dataset.a11yReady) {
+                    header.dataset.a11yReady = '1';
+                    header.setAttribute('role', 'button');
+                    header.setAttribute('tabindex', '0');
+                    header.setAttribute('aria-controls', `body-${id}`);
+                    header.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                            e.preventDefault();
+                            toggleCard(id);
+                        }
+                    });
+                }
+                if (header) header.setAttribute('aria-expanded', String(!cardCollapseState[id]));
             });
             updatePaycheckLaunchLayout();
         }
@@ -1860,9 +1920,24 @@
 
         function initDraft(key) {
             if (!weeklyDrafts[key]) {
+                // The card LIST (id/name, and color/network in ccCardMeta)
+                // is global state and is meant to carry forward week to
+                // week -- that part was already correct. But a brand new
+                // week's payments/itemized charges are their own thing and
+                // should start blank, not "0.00" in name only: this used to
+                // deep-clone whatever the CURRENT (globally shared)
+                // ccBreakdowns happened to be at the moment this week was
+                // first visited, which is last week's (or even older)
+                // itemized charges. Once cloned in, renderCCBreakdown()
+                // re-derives the Payment field from those leftover items
+                // every time the card's Details panel is opened, silently
+                // pulling old debt totals back in and making Remaining
+                // Income / Next Year Forecast (which are driven by these
+                // same debt totals) come out wrong too. Start every new
+                // week's breakdowns genuinely empty instead.
                 weeklyDrafts[key] = {
                     cards: creditCards.map(c => ({ id: c.id, name: c.name, payment: "0.00" })),
-                    ccBreakdowns: JSON.parse(JSON.stringify(ccBreakdowns)),
+                    ccBreakdowns: Object.fromEntries(creditCards.map(c => [c.id, []])),
                     expenses: ["0.00", "0.00", "0.00"],
                     miscExpenses: [{ note: "", amt: "0.00" }],
                     savingsThisWeek: "",
@@ -2392,10 +2467,10 @@
 
             document.getElementById('summary-tracker').innerText = formatCurrency(finalDiscretionary);
 
-            updateSavingsProjections(remainingBeforeSavings);
+            updateSavingsProjections();
         }
 
-        function updateSavingsProjections(remainingBeforeSavings) {
+        function updateSavingsProjections() {
             document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
 
             const pct = savingsGoal > 0 ? Math.min(100, Math.max(0, (globalSavingsBalance / savingsGoal) * 100)) : 0;
@@ -2403,19 +2478,32 @@
             document.getElementById('goalProgressAmount').innerText = `${formatCurrency(globalSavingsBalance)} / ${formatCurrency(savingsGoal)}`;
             document.getElementById('goalProgressPct').innerText = pct.toFixed(1) + '%';
 
-            // This card is labeled "Remaining Income (After Tax)" / "Next Year
-            // Forecast", so it needs to project what's actually left over
-            // after debt payments and bills (remainingBeforeSavings) -- not
-            // gross weekly net pay (currentNetIncome), which ignores every
-            // expense on the page. Using currentNetIncome here was inflating
-            // both figures by however much goes to debt/bills each week.
-            // Mirror the same Math.max(0, ...) floor calculateAll() uses for
-            // the actual weekly auto-savings amount, so the forecast lines up
-            // with what auto-savings would really sock away.
-            const annualRemaining = remainingBeforeSavings * 52;
-            const nextYearProj = globalSavingsBalance + (Math.max(0, annualRemaining) * 0.6);
-            document.getElementById('goalProjCurrent').innerText = formatCurrency(annualRemaining);
-            document.getElementById('goalProjNext').innerText = formatCurrency(nextYearProj);
+            // Rough, back-of-envelope paycheck math -- after tax, and
+            // deliberately NOT netted against credit card debt or bills
+            // (the Current Week Tracker's "Remaining (Before Savings)"
+            // already covers that). "Remaining Income" means income for
+            // the weeks actually LEFT in the current calendar year at this
+            // pay rate -- a flat x52 was overstating it by also counting
+            // weeks that have already passed this year (e.g. in September,
+            // it was showing a full 52 weeks of pay instead of the ~17
+            // actually remaining). "Next Year Forecast" is the same rate
+            // projected over a full 52-week year.
+            const today = new Date();
+            const thisYear = today.getFullYear();
+            const endOfThisYear = new Date(thisYear, 11, 31, 23, 59, 59, 999);
+            const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+            const weeksLeftThisYear = Math.max(0, Math.round((endOfThisYear - today) / msPerWeek));
+
+            const remainingIncomeThisYear = currentNetIncome * weeksLeftThisYear;
+            const nextYearForecast = currentNetIncome * 52;
+
+            const labelCurrent = document.getElementById('goalProjLabelCurrent');
+            const labelNext = document.getElementById('goalProjLabelNext');
+            if (labelCurrent) labelCurrent.innerText = `Remaining Income (After Tax) · ${weeksLeftThisYear} wk${weeksLeftThisYear === 1 ? '' : 's'} left in ${thisYear}`;
+            if (labelNext) labelNext.innerText = `${thisYear + 1} Forecast (After Tax) · full year`;
+
+            document.getElementById('goalProjCurrent').innerText = formatCurrency(remainingIncomeThisYear);
+            document.getElementById('goalProjNext').innerText = formatCurrency(nextYearForecast);
         }
 
         // Misc Expenses
@@ -2484,7 +2572,17 @@
 
         // Date Controls
         function getFormattedDate(date) {
-            return date.toISOString().split('T')[0];
+            // toISOString() converts to UTC first. In any timezone behind UTC
+            // (Eastern is UTC-4/-5), opening the app in the evening pushed the
+            // formatted date forward a day -- so "this week" came out as
+            // Mon-Sun instead of Sun-Sat, which is a different currentWeekKey
+            // and therefore a completely different (blank) draft. Numbers
+            // entered at night landed in a phantom week and looked lost the
+            // next morning. Format from the LOCAL date parts instead.
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
         function formatDateRangeLabel(startDateStr, endDateStr) {
@@ -2531,8 +2629,21 @@
         }
 
         function handleDateChange() {
-            const s = document.getElementById('weekStart').value;
-            const e = document.getElementById('weekEnd').value;
+            const startEl = document.getElementById('weekStart');
+            const endEl = document.getElementById('weekEnd');
+            let s = startEl.value;
+            let e = endEl.value;
+
+            // Typing an end date earlier than the start produced a backwards
+            // range label and a nonsense week key, which then got its own
+            // orphan draft that nothing else could ever find again. Swap
+            // them instead of storing the broken range.
+            if (s && e && e < s) {
+                [s, e] = [e, s];
+                startEl.value = s;
+                endEl.value = e;
+            }
+
             if (s && e) {
                 document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(s, e);
                 currentWeekKey = `${s}_${e}`;
@@ -2642,10 +2753,39 @@
             const weekStart = document.getElementById('weekStart').value;
             const weekEnd = document.getElementById('weekEnd').value;
             if (!weekStart || !weekEnd) {
-                alert('Please select valid week dates.');
+                showConfirmModal('Pick a valid week (both a start and an end date) before saving.', null, 'Missing Week Dates');
                 return;
             }
 
+            // Saving the same week twice used to stack: it added the week's
+            // savings and discretionary to the running balances a second time
+            // AND left two identical rows in the log. One accidental
+            // double-tap silently inflated the savings balance. Detect it and
+            // offer to replace, undoing the first entry's effect on the
+            // balances first so the numbers stay honest.
+            const existingIdx = logsData.findIndex(l => l.weekKey === currentWeekKey);
+            if (existingIdx !== -1) {
+                const prev = logsData[existingIdx];
+                showConfirmModal(
+                    `${prev.rangeLabel} is already saved to the log. Replace it with the numbers currently on screen? The previously recorded amounts will be backed out of your balances first, so nothing gets counted twice.`,
+                    (confirmed) => {
+                        if (!confirmed) return;
+                        globalSavingsBalance -= safeNum(prev.savedThisWeek);
+                        globalDiscretionaryBalance -= safeNum(prev.discretionaryAdded);
+                        logsData.splice(existingIdx, 1);
+                        commitWeekEntry();
+                    },
+                    'Week Already Saved'
+                );
+                return;
+            }
+
+            commitWeekEntry();
+        }
+
+        function commitWeekEntry() {
+            const weekStart = document.getElementById('weekStart').value;
+            const weekEnd = document.getElementById('weekEnd').value;
             const rangeLabel = formatDateRangeLabel(weekStart, weekEnd);
             const remainingBeforeSavings = currentNetIncome - currentDebt - currentExp;
             const finalDiscretionary = remainingBeforeSavings - currentSavings;
@@ -2751,10 +2891,23 @@
             }
             catErr.classList.remove('show');
 
-            if (type === 'sub') amt = -Math.abs(amt);
+            // A $0 transaction just clutters the history and skews nothing --
+            // and hitting Add/Subtract on an untouched form (which starts at
+            // "0.00") was silently creating one every time.
+            if (amt === 0) {
+                shakeEl(amtEl);
+                return;
+            }
+
+            // "Add (+)" with a negative number typed in used to REDUCE the
+            // balance while filing the row as income, and "Subtract" already
+            // normalised with Math.abs. Make both directions explicit so the
+            // button you press is the direction you get.
+            amt = (type === 'sub') ? -Math.abs(amt) : Math.abs(amt);
 
             globalDiscretionaryBalance += amt;
             purchasesData.unshift({
+                id: 'p' + Date.now() + '-' + Math.random().toString(16).slice(2, 8),
                 name: nameEl.value.trim() || category || 'Transaction',
                 category: category || 'General',
                 amount: amt,
@@ -2778,21 +2931,40 @@
                 <div class="cc-item" style="margin-bottom: 6px;">
                     <div>
                         <strong>${escapeHtml(p.name || p.category || 'Transaction')}</strong>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category || '')} • ${new Date(p.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category || '')} • ${formatPurchaseStamp(p.timestamp)}</div>
                     </div>
                     <div style="text-align: right;">
                         <span class="${p.amount < 0 ? 'negative-text' : 'positive-text'}">${formatCurrency(p.amount)}</span>
-                        <button class="link-btn" style="color: var(--negative); margin-left: 6px;" onclick="deletePurchase(${idx})">✕</button>
+                        <button class="link-btn" style="color: var(--negative); margin-left: 6px;" onclick="deletePurchase('${escapeHtml(p.id || '')}', ${idx})">✕</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function deletePurchase(idx) {
-            if (!purchasesData[idx]) return;
-            const p = purchasesData[idx];
-            globalDiscretionaryBalance -= p.amount;
-            purchasesData.splice(idx, 1);
+        // History only ever showed a bare clock time, so once the list ran
+        // past today every row read like it happened this morning. Show the
+        // date for anything that isn't today.
+        function formatPurchaseStamp(ts) {
+            const d = new Date(ts || Date.now());
+            const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const now = new Date();
+            const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+            if (isToday) return time;
+            return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${time}`;
+        }
+
+        // Deleting by array position alone was fragile: an incoming sync
+        // update can replace purchasesData between the render and the tap,
+        // which would remove whatever transaction happens to sit at that
+        // index now. Prefer the stable id, fall back to the index for older
+        // entries saved before ids existed.
+        function deletePurchase(id, idx) {
+            let target = -1;
+            if (id) target = purchasesData.findIndex(p => p.id === id);
+            if (target === -1 && purchasesData[idx] && !purchasesData[idx].id) target = idx;
+            if (target === -1 || !purchasesData[target]) return;
+            globalDiscretionaryBalance -= safeNum(purchasesData[target].amount);
+            purchasesData.splice(target, 1);
             updateDisplays();
             saveState();
         }
@@ -2866,6 +3038,8 @@
             closeModal('onboardModal');
             updateDisplays();
             saveState();
+            // Now that the welcome dialog is out of the way, offer sync.
+            if (SYNC_ENABLED && !syncCode) setTimeout(() => openModal('syncSetupModal'), 260);
         }
 
         function openAddPastLogModal() {
@@ -2888,11 +3062,11 @@
             const startVal = document.getElementById('pastLogWeekStart').value;
             const endVal = document.getElementById('pastLogWeekEnd').value;
             if (!startVal || !endVal) {
-                alert('Please pick both a start and end date.');
+                showConfirmModal('Pick both a start and an end date for the week you want to add.', null, 'Missing Dates');
                 return;
             }
             if (endVal < startVal) {
-                alert('Week End must be on or after Week Start.');
+                showConfirmModal('The end of the week has to fall on or after the start.', null, 'Check the Dates');
                 return;
             }
 
@@ -2966,12 +3140,12 @@
                 html += `
                     <tr class="${isEven ? 'log-row-even' : ''}">
                         <td><strong>${escapeHtml(log.rangeLabel)}</strong></td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.netIncome.toFixed(2)}" onchange="updateLogNumber(${idx}, 'netIncome', this.value)">` : formatCurrency(log.netIncome)}</td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.debt.toFixed(2)}" onchange="updateLogNumber(${idx}, 'debt', this.value)">` : formatCurrency(log.debt)}</td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.exp.toFixed(2)}" onchange="updateLogNumber(${idx}, 'exp', this.value)">` : formatCurrency(log.exp)}</td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.savedThisWeek.toFixed(2)}" onchange="updateLogNumber(${idx}, 'savedThisWeek', this.value)">` : formatCurrency(log.savedThisWeek)}</td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.discretionaryAdded.toFixed(2)}" onchange="updateLogNumber(${idx}, 'discretionaryAdded', this.value)">` : formatCurrency(log.discretionaryAdded)}</td>
-                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.savingsBalanceAfter.toFixed(2)}" onchange="updateLogNumber(${idx}, 'savingsBalanceAfter', this.value)">` : formatCurrency(log.savingsBalanceAfter)}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.netIncome).toFixed(2)}" onchange="updateLogNumber(${idx}, 'netIncome', this.value)">` : formatCurrency(safeNum(log.netIncome))}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.debt).toFixed(2)}" onchange="updateLogNumber(${idx}, 'debt', this.value)">` : formatCurrency(safeNum(log.debt))}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.exp).toFixed(2)}" onchange="updateLogNumber(${idx}, 'exp', this.value)">` : formatCurrency(safeNum(log.exp))}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savedThisWeek).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savedThisWeek', this.value)">` : formatCurrency(safeNum(log.savedThisWeek))}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.discretionaryAdded).toFixed(2)}" onchange="updateLogNumber(${idx}, 'discretionaryAdded', this.value)">` : formatCurrency(safeNum(log.discretionaryAdded))}</td>
+                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savingsBalanceAfter).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savingsBalanceAfter', this.value)">` : formatCurrency(safeNum(log.savingsBalanceAfter))}</td>
                         <td>
                             <button class="details-toggle-btn" id="logDetailsBtn-${idx}" onclick="toggleLogDetails(${idx})"><span class="chevron">▾</span> Details</button>
                             <button class="link-btn" onclick="openNoteModal(${idx})" title="Edit Note">📝</button>
@@ -3121,9 +3295,17 @@
         }
 
         // Generic Modal Utilities
+        // closeModal() hides the overlay on a 200ms timer to let the fade-out
+        // finish. Reopening the same modal inside that window left the timer
+        // running, so the freshly-opened dialog got display:none a moment
+        // later and the app looked frozen behind a dead overlay. Track the
+        // pending timer per modal and cancel it on open.
+        const modalHideTimers = {};
+
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
+            clearTimeout(modalHideTimers[modalId]);
             modal.style.display = 'flex';
             void modal.offsetWidth;
             modal.classList.add('open');
@@ -3133,14 +3315,63 @@
             const modal = document.getElementById(modalId);
             if (!modal) return;
             modal.classList.remove('open');
-            setTimeout(() => { modal.style.display = 'none'; }, 200);
+            clearTimeout(modalHideTimers[modalId]);
+            modalHideTimers[modalId] = setTimeout(() => { modal.style.display = 'none'; }, 200);
         }
+
+        function getOpenModals() {
+            return Array.from(document.querySelectorAll('.modal-overlay.open'));
+        }
+
+        function dismissTopModal() {
+            const open = getOpenModals();
+            if (open.length === 0) return;
+            // #confirmModal is raised above everything else in CSS, so it's
+            // the top of the stack whenever it's open regardless of DOM order.
+            const confirm = open.find(m => m.id === 'confirmModal');
+            const top = confirm || open[open.length - 1];
+            // The welcome dialog is the one thing that shouldn't be
+            // dismissable -- it's collecting the starting balance.
+            if (top.id === 'onboardModal') return;
+            if (top.id === 'confirmModal') { closeConfirmModal(false); return; }
+            closeModal(top.id);
+        }
+
+        // Escape and a click on the dimmed background are what everyone
+        // reaches for to dismiss a dialog; neither did anything before, which
+        // made the modals feel stuck on desktop.
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') dismissTopModal();
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('mousedown', (e) => {
+                if (e.target !== overlay) return;
+                if (overlay.id === 'onboardModal') return;
+                if (overlay.id === 'confirmModal') { closeConfirmModal(false); return; }
+                closeModal(overlay.id);
+            });
+        });
 
         let confirmCallback = null;
         function showConfirmModal(bodyText, callback, title = "Are you sure?") {
             document.getElementById('confirmModalTitle').innerText = title;
             document.getElementById('confirmModalBody').innerText = bodyText;
             confirmCallback = callback;
+
+            // With no callback there's nothing to decide, so this is a plain
+            // notice -- show a single "OK" instead of a Cancel/Confirm pair.
+            // This replaces the handful of raw alert() calls, which looked
+            // out of place next to every other dialog in the app and are
+            // unreliable inside an installed iOS PWA.
+            const cancelBtn = document.getElementById('confirmModalCancelBtn');
+            const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+            const infoOnly = typeof callback !== 'function';
+            if (cancelBtn) cancelBtn.style.display = infoOnly ? 'none' : '';
+            if (confirmBtn) {
+                confirmBtn.innerText = infoOnly ? 'OK' : 'Confirm';
+                confirmBtn.className = 'btn btn-half ' + (infoOnly ? 'btn-action' : 'btn-sub');
+            }
             openModal('confirmModal');
         }
 
