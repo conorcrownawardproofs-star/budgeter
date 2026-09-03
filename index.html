@@ -408,6 +408,13 @@
         .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
 
         .cc-color-picker-wrap { position: relative; }
+        .cc-network-input {
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+            padding: 3px 7px; border-radius: 4px; background-color: var(--surface-muted); color: var(--text-muted);
+            border: 1px solid transparent; cursor: text; flex-shrink: 0; width: 62px; text-align: center;
+        }
+        .cc-network-input::placeholder { color: var(--text-muted); text-transform: none; font-weight: 500; letter-spacing: normal; }
+        .cc-network-input:hover, .cc-network-input:focus { border-color: var(--border-color); background-color: var(--card-bg); outline: none; }
         .cc-color-swatch {
             width: 20px; height: 14px; border-radius: 4px; border: 1px solid var(--border-color);
             background: transparent; cursor: pointer; padding: 0; transition: transform 0.15s ease;
@@ -741,7 +748,9 @@
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 14px 0;" id="syncLastSavedText">Not yet saved.</p>
                 <button class="btn btn-sub" onclick="overwriteSyncSave()">⬆️ Overwrite Sync Save With This Device</button>
-                <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 6px; margin-bottom: 0;">Forces whatever is currently on this screen — balances, bills, credit cards, and logs — to replace the saved sync data. Any changes made on other devices that haven't synced here yet will be lost.</p>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 6px; margin-bottom: 14px;">Forces whatever is currently on this screen — balances, bills, credit cards, and logs — to replace the saved sync data. Any changes made on other devices that haven't synced here yet will be lost.</p>
+                <button class="btn btn-sub" onclick="resetSyncedData()">🗑️ Reset Synced Data</button>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 6px; margin-bottom: 0;">Wipes the data saved under this sync code back to a blank slate — balances, cards, and logs — on this device <strong>and every other device</strong> connected with this code. Different from Overwrite above: this clears everyone's data instead of pushing just this device's copy.</p>
             </div>
         </div>
     </div>
@@ -779,6 +788,26 @@
                 </div>
             </div>
             <button class="btn" onclick="saveGoalEdit()">💾 Save Goal</button>
+        </div>
+    </div>
+
+    <!-- Add Missing/Past Weekly Log Modal -->
+    <div class="modal-overlay" id="addPastLogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">➕ Add a Missing Week</h3>
+                <button class="close-btn" onclick="closeModal('addPastLogModal')">&times;</button>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Pick the week you forgot to log. It'll be added with all figures at $0 and dropped straight into edit mode below so you can fill it in -- this won't touch your current balances, it's just a record.</p>
+            <div class="input-group">
+                <label>Week Start</label>
+                <input type="date" id="pastLogWeekStart">
+            </div>
+            <div class="input-group">
+                <label>Week End</label>
+                <input type="date" id="pastLogWeekEnd">
+            </div>
+            <button class="btn" onclick="addPastLogEntry()">➕ Add Week</button>
         </div>
     </div>
 
@@ -1144,7 +1173,10 @@
         <div class="card">
             <h2>
                 Saved Weekly Logs
-                <button class="btn btn-small" id="editLogsBtn" onclick="toggleEditLogs()">✏️ Edit Numbers</button>
+                <span style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-small" id="addPastLogBtn" onclick="openAddPastLogModal()">➕ Add Missing Week</button>
+                    <button class="btn btn-small" id="editLogsBtn" onclick="toggleEditLogs()">✏️ Edit Numbers</button>
+                </span>
             </h2>
             <div class="table-container">
                 <table id="logTable">
@@ -1556,6 +1588,56 @@
             }
         }
 
+        function getBlankStateObject() {
+            return {
+                globalDiscretionaryBalance: 0,
+                globalSavingsBalance: 0,
+                savingsGoal: 16000,
+                logsData: [],
+                purchasesData: [],
+                plannedAllocations: { groceries: 0, fastfood: 0, dining: 0, gas: 0, coffee: 0, entertainment: 0, shopping: 0, subscriptions: 0, personalcare: 0, health: 0 },
+                weeklyDrafts: {},
+                creditCards: [
+                    { id: 'cc1', name: 'BoFA Customized Cash Rewards' },
+                    { id: 'cc2', name: 'BoFA Unlimited Cash Rewards' },
+                    { id: 'cc3', name: 'Wells Fargo Unlimited' }
+                ],
+                ccBreakdowns: { cc1: [], cc2: [], cc3: [] },
+                ccCardMeta: { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } },
+                hourlyRate: '25.00',
+                hoursPerWeek: '40',
+                taxRate: '19.25'
+            };
+        }
+
+        function resetSyncedData() {
+            if (!syncCode) return;
+            closeModal('syncSetupModal');
+            setTimeout(() => {
+                showConfirmModal(
+                    `This will erase the synced data for code "${syncCode}" and reset it to a blank slate -- on this device AND every other device connected with this same code. This cannot be undone. Continue?`,
+                    (confirmed) => {
+                        if (!confirmed) {
+                            openSyncSettingsModal();
+                            return;
+                        }
+                        const blank = getBlankStateObject();
+                        applyRemoteState(blank);
+                        localStorage.setItem('budgetTrackerData', JSON.stringify(blank));
+                        clearTimeout(syncPushTimer);
+                        if (supabaseClient) {
+                            Promise.resolve(pushStateToSupabase(blank))
+                                .catch((err) => console.error('Reset push failed', err))
+                                .finally(() => openSyncSettingsModal());
+                        } else {
+                            openSyncSettingsModal();
+                        }
+                    },
+                    '🗑️ Reset Synced Data?'
+                );
+            }, 220);
+        }
+
         function overwriteSyncSave() {
             if (!syncCode) return;
             if (!supabaseClient) {
@@ -1773,6 +1855,7 @@
                                     <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-${card.id}" onclick="toggleCC('${card.id}')"><span class="chevron">▾</span> Details</button>
                                 </div>
                                 <div class="cc-card-accessories">
+                                    <input type="text" class="cc-network-input" id="ccNetworkInput-${card.id}" value="${escapeHtml(meta.network || '')}" placeholder="Network" maxlength="12" title="Card network label (Visa, Mastercard, Amex, Discover, or anything you like) -- just for fun" oninput="setCardNetwork('${card.id}', this.value)" onfocus="this.select()">
                                     <div class="cc-color-picker-wrap">
                                         <button class="cc-color-swatch ${meta.color ? '' : 'is-empty'}" id="ccColorBtn-${card.id}" style="${meta.color ? 'background-color:' + meta.color : ''}" onclick="toggleColorPicker('${card.id}')" title="Card color label"></button>
                                         <div class="cc-color-popover" id="ccColorPopover-${card.id}"></div>
@@ -1973,13 +2056,38 @@
 
         function toggleColorPicker(ccId) {
             const popover = document.getElementById(`ccColorPopover-${ccId}`);
-            if (!popover) return;
+            const btn = document.getElementById(`ccColorBtn-${ccId}`);
+            if (!popover || !btn) return;
             const isOpen = popover.classList.contains('open');
             document.querySelectorAll('.cc-color-popover').forEach(p => p.classList.remove('open'));
             if (!isOpen) {
-                popover.classList.add('open');
                 renderColorPopover(ccId);
+                popover.classList.add('open');
+                positionColorPopover(popover, btn);
             }
+        }
+
+        function positionColorPopover(popover, anchorBtn) {
+            // .cc-color-popover is position:fixed with no top/left set anywhere,
+            // so it was falling back to an undefined default spot instead of
+            // appearing under the button that opened it. Anchor it explicitly.
+            const rect = anchorBtn.getBoundingClientRect();
+            const popRect = popover.getBoundingClientRect();
+            const margin = 8;
+
+            let left = rect.left;
+            const maxLeft = window.innerWidth - popRect.width - margin;
+            if (left > maxLeft) left = Math.max(margin, maxLeft);
+
+            let top = rect.bottom + 6;
+            const maxTop = window.innerHeight - popRect.height - margin;
+            if (top > maxTop) {
+                // Not enough room below -- flip above the button instead.
+                top = Math.max(margin, rect.top - popRect.height - 6);
+            }
+
+            popover.style.left = `${left}px`;
+            popover.style.top = `${top}px`;
         }
 
         function renderColorPopover(ccId) {
@@ -1993,7 +2101,35 @@
             `).join('');
 
             html += `<button class="cc-color-option cc-color-clear" onclick="setCardColor('${ccId}', '')" title="Clear Color">✕</button>`;
+
+            const nativeVal = /^#[0-9a-fA-F]{6}$/i.test(currentColor) ? currentColor : '#64748b';
+            html += `
+                <div class="cc-color-popover-custom">
+                    <input type="color" class="cc-color-native" id="ccColorNative-${ccId}" value="${nativeVal}" onchange="setCardColor('${ccId}', this.value)" title="Custom color">
+                    <input type="text" class="cc-color-hex-input" id="ccColorHex-${ccId}" placeholder="#RRGGBB" value="${escapeHtml(currentColor)}" maxlength="7" onkeydown="if(event.key==='Enter'){applyCustomCardColor('${ccId}');}">
+                    <button class="btn-action btn-small" onclick="applyCustomCardColor('${ccId}')">Set</button>
+                </div>
+            `;
             popover.innerHTML = html;
+        }
+
+        function applyCustomCardColor(ccId) {
+            const input = document.getElementById(`ccColorHex-${ccId}`);
+            if (!input) return;
+            let val = input.value.trim();
+            if (!val) return;
+            if (!val.startsWith('#')) val = '#' + val;
+            if (!/^#[0-9a-fA-F]{6}$/i.test(val)) {
+                shakeEl(input);
+                return;
+            }
+            setCardColor(ccId, val);
+        }
+
+        function setCardNetwork(ccId, value) {
+            if (!ccCardMeta[ccId]) ccCardMeta[ccId] = { color: '' };
+            ccCardMeta[ccId].network = value;
+            saveState();
         }
 
         function setCardColor(ccId, color) {
@@ -2358,6 +2494,7 @@
             };
 
             logsData.unshift(entry);
+            sortLogsByWeekDesc();
             saveState();
             updateDisplays();
             renderLogsTable();
@@ -2495,6 +2632,73 @@
             closeModal('onboardModal');
             updateDisplays();
             saveState();
+        }
+
+        function openAddPastLogModal() {
+            const startInput = document.getElementById('pastLogWeekStart');
+            const endInput = document.getElementById('pastLogWeekEnd');
+            if (startInput) startInput.value = '';
+            if (endInput) endInput.value = '';
+            openModal('addPastLogModal');
+        }
+
+        function sortLogsByWeekDesc() {
+            logsData.sort((a, b) => {
+                const aStart = (a.weekKey || '').split('_')[0];
+                const bStart = (b.weekKey || '').split('_')[0];
+                return bStart.localeCompare(aStart);
+            });
+        }
+
+        function addPastLogEntry() {
+            const startVal = document.getElementById('pastLogWeekStart').value;
+            const endVal = document.getElementById('pastLogWeekEnd').value;
+            if (!startVal || !endVal) {
+                alert('Please pick both a start and end date.');
+                return;
+            }
+            if (endVal < startVal) {
+                alert('Week End must be on or after Week Start.');
+                return;
+            }
+
+            const weekKey = `${startVal}_${endVal}`;
+            const rangeLabel = formatDateRangeLabel(startVal, endVal);
+
+            const createEntry = () => {
+                const entry = {
+                    id: Date.now(),
+                    weekKey,
+                    rangeLabel,
+                    netIncome: 0,
+                    debt: 0,
+                    exp: 0,
+                    savedThisWeek: 0,
+                    discretionaryAdded: 0,
+                    savingsBalanceAfter: globalSavingsBalance,
+                    note: '',
+                    ccDetails: []
+                };
+                logsData.push(entry);
+                sortLogsByWeekDesc();
+                isEditMode = true;
+                const btn = document.getElementById('editLogsBtn');
+                if (btn) btn.innerText = '✅ Done Editing';
+                saveState();
+                renderLogsTable();
+                closeModal('addPastLogModal');
+            };
+
+            const existingIdx = logsData.findIndex(l => l.weekKey === weekKey);
+            if (existingIdx !== -1) {
+                showConfirmModal(`A log already exists for ${rangeLabel}. Replace it with a new blank entry?`, (confirmed) => {
+                    if (!confirmed) return;
+                    logsData.splice(existingIdx, 1);
+                    createEntry();
+                }, 'Replace Existing Log?');
+            } else {
+                createEntry();
+            }
         }
 
         // Saved Weekly Logs Table
