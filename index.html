@@ -219,6 +219,13 @@
         .log-section { max-width: 1200px; margin: 20px auto 0; }
         .log-details { background-color: #f8fafc; border-bottom: 2px solid var(--border-color); }
         .log-details td { padding: 0; font-size: 0.9rem; }
+        .log-detail-note { margin-bottom: 12px; font-style: italic; color: var(--text-muted); }
+        .log-detail-section { margin-bottom: 14px; }
+        .log-detail-section:last-child { margin-bottom: 0; }
+        .log-detail-section > strong { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted); margin-bottom: 6px; }
+        .log-detail-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; }
+        .log-detail-subitems { margin: -2px 0 6px 14px; }
+        .log-detail-subrow { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); padding: 2px 0; }
         .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 600px) { .details-grid { grid-template-columns: 1fr; } }
 
@@ -2479,6 +2486,26 @@
                 };
             });
 
+            const fixedExpenses = Array.from(document.querySelectorAll('.exp-input-fixed')).map(input => ({
+                name: input.dataset.name || 'Expense',
+                amount: parseFloat(input.value) || 0
+            }));
+
+            const miscExpenses = Array.from(document.querySelectorAll('#miscExpRows tr.misc-exp-row')).map(row => {
+                const noteInput = row.querySelector('.misc-note-input');
+                const amtInput = row.querySelector('.exp-input-misc');
+                return {
+                    note: noteInput ? noteInput.value.trim() : '',
+                    amount: parseFloat(amtInput?.value) || 0
+                };
+            }).filter(m => m.note || m.amount);
+
+            const paycheck = {
+                hourlyRate: document.getElementById('hourlyRate')?.value || '',
+                hoursPerWeek: document.getElementById('hoursPerWeek')?.value || '',
+                taxRate: document.getElementById('taxRate')?.value || ''
+            };
+
             const entry = {
                 id: Date.now(),
                 weekKey: currentWeekKey,
@@ -2490,7 +2517,13 @@
                 discretionaryAdded: addedToDiscretionary,
                 savingsBalanceAfter: globalSavingsBalance,
                 note: '',
-                ccDetails
+                ccDetails,
+                fixedExpenses,
+                miscExpenses,
+                plannedAllocations: { ...plannedAllocations },
+                paycheck,
+                sweepAction,
+                sweepAmount: addedToSavings - currentSavings
             };
 
             logsData.unshift(entry);
@@ -2677,7 +2710,13 @@
                     discretionaryAdded: 0,
                     savingsBalanceAfter: globalSavingsBalance,
                     note: '',
-                    ccDetails: []
+                    ccDetails: [],
+                    fixedExpenses: [],
+                    miscExpenses: [],
+                    plannedAllocations: {},
+                    paycheck: { hourlyRate: '', hoursPerWeek: '', taxRate: '' },
+                    sweepAction: 'rollover',
+                    sweepAmount: 0
                 };
                 logsData.push(entry);
                 sortLogsByWeekDesc();
@@ -2742,16 +2781,7 @@
                         <td colspan="8">
                             <div class="log-details-wrap" id="logDetailsWrap-${idx}">
                             <div class="log-details-inner">
-                                ${log.note ? `<div style="margin-bottom: 10px; font-style: italic; color: var(--text-muted);"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
-                                <strong>Card Payment Breakdown:</strong>
-                                <div class="cc-item-list" style="margin-top: 6px;">
-                                    ${(log.ccDetails || []).map(cc => `
-                                        <div class="cc-item">
-                                            <span>${escapeHtml(cc.name)}</span>
-                                            <strong>${formatCurrency(cc.payment)}</strong>
-                                        </div>
-                                    `).join('') || '<div class="cc-item-empty">No card details recorded.</div>'}
-                                </div>
+                                ${buildLogDetailsHtml(log)}
                             </div>
                             </div>
                         </td>
@@ -2760,6 +2790,87 @@
             });
 
             tbody.innerHTML = html;
+        }
+
+        function buildLogDetailsHtml(log) {
+            let html = '';
+
+            if (log.note) {
+                html += `<div class="log-detail-note"><strong>Note:</strong> ${escapeHtml(log.note)}</div>`;
+            }
+
+            if (log.paycheck && (log.paycheck.hourlyRate || log.paycheck.hoursPerWeek || log.paycheck.taxRate)) {
+                html += `
+                    <div class="log-detail-section">
+                        <strong>Paycheck</strong>
+                        <div class="log-detail-row"><span>Hourly Rate</span><span>${log.paycheck.hourlyRate ? '$' + escapeHtml(log.paycheck.hourlyRate) : '—'}</span></div>
+                        <div class="log-detail-row"><span>Hours / Week</span><span>${escapeHtml(log.paycheck.hoursPerWeek || '—')}</span></div>
+                        <div class="log-detail-row"><span>Tax Rate</span><span>${log.paycheck.taxRate ? escapeHtml(log.paycheck.taxRate) + '%' : '—'}</span></div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="log-detail-section">
+                    <strong>Credit Card Payments</strong>
+                    <div class="cc-item-list">
+                        ${(log.ccDetails || []).map(cc => `
+                            <div class="cc-item">
+                                <span>${escapeHtml(cc.name)}</span>
+                                <strong>${formatCurrency(cc.payment)}</strong>
+                            </div>
+                            ${(cc.items && cc.items.length) ? `
+                                <div class="log-detail-subitems">
+                                    ${cc.items.map(it => `<div class="log-detail-subrow"><span>${escapeHtml(it.desc || 'Item')}</span><span>${formatCurrency(it.amt)}</span></div>`).join('')}
+                                </div>
+                            ` : ''}
+                        `).join('') || '<div class="cc-item-empty">No card details recorded.</div>'}
+                    </div>
+                </div>
+
+                <div class="log-detail-section">
+                    <strong>Fixed Bills</strong>
+                    <div class="cc-item-list">
+                        ${(log.fixedExpenses && log.fixedExpenses.length) ? log.fixedExpenses.map(e => `
+                            <div class="cc-item"><span>${escapeHtml(e.name)}</span><strong>${formatCurrency(e.amount)}</strong></div>
+                        `).join('') : '<div class="cc-item-empty">Not recorded for this entry.</div>'}
+                    </div>
+                </div>
+
+                <div class="log-detail-section">
+                    <strong>Misc Expenses</strong>
+                    <div class="cc-item-list">
+                        ${(log.miscExpenses && log.miscExpenses.length) ? log.miscExpenses.map(e => `
+                            <div class="cc-item"><span>${escapeHtml(e.note || 'Misc')}</span><strong>${formatCurrency(e.amount)}</strong></div>
+                        `).join('') : '<div class="cc-item-empty">None recorded.</div>'}
+                    </div>
+                </div>
+            `;
+
+            if (log.plannedAllocations && Object.keys(log.plannedAllocations).length) {
+                const plannedRows = LIMINAL_CATEGORIES
+                    .filter(c => (log.plannedAllocations[c.key] || 0) > 0)
+                    .map(c => `<div class="cc-item"><span>${c.icon} ${escapeHtml(c.label)}</span><strong>${formatCurrency(log.plannedAllocations[c.key])}</strong></div>`)
+                    .join('');
+                html += `
+                    <div class="log-detail-section">
+                        <strong>Planned Spending</strong>
+                        <div class="cc-item-list">${plannedRows || '<div class="cc-item-empty">Nothing planned.</div>'}</div>
+                    </div>
+                `;
+            }
+
+            if (log.sweepAction && log.sweepAction !== 'rollover' && log.sweepAmount) {
+                const sweepLabel = log.sweepAction === 'sweep_all' ? 'Swept all leftover to savings' : 'Custom sweep to savings';
+                html += `
+                    <div class="log-detail-section">
+                        <strong>Sweep</strong>
+                        <div class="cc-item"><span>${sweepLabel}</span><strong>${formatCurrency(log.sweepAmount)}</strong></div>
+                    </div>
+                `;
+            }
+
+            return html;
         }
 
         function toggleLogDetails(idx) {
@@ -2894,6 +3005,7 @@
 
             renderCreditCards();
             loadCurrentWeekDraft();
+            renderLogsTable();
             updateDisplays();
         }
 
