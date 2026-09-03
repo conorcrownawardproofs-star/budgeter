@@ -395,6 +395,15 @@
         .cc-row-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
         .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; flex: 1 1 auto; }
         .cc-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cc-name-input {
+            min-width: 0; flex: 1 1 auto; width: 100%;
+            font: inherit; font-weight: 600; color: var(--text-main);
+            background: transparent; border: 1px solid transparent; border-radius: 4px;
+            padding: 3px 6px; margin: -3px -6px;
+        }
+        .cc-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
+        .cc-name-input:hover { background-color: var(--surface-muted); }
+        .cc-name-input:focus { outline: none; background-color: var(--card-bg); border-color: var(--primary); }
         .cc-detail-toggle { flex-shrink: 0; white-space: nowrap; }
         .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
 
@@ -1381,6 +1390,7 @@
         let syncChannel = null;
         let syncPushTimer = null;
         let syncConnectTimeout = null;
+        let syncReconnectTimer = null;
         let isApplyingRemoteState = false;
         let syncSaveStatus = 'idle'; // 'idle' | 'saved' | 'unsaved' | 'saving' | 'error'
         let lastSyncSavedAt = null;
@@ -1449,41 +1459,62 @@
             if (!supabaseClient || !syncCode) return;
             updateSyncStatus('connecting');
 
-            const { data, error } = await supabaseClient
-                .from('budget_state')
-                .select('data, client_id')
-                .eq('sync_id', syncCode)
-                .maybeSingle();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('budget_state')
+                    .select('data, client_id')
+                    .eq('sync_id', syncCode)
+                    .maybeSingle();
 
-            if (!error && data) {
-                applyRemoteState(data.data);
-            } else if (error) {
+                if (!error && data) {
+                    applyRemoteState(data.data);
+                    updateSyncStatus('live');
+                } else if (error) {
+                    console.error('Sync fetch failed', error);
+                    updateSyncStatus('error');
+                    setSaveStatus('error');
+                } else {
+                    await pushStateToSupabase();
+                }
+            } catch (err) {
+                console.error('Sync connection failed', err);
                 updateSyncStatus('error');
                 setSaveStatus('error');
-            } else {
-                pushStateToSupabase();
             }
 
-            if (syncChannel) supabaseClient.removeChannel(syncChannel);
-            syncChannel = supabaseClient
-                .channel('budget-sync-' + syncCode)
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: 'budget_state', filter: `sync_id=eq.${syncCode}` },
-                    (payload) => {
-                        if (payload.new && payload.new.data && payload.new.client_id !== myClientId) {
-                            applyRemoteState(payload.new.data);
+            try {
+                if (syncChannel) supabaseClient.removeChannel(syncChannel);
+                syncChannel = supabaseClient
+                    .channel('budget-sync-' + syncCode)
+                    .on('postgres_changes',
+                        { event: '*', schema: 'public', table: 'budget_state', filter: `sync_id=eq.${syncCode}` },
+                        (payload) => {
+                            if (payload.new && payload.new.data && payload.new.client_id !== myClientId) {
+                                applyRemoteState(payload.new.data);
+                                updateSyncStatus('live');
+                            }
                         }
-                    }
-                )
-                .subscribe((status) => {
-                    if (status === 'SUBSCRIBED') {
-                        updateSyncStatus('live');
-                    } else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR' || status === 'CLOSED') {
-                        updateSyncStatus('disconnected');
-                    } else {
-                        updateSyncStatus('connecting');
-                    }
-                });
+                    )
+                    .subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            updateSyncStatus('live');
+                        } else if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+                            // The live-push websocket dropped, but basic save/load
+                            // already succeeded above over plain REST, so don't flip
+                            // the badge to "Not Connected" over a background
+                            // websocket hiccup -- that was the bug. Just quietly
+                            // retry the live channel in the background.
+                            clearTimeout(syncReconnectTimer);
+                            syncReconnectTimer = setTimeout(() => {
+                                if (supabaseClient && syncCode) startSync();
+                            }, 8000);
+                        }
+                    });
+            } catch (err) {
+                console.error('Realtime channel setup failed', err);
+                // Realtime push is a bonus feature -- REST save/load already
+                // set the correct status above, so leave it as-is here.
+            }
         }
 
         function applyRemoteState(remoteData) {
@@ -1503,24 +1534,36 @@
             if (!supabaseClient || !syncCode) return;
             setSaveStatus('saving');
             const payload = state || JSON.parse(localStorage.getItem('budgetTrackerData') || '{}');
-            const { error } = await supabaseClient
-                .from('budget_state')
-                .upsert(
-                    { sync_id: syncCode, data: payload, client_id: myClientId, updated_at: new Date().toISOString() },
-                    { onConflict: 'sync_id' }
-                );
-            if (error) {
-                console.error('Sync push failed', error);
+            try {
+                const { error } = await supabaseClient
+                    .from('budget_state')
+                    .upsert(
+                        { sync_id: syncCode, data: payload, client_id: myClientId, updated_at: new Date().toISOString() },
+                        { onConflict: 'sync_id' }
+                    );
+                if (error) {
+                    console.error('Sync push failed', error);
+                    updateSyncStatus('error');
+                    setSaveStatus('error');
+                } else {
+                    updateSyncStatus('live');
+                    setSaveStatus('saved');
+                }
+            } catch (err) {
+                console.error('Sync push failed', err);
                 updateSyncStatus('error');
                 setSaveStatus('error');
-            } else {
-                updateSyncStatus('live');
-                setSaveStatus('saved');
             }
         }
 
         function overwriteSyncSave() {
-            if (!supabaseClient || !syncCode) return;
+            if (!syncCode) return;
+            if (!supabaseClient) {
+                setSaveStatus('error');
+                const textEl = document.getElementById('syncLastSavedText');
+                if (textEl) textEl.innerText = "Sync isn't connected yet — try again in a moment.";
+                return;
+            }
             closeModal('syncSetupModal');
             setTimeout(() => {
                 showConfirmModal(
@@ -1533,9 +1576,9 @@
                         clearTimeout(syncPushTimer);
                         const state = getStateObject();
                         localStorage.setItem('budgetTrackerData', JSON.stringify(state));
-                        pushStateToSupabase(state).then(() => {
-                            openSyncSettingsModal();
-                        });
+                        Promise.resolve(pushStateToSupabase(state))
+                            .catch((err) => console.error('Overwrite push failed', err))
+                            .finally(() => openSyncSettingsModal());
                     },
                     '⬆️ Overwrite Sync Save?'
                 );
@@ -1726,8 +1769,7 @@
                         <td>
                             <div class="cc-row-line">
                                 <div class="cc-row-name">
-                                    <span class="cc-account-name" id="ccNameDisplay-${card.id}" title="Click to edit name" onclick="startEditCardName('${card.id}')">${escapeHtml(card.name)}</span>
-                                    <button class="btn-action btn-small" style="padding: 2px 5px; font-size: 0.72rem;" onclick="startEditCardName('${card.id}')" title="Edit Card Name">✏️</button>
+                                    <input type="text" class="cc-name-input" id="ccNameInput-${card.id}" value="${escapeHtml(card.name)}" placeholder="Card Name" oninput="renameCreditCard('${card.id}', this.value)" onfocus="this.select()" onblur="if(!this.value.trim()){this.value='New Credit Card';renameCreditCard('${card.id}', this.value);}">
                                     <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-${card.id}" onclick="toggleCC('${card.id}')"><span class="chevron">▾</span> Details</button>
                                 </div>
                                 <div class="cc-card-accessories">
@@ -1777,34 +1819,33 @@
         }
 
         function addNewCreditCard() {
-            const cardName = prompt("Enter the name of the new Credit Card:", "New Credit Card");
-            if (cardName === null) return;
-            const cleanName = cardName.trim() || "New Credit Card";
             const newId = 'cc_' + Date.now();
 
-            creditCards.push({ id: newId, name: cleanName });
+            creditCards.push({ id: newId, name: 'New Credit Card' });
             ccBreakdowns[newId] = [];
             ccCardMeta[newId] = { color: '' };
 
             renderCreditCards();
             calculateAll('other');
             saveCurrentWeekDraft();
+
+            // No popup -- just focus the new card's name field so the
+            // user can type the real name immediately.
+            const nameInput = document.getElementById(`ccNameInput-${newId}`);
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select();
+            }
         }
 
-        function startEditCardName(id) {
+        function renameCreditCard(id, value) {
             const card = creditCards.find(c => c.id === id);
             if (!card) return;
-            const newName = prompt("Edit Credit Card Name:", card.name);
-            if (newName === null) return;
-            const cleanName = newName.trim();
-            if (!cleanName) return;
 
-            card.name = cleanName;
-            const input = document.getElementById(`debt-${id}`);
-            if (input) input.dataset.name = cleanName;
+            card.name = value;
 
-            const display = document.getElementById(`ccNameDisplay-${id}`);
-            if (display) display.textContent = cleanName;
+            const debtInput = document.getElementById(`debt-${id}`);
+            if (debtInput) debtInput.dataset.name = value;
 
             saveCurrentWeekDraft();
             calculateAll('other');
