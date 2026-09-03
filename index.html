@@ -399,29 +399,30 @@
             }
         }
 
-        .cc-row-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-        .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; flex: 1 1 auto; }
-        .cc-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cc-row-line { display: flex; flex-direction: column; gap: 6px; }
         .cc-name-input {
-            min-width: 0; flex: 1 1 auto; width: 100%;
-            font: inherit; font-weight: 600; color: var(--text-main);
+            width: 100%; box-sizing: border-box;
+            font: inherit; font-weight: 600; font-size: 0.98rem; color: var(--text-main);
             background: transparent; border: 1px solid transparent; border-radius: 4px;
-            padding: 3px 6px; margin: -3px -6px;
+            padding: 4px 6px; margin: -4px -6px;
         }
         .cc-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
         .cc-name-input:hover { background-color: var(--surface-muted); }
         .cc-name-input:focus { outline: none; background-color: var(--card-bg); border-color: var(--primary); }
+        .cc-row-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         .cc-detail-toggle { flex-shrink: 0; white-space: nowrap; }
-        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
+        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
         .cc-color-picker-wrap { position: relative; }
         .cc-network-input {
-            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
             padding: 3px 7px; border-radius: 4px; background-color: var(--surface-muted); color: var(--text-muted);
-            border: 1px solid transparent; cursor: text; flex-shrink: 0; width: 62px; text-align: center;
+            border: 1px solid transparent; cursor: text; flex-shrink: 0; width: 92px; text-align: center;
         }
         .cc-network-input::placeholder { color: var(--text-muted); text-transform: none; font-weight: 500; letter-spacing: normal; }
         .cc-network-input:hover, .cc-network-input:focus { border-color: var(--border-color); background-color: var(--card-bg); outline: none; }
+        .cc-quick-bar { flex-wrap: nowrap; gap: 2px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; justify-content: flex-end; }
+        .cc-quick-bar .iq-btn { padding: 2px 4px; font-size: 0.6rem; flex-shrink: 0; }
         .cc-color-swatch {
             width: 20px; height: 14px; border-radius: 4px; border: 1px solid var(--border-color);
             background: transparent; cursor: pointer; padding: 0; transition: transform 0.15s ease;
@@ -603,6 +604,7 @@
             }
 
             .iq-btn { padding: 6px 9px; font-size: 0.78rem; min-height: 30px; }
+            .cc-quick-bar .iq-btn { padding: 3px 4px; font-size: 0.62rem; min-height: 0; }
             .input-group select { min-height: 44px; }
             #logTable th, #logTable td { padding: 8px 6px; font-size: 0.82rem; }
         }
@@ -1300,6 +1302,17 @@
             const wrap = document.getElementById('liminalRows');
             if (!wrap) return;
 
+            const active = document.activeElement;
+            let restoreFocus = null;
+            if (active && active.id && active.id.startsWith('liminalPlanned-')) {
+                restoreFocus = {
+                    id: active.id,
+                    value: active.value,
+                    selStart: active.selectionStart,
+                    selEnd: active.selectionEnd
+                };
+            }
+
             wrap.innerHTML = LIMINAL_CATEGORIES.map(cat => {
                 const planned = plannedAllocations[cat.key] || 0;
                 const suggested = getSuggestedAmount(cat.pct);
@@ -1319,6 +1332,15 @@
                     </div>
                 `;
             }).join('');
+
+            if (restoreFocus) {
+                const el = document.getElementById(restoreFocus.id);
+                if (el) {
+                    el.value = restoreFocus.value;
+                    el.focus();
+                    try { el.setSelectionRange(restoreFocus.selStart, restoreFocus.selEnd); } catch (e) { /* not all input types support this */ }
+                }
+            }
 
             updateLiminalSummary();
         }
@@ -1851,23 +1873,45 @@
             const tbody = document.getElementById('ccTableBody');
             if (!tbody) return;
 
+            // A rebuild here can be triggered by things the user didn't
+            // initiate themselves (an incoming sync update from another
+            // device, for instance). Without this, that would silently wipe
+            // whatever the user was actively typing -- a card name, a
+            // network label, or worse, an in-progress "add a charge"
+            // description/amount that hadn't been submitted yet -- and would
+            // collapse any open card-details panel back to empty. Capture
+            // it all here and restore it after rebuilding.
+            const active = document.activeElement;
+            let restoreFocus = null;
+            if (active && active.id && /^(ccNameInput-|ccNetworkInput-|ccDesc-|ccAmt-)/.test(active.id)) {
+                restoreFocus = {
+                    id: active.id,
+                    value: active.value,
+                    selStart: active.selectionStart,
+                    selEnd: active.selectionEnd
+                };
+            }
+            const expandedIds = creditCards
+                .filter(card => document.getElementById(`panelWrap-${card.id}`)?.classList.contains('expanded'))
+                .map(card => card.id);
+
             tbody.innerHTML = creditCards.map(card => {
                 const meta = ccCardMeta[card.id] || { color: '' };
                 return `
                     <tr id="cardRow-${card.id}">
                         <td>
                             <div class="cc-row-line">
-                                <div class="cc-row-name">
-                                    <input type="text" class="cc-name-input" id="ccNameInput-${card.id}" value="${escapeHtml(card.name)}" placeholder="Card Name" oninput="renameCreditCard('${card.id}', this.value)" onfocus="this.select()" onblur="if(!this.value.trim()){this.value='New Credit Card';renameCreditCard('${card.id}', this.value);}">
+                                <input type="text" class="cc-name-input" id="ccNameInput-${card.id}" value="${escapeHtml(card.name)}" placeholder="Card Name" oninput="renameCreditCard('${card.id}', this.value)" onfocus="this.select()" onblur="if(!this.value.trim()){this.value='New Credit Card';renameCreditCard('${card.id}', this.value);}">
+                                <div class="cc-row-controls">
                                     <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-${card.id}" onclick="toggleCC('${card.id}')"><span class="chevron">▾</span> Details</button>
-                                </div>
-                                <div class="cc-card-accessories">
-                                    <input type="text" class="cc-network-input" id="ccNetworkInput-${card.id}" value="${escapeHtml(meta.network || '')}" placeholder="Network" maxlength="12" title="Card network label (Visa, Mastercard, Amex, Discover, or anything you like) -- just for fun" oninput="setCardNetwork('${card.id}', this.value)" onfocus="this.select()">
-                                    <div class="cc-color-picker-wrap">
-                                        <button class="cc-color-swatch ${meta.color ? '' : 'is-empty'}" id="ccColorBtn-${card.id}" style="${meta.color ? 'background-color:' + meta.color : ''}" onclick="toggleColorPicker('${card.id}')" title="Card color label"></button>
-                                        <div class="cc-color-popover" id="ccColorPopover-${card.id}"></div>
+                                    <div class="cc-card-accessories">
+                                        <input type="text" class="cc-network-input" id="ccNetworkInput-${card.id}" value="${escapeHtml(meta.network || '')}" placeholder="Network" maxlength="12" title="Card network label (Visa, Mastercard, Amex, Discover, or anything you like) -- just for fun" oninput="setCardNetwork('${card.id}', this.value)" onfocus="this.select()">
+                                        <div class="cc-color-picker-wrap">
+                                            <button class="cc-color-swatch ${meta.color ? '' : 'is-empty'}" id="ccColorBtn-${card.id}" style="${meta.color ? 'background-color:' + meta.color : ''}" onclick="toggleColorPicker('${card.id}')" title="Card color label"></button>
+                                            <div class="cc-color-popover" id="ccColorPopover-${card.id}"></div>
+                                        </div>
+                                        <button class="btn-action btn-small" style="color: var(--negative); padding: 2px 6px; font-size: 0.72rem;" onclick="deleteCreditCard('${card.id}')" title="Delete Credit Card">🗑️</button>
                                     </div>
-                                    <button class="btn-action btn-small" style="color: var(--negative); padding: 2px 6px; font-size: 0.72rem;" onclick="deleteCreditCard('${card.id}')" title="Delete Credit Card">🗑️</button>
                                 </div>
                             </div>
                         </td>
@@ -1876,7 +1920,7 @@
                                 <span class="currency-symbol">$</span>
                                 <input type="number" inputmode="decimal" class="debt-input money-input" data-id="${card.id}" data-name="${escapeHtml(card.name)}" id="debt-${card.id}" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                             </div>
-                            <div class="inline-quick-bar">
+                            <div class="inline-quick-bar cc-quick-bar">
                                 <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
                                 <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
                                 <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
@@ -1906,6 +1950,23 @@
                     </tr>
                 `;
             }).join('');
+
+            expandedIds.forEach(id => {
+                const wrap = document.getElementById(`panelWrap-${id}`);
+                const toggleBtn = document.getElementById(`ccToggleBtn-${id}`);
+                if (wrap) wrap.classList.add('expanded');
+                if (toggleBtn) toggleBtn.classList.add('expanded');
+                renderCCBreakdown(id);
+            });
+
+            if (restoreFocus) {
+                const el = document.getElementById(restoreFocus.id);
+                if (el) {
+                    el.value = restoreFocus.value;
+                    el.focus();
+                    try { el.setSelectionRange(restoreFocus.selStart, restoreFocus.selEnd); } catch (e) { /* not all input types support this */ }
+                }
+            }
         }
 
         function addNewCreditCard() {
@@ -2403,24 +2464,53 @@
             if (draft.cards && Array.isArray(draft.cards)) {
                 draft.cards.forEach(dc => {
                     const input = document.getElementById(`debt-${dc.id}`);
-                    if (input) input.value = parseFloat(dc.payment || 0).toFixed(2);
+                    if (input && document.activeElement !== input) input.value = parseFloat(dc.payment || 0).toFixed(2);
                 });
             }
 
             const fixedExpInputs = document.querySelectorAll('.exp-input-fixed');
             if (draft.expenses && draft.expenses.length > 0) {
                 fixedExpInputs.forEach((input, i) => {
-                    if (draft.expenses[i] !== undefined) {
+                    if (draft.expenses[i] !== undefined && document.activeElement !== input) {
                         input.value = parseFloat(draft.expenses[i] || 0).toFixed(2);
                     }
                 });
             }
 
-            const tbody = document.getElementById('miscExpRows');
-            if (tbody) {
-                tbody.innerHTML = '';
+            const miscTbody = document.getElementById('miscExpRows');
+            if (miscTbody) {
+                // Rebuilding this list destroys and recreates every row's
+                // inputs -- if the user is actively typing a category name
+                // or amount when this runs (e.g. triggered by an incoming
+                // sync update), that wipes focus and looked like the field
+                // was broken. Capture what they're doing and restore it.
+                const activeInMisc = document.activeElement && miscTbody.contains(document.activeElement) ? document.activeElement : null;
+                let restoreMisc = null;
+                if (activeInMisc) {
+                    const noteInputs = Array.from(miscTbody.querySelectorAll('.misc-note-input'));
+                    const amtInputs = Array.from(miscTbody.querySelectorAll('.exp-input-misc'));
+                    const noteIdx = noteInputs.indexOf(activeInMisc);
+                    const amtIdx = amtInputs.indexOf(activeInMisc);
+                    if (noteIdx !== -1) {
+                        restoreMisc = { selector: '.misc-note-input', index: noteIdx, value: activeInMisc.value, selStart: activeInMisc.selectionStart, selEnd: activeInMisc.selectionEnd };
+                    } else if (amtIdx !== -1) {
+                        restoreMisc = { selector: '.exp-input-misc', index: amtIdx, value: activeInMisc.value, selStart: activeInMisc.selectionStart, selEnd: activeInMisc.selectionEnd };
+                    }
+                }
+
+                miscTbody.innerHTML = '';
                 if (draft.miscExpenses && Array.isArray(draft.miscExpenses)) {
                     draft.miscExpenses.forEach(m => addMiscExpenseRow(m.note, m.amt));
+                }
+
+                if (restoreMisc) {
+                    const els = miscTbody.querySelectorAll(restoreMisc.selector);
+                    const el = els[restoreMisc.index];
+                    if (el) {
+                        el.value = restoreMisc.value;
+                        el.focus();
+                        try { el.setSelectionRange(restoreMisc.selStart, restoreMisc.selEnd); } catch (e) { /* not all input types support this */ }
+                    }
                 }
             }
 
@@ -2432,11 +2522,11 @@
                 tag.className = 'mode-tag ' + (isSavingsManual ? 'manual' : 'auto');
             }
 
-            if (savingsInput && draft.savingsThisWeek !== "" && draft.savingsThisWeek !== undefined) {
+            if (savingsInput && draft.savingsThisWeek !== "" && draft.savingsThisWeek !== undefined && document.activeElement !== savingsInput) {
                 savingsInput.value = parseFloat(draft.savingsThisWeek || 0).toFixed(2);
             }
 
-            calculateAll('other');
+            updateDisplays();
         }
 
         function toggleCustomSweep() {
@@ -3003,7 +3093,6 @@
             if (state.hoursPerWeek && document.getElementById('hoursPerWeek')) document.getElementById('hoursPerWeek').value = state.hoursPerWeek;
             if (state.taxRate && document.getElementById('taxRate')) document.getElementById('taxRate').value = state.taxRate;
 
-            renderCreditCards();
             loadCurrentWeekDraft();
             renderLogsTable();
             updateDisplays();
