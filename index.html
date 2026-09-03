@@ -30,11 +30,6 @@
             --surface-muted: #f1f5f9;
         }
 
-        /* Without this, every element's declared width excludes its own
-           padding and border, so anything with a fixed width (inputs,
-           selects, buttons) renders wider than intended. Barely visible on
-           a roomy desktop screen; causes real overflow/misalignment on a
-           narrow phone screen. */
         *, *::before, *::after {
             box-sizing: border-box;
         }
@@ -94,85 +89,44 @@
         .left-col, .right-col { min-width: 0; display: flex; flex-direction: column; }
         #card-bills:not(.collapsed) { flex: 1 1 auto; min-height: 0; }
 
-/* Keep the full left-side stack aligned with the bottom of Current Week Tracker.
-   The dashboard grid stretches both columns to the same height; letting the
-   Weekly Debts & Bills card absorb the remaining left-column space makes its
-   bottom border line up with the tracker's bottom border. */
-.left-col {
-    min-height: 0;
-}
+        .left-col { min-height: 0; }
+        #card-bills:not(.collapsed) { min-height: 0; }
 
-#card-bills:not(.collapsed) {
-    min-height: 0;
-}
+        .dashboard.paycheck-launch-layout #card-bills.collapsed {
+            margin-top: 0; flex: 1 1 auto; min-height: 0;
+        }
+        .dashboard.paycheck-launch-layout #card-bills.collapsed .card-body { min-height: 0; }
 
-/* On launch, keep the three accordion controls visually grouped while the
-   left stack still reaches the same bottom edge as Current Week Tracker. */
-.dashboard.paycheck-launch-layout #card-bills.collapsed {
-    margin-top: 0;
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-.dashboard.paycheck-launch-layout #card-bills.collapsed .card-body {
-    min-height: 0;
-}
-        
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; position: relative; }
         .card h2 { font-size: 1.25rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
 
-
-        /* ===== Desktop compact mode =====
-           Keep the full dashboard and Saved Weekly Logs visible in a normal
-           desktop viewport without changing the mobile sizing rules. */
         @media (min-width: 769px) {
-            body {
-                padding-top: 12px;
-                padding-bottom: 12px;
-            }
-            .header-container {
-                margin-bottom: 14px;
-                padding-bottom: 10px;
-            }
+            body { padding-top: 12px; padding-bottom: 12px; }
+            .header-container { margin-bottom: 14px; padding-bottom: 10px; }
             .header-title { font-size: 1.55rem; }
             .header-subtitle { font-size: 0.82rem; }
             .header-icon { width: 42px; height: 42px; }
-
-            .dashboard {
-                gap: 14px;
-            }
-            .card {
-                padding: 14px;
-                margin-bottom: 10px;
-            }
-            .card-header {
-                padding: 12px 14px;
-            }
+            .dashboard { gap: 14px; }
+            .card { padding: 14px; margin-bottom: 10px; }
+            .card-header { padding: 12px 14px; }
             .card-header-left h2 { font-size: 1.03rem; }
             .summary-badge { font-size: 0.84rem; padding: 4px 9px; }
-            .card-body {
-                padding: 0 14px 14px 14px;
-                padding-top: 12px;
-            }
+            .card-body { padding: 0 14px 14px 14px; padding-top: 12px; }
             .input-group { margin-bottom: 8px; }
             .input-group label { font-size: 0.88rem; }
             .input-group input[readonly],
             .input-group input[type="text"]:not([readonly]),
             .input-group input[type="number"],
-            .input-with-controls input[type="number"] {
-                padding: 6px;
-            }
+            .input-with-controls input[type="number"] { padding: 6px; }
             table { margin-bottom: 8px; }
             th, td { padding: 7px 8px; font-size: 0.86rem; }
             .inline-quick-bar { gap: 2px; }
             .iq-btn { padding: 2px 4px; font-size: 0.64rem; }
-
             .week-selector { padding: 7px; }
             .btn-today { padding: 6px 8px; }
             .sweep-box { padding: 10px; margin-top: 10px; font-size: 0.84rem; }
             .sweep-option { margin-bottom: 7px; }
             .btn { padding: 9px; margin-top: 10px; font-size: 0.9rem; }
-
             .log-section { margin-top: 12px; }
             .log-section .card { margin-bottom: 8px; }
             .log-section .card h2 { margin-bottom: 10px; padding-bottom: 7px; font-size: 1.05rem; }
@@ -180,7 +134,6 @@
             .footer-section { margin-top: 12px; margin-bottom: 4px; }
         }
 
-        /* ===== Accordion cards ===== */
         .accordion-card { padding: 0; overflow: hidden; }
         .card-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; cursor: pointer; user-select: none; gap: 10px; }
         .card-header:hover { background-color: #f8fafc; }
@@ -200,7 +153,6 @@
         .input-group input[type="number"] { text-align: left; width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem;}
         .input-group input[type="number"] { text-align: right; }
 
-        /* ===== Money / percent prefixed fields ===== */
         .money-field { position: relative; display: inline-flex; align-items: center; }
         .money-field .currency-symbol { position: absolute; left: 9px; color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
         .money-field input.money-input { padding-left: 20px !important; }
@@ -279,7 +231,6 @@
         .disc-balance-banner:hover { transform: translateY(-1px); box-shadow: 0 6px 10px -1px rgba(0, 0, 0, 0.2); }
         .disc-balance-amount { color: #34d399; font-weight: 800; font-size: 1.1rem; }
 
-        /* Savings Goal card */
         .savings-goal-card { background-color: #fffbeb; border: 1px solid #fde68a; }
         .savings-goal-card h2 { color: #b45309; border-bottom-color: #fde68a; }
         .goal-progress-wrap { margin-bottom: 16px; }
@@ -313,22 +264,8 @@
         .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
         .modal-content-wide { max-width: 1280px; width: 96%; max-height: 94vh; }
 
-        /* Named-area grid: balance/log widget sits top-right and spans both
-           rows; plan + review fill the top-left/middle, history + totals
-           fill the bottom-left/middle. Compact spacing throughout so the
-           whole thing fits without scrolling on a normal desktop screen. */
-        .balance-menu-grid {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-        }
-        .bm-column {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            min-width: 0;
-            flex: 1;
-        }
+        .balance-menu-grid { display: flex; gap: 14px; align-items: flex-start; }
+        .bm-column { display: flex; flex-direction: column; gap: 14px; min-width: 0; flex: 1; }
         .bm-column:nth-child(2) { flex: 1.1; }
 
         .balance-menu-section { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; min-width: 0; font-size: 0.88rem; }
@@ -341,25 +278,12 @@
         .balance-menu-section .btn { padding: 9px; font-size: 0.88rem; margin-top: 10px; }
         .balance-menu-section .btn-subtle-reset { padding: 6px 10px; font-size: 0.74rem; margin-top: 6px; }
 
-        /* Denser row styling, scoped to this modal only — the same
-           components (cc-item, budget-row) are used elsewhere in the app
-           at their normal size and shouldn't shrink there too. */
-        .bm-balance .input-group {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
+        .bm-balance .input-group { display: flex; flex-direction: column; align-items: stretch; gap: 5px; margin-bottom: 10px; }
         .bm-balance .input-group label { font-size: 0.82rem; flex: none; }
         .bm-balance .input-group input[type="text"],
         .bm-balance .input-group select,
         .bm-balance .input-with-controls,
-        .bm-balance .money-field {
-            width: 100%;
-            max-width: none;
-            flex: none;
-        }
+        .bm-balance .money-field { width: 100%; max-width: none; flex: none; }
         .bm-balance .money-field input { width: 100%; }
         .bm-balance .input-with-controls { align-items: stretch; }
         .balance-menu-section .liminal-row { padding: 4px 0; }
@@ -372,16 +296,13 @@
         .balance-menu-section .cc-item { padding: 5px 8px; font-size: 0.76rem; }
         .balance-menu-section .budget-row { font-size: 0.79rem; margin-bottom: 3px; }
 
-        @media (max-width: 900px) {
-            .balance-menu-grid { flex-direction: column; }
-        }
+        @media (max-width: 900px) { .balance-menu-grid { flex-direction: column; } }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 
         .edit-mode td.editable { background-color: #fef3c7; border: 1px dashed #d97706; cursor: text; }
         .budget-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
 
-        /* CC Breakdown Styles */
         .cc-breakdown-row td { padding: 12px 10px; background-color: #f8fafc; border-bottom: 2px solid var(--border-color); }
         .cc-item-list { margin-bottom: 10px; }
         .cc-item { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem; }
@@ -391,7 +312,6 @@
         .cc-add-form .money-field input { width: 90px; padding: 7px 8px 7px 18px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
         .cc-add-form .btn-action { white-space: nowrap; }
 
-        /* Weekly view / calendar selector */
         .week-selector { display: flex; align-items: center; gap: 8px; background-color: #f1f5f9; padding: 10px; border-radius: 6px; }
         .week-display { flex: 1; min-width: 0; text-align: center; }
         .week-range-label { font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 4px; }
@@ -399,7 +319,6 @@
         .week-date-inputs input[type="date"] { border: 1px solid var(--border-color); border-radius: 4px; padding: 3px; font-size: 0.78rem; color: var(--text-muted); background: white; }
         .btn-today { background-color: var(--primary); color: white; border: none; border-radius: 4px; padding: 8px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
-        /* End of Week Balance Sweep */
         .sweep-box { background-color: #fffbeb; padding: 15px; border: 1px solid #fde68a; border-radius: 4px; margin-top: 15px; font-size: 0.9rem; }
         .sweep-title { display: block; margin-bottom: 10px; }
         .sweep-option { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; }
@@ -408,7 +327,6 @@
         .sweep-option .money-field { margin-left: 4px; }
         .btn-today:hover { background-color: var(--primary-hover); }
 
-        /* ===== Animation keyframes ===== */
         @keyframes itemIn {
             from { opacity: 0; transform: translateY(-6px) scale(0.97); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -437,7 +355,6 @@
         .flash-update { animation: flashUpdate 0.7s ease; border-radius: 4px; }
         .shake { animation: shakeError 0.3s ease; }
 
-        /* ===== Smooth accordion expand/collapse ===== */
         .card-body {
             display: grid;
             grid-template-rows: 1fr;
@@ -456,7 +373,6 @@
             border-top-color: transparent;
         }
 
-        /* ===== CC breakdown panel (expand/collapse) ===== */
         .cc-detail-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px !important; font-size: 0.75rem !important; }
         .cc-detail-toggle .chevron { font-size: 0.85rem; transform: rotate(-90deg); transition: transform 0.25s ease; display: inline-block; }
         .cc-detail-toggle.expanded .chevron { transform: rotate(0deg); }
@@ -476,7 +392,6 @@
             }
         }
 
-        /* ===== CC card accessories: color label ===== */
         .cc-row-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
         .cc-row-name { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; flex: 1 1 auto; }
         .cc-account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -500,26 +415,19 @@
         .cc-color-option:hover { transform: scale(1.18); }
         .cc-color-clear { background: #f1f5f9 !important; color: var(--text-muted); font-size: 11px; display: flex; align-items: center; justify-content: center; }
 
-        /* ===== Dynamic Other/Misc expense rows ===== */
         .misc-note-input { padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; width: 130px; }
         .misc-exp-row td { vertical-align: top; padding-top: 12px; }
         .misc-remove-btn { padding: 2px 6px; font-size: 0.72rem; margin-left: 6px; color: var(--negative); }
         .add-misc-row td { text-align: center; padding: 10px; }
 
-        /* ===== Liminal Budget Allocation (left column) ===== */
         .liminal-row { padding: 12px 0; border-bottom: 1px solid var(--border-color); }
         .liminal-row:last-child { border-bottom: none; }
         .liminal-cat-name { font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
         .liminal-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .liminal-planned { flex-shrink: 0; }
         .liminal-planned input {
-            width: 110px;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.95rem;
-            background-color: var(--card-bg);
-            color: var(--text-main);
+            width: 110px; padding: 8px; border: 1px solid var(--border-color);
+            border-radius: 4px; font-size: 0.95rem; background-color: var(--card-bg); color: var(--text-main);
         }
         .liminal-suggested { text-align: right; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; flex-shrink: 0; }
         .liminal-suggested strong { display: block; color: var(--primary); font-size: 0.98rem; }
@@ -528,15 +436,11 @@
         .liminal-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; }
         .liminal-summary-row:last-child { margin-bottom: 0; padding-top: 6px; border-top: 1px dashed var(--border-color); font-weight: 700; }
 
-        /* ===== Transaction History (right column) ===== */
         .history-empty { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 10px; }
-        /* max-height for #historyList is set by .balance-menu-section #historyList above */
 
-        /* ===== Weekly Review: Projected vs Actual ===== */
         .review-diff-over { color: var(--negative); font-weight: 700; }
         .review-diff-under { color: var(--positive); font-weight: 700; }
 
-        /* ===== Redesigned "More Details" toggle (Weekly Logs) ===== */
         .details-toggle-btn {
             display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px !important;
             font-size: 0.75rem !important; background-color: var(--surface-muted); border: 1px solid var(--border-color);
@@ -545,23 +449,12 @@
         .details-toggle-btn .chevron { font-size: 0.85rem; transform: rotate(-90deg); transition: transform 0.25s ease; }
         .details-toggle-btn.expanded .chevron { transform: rotate(0deg); }
 
-        /* Animated details drawer — same grid-rows expand/collapse trick
-           used elsewhere in the app, so it opens smoothly instead of
-           snapping open/shut. */
-        .log-details {
-            min-height: 0;
-        }
-        .log-details td {
-            padding: 0;
-            border-bottom: 0;
-        }
+        .log-details { min-height: 0; }
+        .log-details td { padding: 0; border-bottom: 0; }
 
         .log-details-wrap {
-            display: grid;
-            grid-template-rows: minmax(0, 0fr);
-            min-height: 0;
-            overflow: hidden;
-            transition: grid-template-rows 0.3s ease;
+            display: grid; grid-template-rows: minmax(0, 0fr);
+            min-height: 0; overflow: hidden; transition: grid-template-rows 0.3s ease;
         }
         .log-details-wrap.expanded { grid-template-rows: minmax(0, 1fr); }
         .log-details-inner { overflow: hidden; min-height: 0; min-width: 0; padding: 15px; }
@@ -570,19 +463,10 @@
         .log-summary-pill { background-color: var(--surface-muted); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; }
         .log-summary-pill strong { display: block; font-size: 1.02rem; margin-top: 2px; }
 
-        /* ===== Color picker: native swatch + hex input ===== */
         .cc-color-popover-custom { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color); }
         .cc-color-native { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: none; }
         .cc-color-hex-input { width: 76px; padding: 4px 6px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; text-transform: uppercase; }
 
-        /* =======================================================
-           DARK MODE
-           Base theme vars first (covers everything already built
-           on var()), then explicit dark equivalents for the
-           surfaces that use one-off accent colors, then form
-           controls, which browsers otherwise render with a
-           default white background regardless of page theme.
-           ======================================================= */
         html[data-theme="dark"] {
             color-scheme: dark;
             --primary: #60a5fa;
@@ -600,7 +484,6 @@
 
         html[data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-main); }
 
-        /* Panels / subtle surfaces */
         html[data-theme="dark"] .sync-badge,
         html[data-theme="dark"] .sync-badge.disconnected,
         html[data-theme="dark"] .input-group input[readonly],
@@ -625,32 +508,25 @@
         html[data-theme="dark"] .btn-subtle-reset:hover,
         html[data-theme="dark"] .arrow-btn:hover { background-color: #334155; }
 
-        /* Blue accents (badges, hover states, editing highlight) */
         html[data-theme="dark"] .summary-badge,
         html[data-theme="dark"] .link-btn:hover,
         html[data-theme="dark"] .mode-tag.auto,
         html[data-theme="dark"] .cc-item.editing { background-color: #1e3a5f; }
 
-        /* Red accents */
         html[data-theme="dark"] .summary-badge.negative-badge,
         html[data-theme="dark"] .btn-reset-subtle:hover { background-color: #3f1d1d; }
         html[data-theme="dark"] .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
 
-        /* Green accents (sync live badge) */
         html[data-theme="dark"] .sync-badge.live { background-color: #14532d; color: #4ade80; }
 
-        /* Amber accents (sync connecting badge) */
         html[data-theme="dark"] .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
 
-        /* Orange accents (manual savings mode tag) */
         html[data-theme="dark"] .mode-tag.manual { background-color: #431407; color: #fb923c; }
 
-        /* Savings balance card */
         html[data-theme="dark"] .savings-balance-card { background-color: #0d2818; border-color: #1e5636; }
         html[data-theme="dark"] .savings-balance-heading { border-bottom-color: #1e5636; }
         html[data-theme="dark"] .savings-edit-btn { color: #64748b; }
 
-        /* Savings goal card + progress bar */
         html[data-theme="dark"] .savings-goal-card { background-color: #2a1c04; border-color: #6b4a10; }
         html[data-theme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #6b4a10; }
         html[data-theme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #6b4a10; }
@@ -661,20 +537,16 @@
         html[data-theme="dark"] .goal-projection-row strong { color: #fcd34d; }
         html[data-theme="dark"] .edit-icon-btn { color: #facc15; }
 
-        /* Edit-mode log table */
         html[data-theme="dark"] .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
 
-        /* End-of-week sweep box */
         html[data-theme="dark"] .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
 
-        /* Modals, CC breakdown panels, and other literal-white surfaces */
         html[data-theme="dark"] .modal-content,
         html[data-theme="dark"] .cc-item,
         html[data-theme="dark"] .cc-add-form,
         html[data-theme="dark"] .cc-color-popover,
         html[data-theme="dark"] .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
 
-        /* Form controls: browsers default these to white regardless of page theme */
         html[data-theme="dark"] input,
         html[data-theme="dark"] select,
         html[data-theme="dark"] textarea {
@@ -690,26 +562,11 @@
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
 
-        /* =======================================================
-           MOBILE / iPHONE REFINEMENTS
-           ======================================================= */
         @media (max-width: 480px) {
-            /* A little extra breathing room above the header, on top of
-               the safe-area inset that already clears the notch/status bar. */
-            body {
-                padding-top: max(38px, calc(env(safe-area-inset-top) + 18px));
-            }
+            body { padding-top: max(38px, calc(env(safe-area-inset-top) + 18px)); }
 
-            /* iOS Safari auto-zooms the whole page when a focused input's
-               font-size is under 16px — this keeps every field at 16px on
-               phone screens specifically, so tapping in to enter an amount
-               doesn't trigger an unwanted zoom. */
-            input, select, textarea {
-                font-size: 16px !important;
-            }
+            input, select, textarea { font-size: 16px !important; }
 
-            /* Larger tap targets (Apple HIG recommends ~44pt minimum) for
-               the fields people are actually typing dollar amounts into. */
             .input-group input[type="number"],
             .input-group input[type="text"]:not([readonly]),
             .input-group input[readonly],
@@ -719,32 +576,12 @@
             td input[type="number"],
             .misc-note-input,
             #purchaseAmount {
-                min-height: 44px;
-                padding-top: 11px;
-                padding-bottom: 11px;
+                min-height: 44px; padding-top: 11px; padding-bottom: 11px;
             }
 
-            /* The +1/+5/+10/+100 quick-adjust buttons are the fiddliest
-               things to tap accurately on a phone — give them more room. */
-            .iq-btn {
-                padding: 6px 9px;
-                font-size: 0.78rem;
-                min-height: 30px;
-            }
-
-            /* Select boxes (e.g. transaction category) get the same
-               minimum tap height as text fields. */
-            .input-group select {
-                min-height: 44px;
-            }
-
-            /* The Saved Weekly Logs table has 7 columns — it will always
-               need some horizontal scroll on a phone, but tightening it up
-               reduces how much. */
-            #logTable th, #logTable td {
-                padding: 8px 6px;
-                font-size: 0.82rem;
-            }
+            .iq-btn { padding: 6px 9px; font-size: 0.78rem; min-height: 30px; }
+            .input-group select { min-height: 44px; }
+            #logTable th, #logTable td { padding: 8px 6px; font-size: 0.82rem; }
         }
     </style>
 </head>
@@ -759,9 +596,7 @@
             </div>
 
             <div class="balance-menu-grid">
-                <!-- LEFT COLUMN: current balance + log form, then history below it -->
                 <div class="bm-column">
-                    <!-- BALANCE + LOG: current balance and add/subtract -->
                     <div class="balance-menu-section bm-balance">
                         <div class="bm-balance-display">
                             <span style="font-size: 0.82rem; color: var(--text-muted);">Available Balance</span><br>
@@ -815,14 +650,12 @@
                         <button class="btn-subtle-reset" onclick="resetPurchaseFields()">🔄 Reset Fields</button>
                     </div>
 
-                    <!-- HISTORY: Transaction History -->
                     <div class="balance-menu-section bm-history">
                         <h4>🧾 History</h4>
                         <div id="historyList"></div>
                     </div>
                 </div>
 
-                <!-- CENTER COLUMN: Liminal Budget Allocation -->
                 <div class="bm-column">
                     <div class="balance-menu-section bm-plan">
                         <h4>🧭 Liminal Plan</h4>
@@ -831,15 +664,12 @@
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: Weekly Review, then Totals & Suggestion below it -->
                 <div class="bm-column">
-                    <!-- REVIEW: Weekly Review, Projected vs Actual -->
                     <div class="balance-menu-section bm-review">
                         <h4>📊 Weekly Review</h4>
                         <div id="weeklyReviewRows"></div>
                     </div>
 
-                    <!-- Category totals + auto-budget suggestion -->
                     <div class="balance-menu-section bm-totals">
                         <h4>✨ Totals &amp; Suggestion</h4>
                         <div class="bm-subhead">Spent so far this week</div>
@@ -865,7 +695,7 @@
         </div>
     </div>
 
-    <!-- Reusable Confirm Modal (replaces browser confirm() dialogs) -->
+    <!-- Reusable Confirm Modal -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1019,6 +849,7 @@
                 </div>
             </div>
 
+            <!-- Dynamic Credit Card Debt Tracker -->
             <div class="card accordion-card" id="card-cc">
                 <div class="card-header" onclick="toggleCard('cc')">
                     <div class="card-header-left">
@@ -1037,157 +868,15 @@
                                 <th style="text-align: right;">Payment ($)</th>
                             </tr>
                         </thead>
+                        <tbody id="ccTableBody">
+                            <!-- Dynamic credit cards rendered here -->
+                        </tbody>
                         <tbody>
-                            <!-- CC1 -->
-                            <tr>
-                                <td>
-                                    <div class="cc-row-line">
-                                        <div class="cc-row-name">
-                                            <span class="cc-account-name">BoFA Customized Cash Rewards</span>
-                                            <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc1" onclick="toggleCC('cc1')"><span class="chevron">▾</span> Details</button>
-                                        </div>
-                                        <div class="cc-card-accessories">
-                                            <div class="cc-color-picker-wrap">
-                                                <button class="cc-color-swatch is-empty" id="ccColorBtn-cc1" onclick="toggleColorPicker('cc1')" title="Card color label"></button>
-                                                <div class="cc-color-popover" id="ccColorPopover-cc1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td style="text-align: right;">
-                                    <div class="money-field">
-                                        <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="BoFA Customized Cash Rewards" id="debt-cc1" value="0.00" step="0.01" oninput="calculateAll('other')">
-                                    </div>
-                                    <div class="inline-quick-bar">
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="cc-breakdown-row" id="breakdown-cc1">
+                            <tr class="add-misc-row">
                                 <td colspan="2">
-                                    <div class="cc-panel-wrap" id="panelWrap-cc1">
-                                    <div class="cc-panel-inner">
-                                    <div id="list-cc1" class="cc-item-list"></div>
-                                    <div class="cc-add-form">
-                                        <input type="text" id="ccDesc-cc1" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc1').focus();} if(event.key==='Escape'){cancelCCEdit('cc1');}">
-                                        <div class="money-field">
-                                            <span class="currency-symbol">$</span>
-                                            <input type="number" inputmode="decimal" id="ccAmt-cc1" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc1');} if(event.key==='Escape'){cancelCCEdit('cc1');}">
-                                        </div>
-                                        <button class="btn-action btn-small" id="ccSubmitBtn-cc1" onclick="addCCItem('cc1')">+ Add</button>
-                                        <button class="link-btn" id="ccCancelBtn-cc1" style="display:none;" onclick="cancelCCEdit('cc1')">Cancel</button>
-                                    </div>
-                                    </div>
-                                    </div>
+                                    <button class="btn-action btn-small" onclick="addNewCreditCard()">+ Add Credit Card</button>
                                 </td>
                             </tr>
-
-                            <!-- CC2 -->
-                            <tr>
-                                <td>
-                                    <div class="cc-row-line">
-                                        <div class="cc-row-name">
-                                            <span class="cc-account-name">BoFA Unlimited Cash Rewards</span>
-                                            <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc2" onclick="toggleCC('cc2')"><span class="chevron">▾</span> Details</button>
-                                        </div>
-                                        <div class="cc-card-accessories">
-                                            <div class="cc-color-picker-wrap">
-                                                <button class="cc-color-swatch is-empty" id="ccColorBtn-cc2" onclick="toggleColorPicker('cc2')" title="Card color label"></button>
-                                                <div class="cc-color-popover" id="ccColorPopover-cc2"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td style="text-align: right;">
-                                    <div class="money-field">
-                                        <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="BoFA Unlimited Cash Rewards" id="debt-cc2" value="0.00" step="0.01" oninput="calculateAll('other')">
-                                    </div>
-                                    <div class="inline-quick-bar">
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="cc-breakdown-row" id="breakdown-cc2">
-                                <td colspan="2">
-                                    <div class="cc-panel-wrap" id="panelWrap-cc2">
-                                    <div class="cc-panel-inner">
-                                    <div id="list-cc2" class="cc-item-list"></div>
-                                    <div class="cc-add-form">
-                                        <input type="text" id="ccDesc-cc2" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc2').focus();} if(event.key==='Escape'){cancelCCEdit('cc2');}">
-                                        <div class="money-field">
-                                            <span class="currency-symbol">$</span>
-                                            <input type="number" inputmode="decimal" id="ccAmt-cc2" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc2');} if(event.key==='Escape'){cancelCCEdit('cc2');}">
-                                        </div>
-                                        <button class="btn-action btn-small" id="ccSubmitBtn-cc2" onclick="addCCItem('cc2')">+ Add</button>
-                                        <button class="link-btn" id="ccCancelBtn-cc2" style="display:none;" onclick="cancelCCEdit('cc2')">Cancel</button>
-                                    </div>
-                                    </div>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <!-- CC3 -->
-                            <tr>
-                                <td>
-                                    <div class="cc-row-line">
-                                        <div class="cc-row-name">
-                                            <span class="cc-account-name">Wells Fargo Unlimited</span>
-                                            <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-cc3" onclick="toggleCC('cc3')"><span class="chevron">▾</span> Details</button>
-                                        </div>
-                                        <div class="cc-card-accessories">
-                                            <div class="cc-color-picker-wrap">
-                                                <button class="cc-color-swatch is-empty" id="ccColorBtn-cc3" onclick="toggleColorPicker('cc3')" title="Card color label"></button>
-                                                <div class="cc-color-popover" id="ccColorPopover-cc3"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td style="text-align: right;">
-                                    <div class="money-field">
-                                        <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="debt-input money-input" data-name="Wells Fargo Unlimited" id="debt-cc3" value="0.00" step="0.01" oninput="calculateAll('other')">
-                                    </div>
-                                    <div class="inline-quick-bar">
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
-                                        <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
-                                        <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="cc-breakdown-row" id="breakdown-cc3">
-                                <td colspan="2">
-                                    <div class="cc-panel-wrap" id="panelWrap-cc3">
-                                    <div class="cc-panel-inner">
-                                    <div id="list-cc3" class="cc-item-list"></div>
-                                    <div class="cc-add-form">
-                                        <input type="text" id="ccDesc-cc3" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-cc3').focus();} if(event.key==='Escape'){cancelCCEdit('cc3');}">
-                                        <div class="money-field">
-                                            <span class="currency-symbol">$</span>
-                                            <input type="number" inputmode="decimal" id="ccAmt-cc3" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('cc3');} if(event.key==='Escape'){cancelCCEdit('cc3');}">
-                                        </div>
-                                        <button class="btn-action btn-small" id="ccSubmitBtn-cc3" onclick="addCCItem('cc3')">+ Add</button>
-                                        <button class="link-btn" id="ccCancelBtn-cc3" style="display:none;" onclick="cancelCCEdit('cc3')">Cancel</button>
-                                    </div>
-                                    </div>
-                                    </div>
-                                </td>
-                            </tr>
-
                             <tr class="total-row">
                                 <td>Total CC Debts</td>
                                 <td id="totalDebtDisplay" class="negative-text" style="text-align: right;">$0.00</td>
@@ -1475,6 +1164,16 @@
         let purchasesData = [];
         let isEditMode = false;
 
+        // Dynamic Credit Cards state
+        let creditCards = [
+            { id: 'cc1', name: 'BoFA Customized Cash Rewards' },
+            { id: 'cc2', name: 'BoFA Unlimited Cash Rewards' },
+            { id: 'cc3', name: 'Wells Fargo Unlimited' }
+        ];
+        let ccBreakdowns = { cc1: [], cc2: [], cc3: [] };
+        let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
+        let ccEditIndex = {};
+
         // Draft Memory tracking
         let weeklyDrafts = {};
         let currentWeekKey = "";
@@ -1482,19 +1181,9 @@
         // Animation / editing state
         let isFirstRender = true;
         const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        let ccEditIndex = { cc1: null, cc2: null, cc3: null };
-        let lastTotals = { ccTotal: null };
-
-        // Per-card customization (color label + tiny photo) — persists globally, not per-week
-        let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
         const CC_LABEL_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
 
-        // =======================
-        // LIMINAL BUDGET ALLOCATION
-        // Categories share their percentages with the modal's Auto-Budget
-        // Suggestion, and their "value" strings match the purchase category
-        // dropdown, so Weekly Review can compare planned vs. real spend.
-        // =======================
+        // Liminal Categories
         const LIMINAL_CATEGORIES = [
             { key: 'groceries', label: 'Groceries', icon: '🛒', value: 'Groceries', pct: 0.25 },
             { key: 'fastfood', label: 'Fast Food', icon: '🍔', value: 'Fast Food', pct: 0.10 },
@@ -1520,9 +1209,6 @@
         function setPlannedAmount(key, value) {
             const amt = parseFloat(value);
             plannedAllocations[key] = isNaN(amt) || amt < 0 ? 0 : amt;
-            // Update the balance displays and summary live, but deliberately do NOT
-            // rebuild the row inputs here — that would reformat the field the user
-            // is actively typing in (e.g. "1" -> "1.00") on every keystroke.
             const available = globalDiscretionaryBalance - getTotalPlanned();
             document.getElementById('floatingDiscretionary').innerText = formatCurrency(available);
             document.getElementById('modalBalanceDisplay').innerText = formatCurrency(available);
@@ -1551,9 +1237,6 @@
             }
         }
 
-        // Rebuilds the row inputs themselves — only called when something that
-        // actually changes the underlying numbers happens (balance changed,
-        // week saved, state restored), never on every keystroke.
         function renderLiminalPanel() {
             const wrap = document.getElementById('liminalRows');
             if (!wrap) return;
@@ -1581,12 +1264,6 @@
             updateLiminalSummary();
         }
 
-        // =======================
-        // WEEKLY REVIEW: Projected vs. Actual
-        // Real Spent comes from this week's live transaction list (spending
-        // only, i.e. negative amounts); Projected comes from what's
-        // currently planned in the Liminal panel for that category.
-        // =======================
         function getRealSpentByCategory(purchases) {
             const totals = {};
             (purchases || []).forEach(p => {
@@ -1633,9 +1310,7 @@
             wrap.innerHTML = rows;
         }
 
-        // =======================
-        // DARK MODE
-        // =======================
+        // Dark Mode
         function applyTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             const input = document.getElementById('themeToggleInput');
@@ -1648,24 +1323,22 @@
 
         function setTheme(theme) {
             applyTheme(theme);
-            try { localStorage.setItem('budgetThemePref', theme); } catch (e) { /* storage unavailable — theme still applies for this session */ }
+            try { localStorage.setItem('budgetThemePref', theme); } catch (e) {}
         }
 
         function initTheme() {
             let saved = null;
-            try { saved = localStorage.getItem('budgetThemePref'); } catch (e) { /* storage unavailable */ }
+            try { saved = localStorage.getItem('budgetThemePref'); } catch (e) {}
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             applyTheme(saved || (prefersDark ? 'dark' : 'light'));
         }
 
-        // Applied immediately (not deferred to window.onload) so the page never
-        // flashes the wrong theme before the rest of the app finishes loading.
         initTheme();
 
         function flashEl(el) {
             if (!el || isFirstRender || prefersReducedMotion) return;
             el.classList.remove('flash-update');
-            void el.offsetWidth; // restart animation
+            void el.offsetWidth;
             el.classList.add('flash-update');
         }
 
@@ -1686,11 +1359,9 @@
             }
         });
 
-        // =======================
-        // LIVE SYNC (Supabase)
-        // =======================
+        // Supabase Live Sync
         const SUPABASE_URL = 'https://zhrepahjgfgztderzuae.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpocmVwYWhqZ2ZnenRkZXJ6dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMDI1MjcsImV4cCI6MjEwMzg3ODUyN30.7Pos9D617C5QMfhut8wiVcUCgXp9_1V5eRSVictV_HI';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefiI6InpocmVwYWhqZ2ZnenRkZXJ6dWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMDI1MjcsImV4cCI6MjEwMzg3ODUyN30.7Pos9D617C5QMfhut8wiVcUCgXp9_1V5eRSVictV_HI';
         const SYNC_ENABLED = SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_HERE';
 
         const myClientId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('client-' + Date.now() + '-' + Math.random().toString(16).slice(2));
@@ -1699,7 +1370,7 @@
         let syncChannel = null;
         let syncPushTimer = null;
         let syncConnectTimeout = null;
-        let isApplyingRemoteState = false; 
+        let isApplyingRemoteState = false;
 
         function loadSupabaseScript(callback) {
             const existing = document.getElementById('supabase-js-lib');
@@ -1715,12 +1386,8 @@
         function initSync() {
             if (!SYNC_ENABLED) return;
             document.getElementById('syncWidget').style.display = 'flex';
-
-            // Ensure the Sync Code input element reflects the persisted code on start
             const syncInput = document.getElementById('syncCodeInput');
-            if (syncInput) {
-                syncInput.value = syncCode;
-            }
+            if (syncInput) syncInput.value = syncCode;
 
             if (!syncCode) {
                 updateSyncStatus('disconnected');
@@ -1839,9 +1506,7 @@
             }
         }
 
-        // =======================
-        // ACCORDION CARDS
-        // =======================
+        // Accordion Cards
         let cardCollapseState = {};
 
         function updatePaycheckLaunchLayout() {
@@ -1866,7 +1531,6 @@
         function initCardCollapseState() {
             const saved = localStorage.getItem('budgetCardCollapse');
             cardCollapseState = saved ? JSON.parse(saved) : { paycheck: true, cc: true, bills: true, tracker: false };
-
             cardCollapseState.paycheck = false;
             cardCollapseState.tracker = true;
 
@@ -1876,16 +1540,10 @@
                     card.classList.toggle('collapsed', !!cardCollapseState[id]);
                 }
             });
-
-            // In the initial layout, the paycheck calculator is the only
-            // expanded accordion. Anchor the collapsed bills card to the
-            // bottom of the left column for a clean bottom-edge alignment.
             updatePaycheckLaunchLayout();
         }
 
-        // =======================
-        // WEEKLY DRAFTS LOGIC
-        // =======================
+        // Weekly Drafts Logic
         function getWeekKey() {
             return `${document.getElementById('weekStart').value}_${document.getElementById('weekEnd').value}`;
         }
@@ -1893,22 +1551,13 @@
         function initDraft(key) {
             if (!weeklyDrafts[key]) {
                 weeklyDrafts[key] = {
-                    debts: ["0.00", "0.00", "0.00"],
-                    ccBreakdowns: { "cc1": [], "cc2": [], "cc3": [] },
-                    expenses: ["0.00", "0.00", "0.00"], // Rent, Car Insurance, Other Bills & Utilities
+                    cards: creditCards.map(c => ({ id: c.id, name: c.name, payment: "0.00" })),
+                    ccBreakdowns: JSON.parse(JSON.stringify(ccBreakdowns)),
+                    expenses: ["0.00", "0.00", "0.00"],
                     miscExpenses: [{ note: "", amt: "0.00" }],
                     savingsThisWeek: "",
                     savingsManual: false
                 };
-            } else {
-                // Migrate legacy single Other/Misc field -> dynamic array
-                const d = weeklyDrafts[key];
-                if (!d.miscExpenses) {
-                    const legacyAmt = (d.expenses && d.expenses.length > 3) ? d.expenses[3] : "0.00";
-                    d.miscExpenses = [{ note: d.miscExpNote || "", amt: legacyAmt || "0.00" }];
-                    if (d.expenses && d.expenses.length > 3) d.expenses = d.expenses.slice(0, 3);
-                    delete d.miscExpNote;
-                }
             }
         }
 
@@ -1917,564 +1566,744 @@
             initDraft(currentWeekKey);
             const draft = weeklyDrafts[currentWeekKey];
 
-            const debtInputs = document.querySelectorAll('.debt-input');
-            draft.debts = Array.from(debtInputs).map(i => i.value);
+            draft.cards = creditCards.map(c => {
+                const input = document.getElementById(`debt-${c.id}`);
+                return {
+                    id: c.id,
+                    name: c.name,
+                    payment: input ? input.value : "0.00"
+                };
+            });
+            draft.ccBreakdowns = JSON.parse(JSON.stringify(ccBreakdowns));
 
             const fixedExpInputs = document.querySelectorAll('.exp-input-fixed');
             draft.expenses = Array.from(fixedExpInputs).map(i => i.value);
 
-            const miscRows = document.querySelectorAll('#miscExpRows .misc-exp-row');
-            draft.miscExpenses = Array.from(miscRows).map(row => ({
-                note: row.querySelector('.misc-note-input')?.value || '',
-                amt: row.querySelector('.exp-input')?.value || '0.00'
-            }));
-
-            draft.savingsThisWeek = document.getElementById('savingsThisWeek').value;
-        }
-
-        function loadWeekDraft(key) {
-            initDraft(key);
-            const draft = weeklyDrafts[key];
-
-            const debtInputs = document.querySelectorAll('.debt-input');
-            debtInputs.forEach((el, i) => { el.value = draft.debts[i] || "0.00"; });
-
-            const expInputs = document.querySelectorAll('.exp-input-fixed');
-            expInputs.forEach((el, i) => { el.value = draft.expenses[i] || "0.00"; });
-
-            renderMiscExpenseRows();
-            document.getElementById('savingsThisWeek').value = draft.savingsThisWeek || "";
-
-            ['cc1', 'cc2', 'cc3'].forEach(id => {
-                ccEditIndex[id] = null;
-                document.getElementById(`ccSubmitBtn-${id}`).innerText = '+ Add';
-                document.getElementById(`ccCancelBtn-${id}`).style.display = 'none';
-                renderCCItems(id);
-                updateCCTotalUI(id);
-                const items = draft.ccBreakdowns[id] || [];
-                setCCExpanded(id, items.length > 0);
+            const miscRows = document.querySelectorAll('#miscExpRows tr.misc-exp-row');
+            draft.miscExpenses = Array.from(miscRows).map(row => {
+                const noteInput = row.querySelector('.misc-note-input');
+                const amtInput = row.querySelector('.exp-input-misc');
+                return {
+                    note: noteInput ? noteInput.value : '',
+                    amt: amtInput ? amtInput.value : '0.00'
+                };
             });
 
-            updateWeekRangeLabel();
+            const savingsInput = document.getElementById('savingsThisWeek');
+            if (savingsInput) draft.savingsThisWeek = savingsInput.value;
+            draft.savingsManual = isSavingsManual;
+
+            saveState();
+        }
+
+        // ==========================================
+        // DYNAMIC CREDIT CARD MANAGEMENT
+        // ==========================================
+        function renderCreditCards() {
+            const tbody = document.getElementById('ccTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = creditCards.map(card => {
+                const meta = ccCardMeta[card.id] || { color: '' };
+                return `
+                    <tr id="cardRow-${card.id}">
+                        <td>
+                            <div class="cc-row-line">
+                                <div class="cc-row-name">
+                                    <span class="cc-account-name" id="ccNameDisplay-${card.id}" title="Click to edit name" onclick="startEditCardName('${card.id}')">${escapeHtml(card.name)}</span>
+                                    <button class="btn-action btn-small" style="padding: 2px 5px; font-size: 0.72rem;" onclick="startEditCardName('${card.id}')" title="Edit Card Name">✏️</button>
+                                    <button class="btn-action btn-small cc-detail-toggle" id="ccToggleBtn-${card.id}" onclick="toggleCC('${card.id}')"><span class="chevron">▾</span> Details</button>
+                                </div>
+                                <div class="cc-card-accessories">
+                                    <div class="cc-color-picker-wrap">
+                                        <button class="cc-color-swatch ${meta.color ? '' : 'is-empty'}" id="ccColorBtn-${card.id}" style="${meta.color ? 'background-color:' + meta.color : ''}" onclick="toggleColorPicker('${card.id}')" title="Card color label"></button>
+                                        <div class="cc-color-popover" id="ccColorPopover-${card.id}"></div>
+                                    </div>
+                                    <button class="btn-action btn-small" style="color: var(--negative); padding: 2px 6px; font-size: 0.72rem;" onclick="deleteCreditCard('${card.id}')" title="Delete Credit Card">🗑️</button>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="money-field">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" inputmode="decimal" class="debt-input money-input" data-id="${card.id}" data-name="${escapeHtml(card.name)}" id="debt-${card.id}" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                            </div>
+                            <div class="inline-quick-bar">
+                                <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
+                                <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
+                                <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
+                                <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
+                                <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
+                                <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="cc-breakdown-row" id="breakdown-${card.id}">
+                        <td colspan="2">
+                            <div class="cc-panel-wrap" id="panelWrap-${card.id}">
+                            <div class="cc-panel-inner">
+                            <div id="list-${card.id}" class="cc-item-list"></div>
+                            <div class="cc-add-form">
+                                <input type="text" id="ccDesc-${card.id}" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-${card.id}').focus();} if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
+                                <div class="money-field">
+                                    <span class="currency-symbol">$</span>
+                                    <input type="number" inputmode="decimal" id="ccAmt-${card.id}" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('${card.id}');} if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
+                                </div>
+                                <button class="btn-action btn-small" id="ccSubmitBtn-${card.id}" onclick="addCCItem('${card.id}')">+ Add</button>
+                                <button class="link-btn" id="ccCancelBtn-${card.id}" style="display:none;" onclick="cancelCCEdit('${card.id}')">Cancel</button>
+                            </div>
+                            </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function addNewCreditCard() {
+            const cardName = prompt("Enter the name of the new Credit Card:", "New Credit Card");
+            if (cardName === null) return;
+            const cleanName = cardName.trim() || "New Credit Card";
+            const newId = 'cc_' + Date.now();
+
+            creditCards.push({ id: newId, name: cleanName });
+            ccBreakdowns[newId] = [];
+            ccCardMeta[newId] = { color: '' };
+
+            renderCreditCards();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
+
+        function startEditCardName(id) {
+            const card = creditCards.find(c => c.id === id);
+            if (!card) return;
+            const newName = prompt("Edit Credit Card Name:", card.name);
+            if (newName === null) return;
+            const cleanName = newName.trim();
+            if (!cleanName) return;
+
+            card.name = cleanName;
+            const input = document.getElementById(`debt-${id}`);
+            if (input) input.dataset.name = cleanName;
+
+            const display = document.getElementById(`ccNameDisplay-${id}`);
+            if (display) display.textContent = cleanName;
+
+            saveCurrentWeekDraft();
             calculateAll('other');
         }
 
-        function handleDateChange() {
-            saveCurrentWeekDraft();
-            currentWeekKey = getWeekKey();
-            loadWeekDraft(currentWeekKey);
-            saveState();
-        }
+        function deleteCreditCard(id) {
+            const card = creditCards.find(c => c.id === id);
+            if (!card) return;
 
-        const getMonFriFor = (baseDate) => {
-            const dayOfWeek = baseDate.getDay();
-            const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            showConfirmModal(`Are you sure you want to delete "${card.name}"? This will remove its breakdown items and payments.`, (confirmed) => {
+                if (!confirmed) return;
 
-            const monday = new Date(baseDate);
-            monday.setDate(baseDate.getDate() + diffToMon);
+                creditCards = creditCards.filter(c => c.id !== id);
+                delete ccBreakdowns[id];
+                delete ccCardMeta[id];
+                delete ccEditIndex[id];
 
-            const friday = new Date(monday);
-            friday.setDate(monday.getDate() + 4);
-
-            return { monday, friday };
-        };
-
-        function parseLocalDate(dateStr) {
-            const [y, m, d] = dateStr.split('-').map(Number);
-            return new Date(y, m - 1, d);
-        }
-        function formatDateInputValue(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-
-        const initDatesToMonFri = () => {
-            const { monday, friday } = getMonFriFor(new Date());
-            document.getElementById('weekStart').value = formatDateInputValue(monday);
-            document.getElementById('weekEnd').value = formatDateInputValue(friday);
-        };
-
-        function jumpToThisWeek() {
-            saveCurrentWeekDraft();
-            const { monday, friday } = getMonFriFor(new Date());
-            document.getElementById('weekStart').value = formatDateInputValue(monday);
-            document.getElementById('weekEnd').value = formatDateInputValue(friday);
-            currentWeekKey = getWeekKey();
-            loadWeekDraft(currentWeekKey);
-            saveState();
-        }
-
-        function updateWeekRangeLabel() {
-            const startInput = document.getElementById('weekStart');
-            const endInput = document.getElementById('weekEnd');
-            const label = document.getElementById('weekRangeLabel');
-            if (!startInput.value || !endInput.value) { label.innerText = "Select a date range"; return; }
-
-            const sDate = parseLocalDate(startInput.value);
-            const eDate = parseLocalDate(endInput.value);
-            const sMonth = sDate.toLocaleDateString('en-US', { month: 'short' });
-            const eMonth = eDate.toLocaleDateString('en-US', { month: 'short' });
-
-            if (sMonth === eMonth) {
-                label.innerText = `${sMonth} ${sDate.getDate()} – ${eDate.getDate()}, ${eDate.getFullYear()}`;
-            } else {
-                label.innerText = `${sMonth} ${sDate.getDate()} – ${eMonth} ${eDate.getDate()}, ${eDate.getFullYear()}`;
-            }
-        }
-
-        function shiftWeek(direction, skipSaveDraft = false) {
-            if (!skipSaveDraft) {
+                renderCreditCards();
+                calculateAll('other');
                 saveCurrentWeekDraft();
-            }
-
-            const startInput = document.getElementById('weekStart');
-            const endInput = document.getElementById('weekEnd');
-            if (startInput.value && endInput.value) {
-                let sDate = parseLocalDate(startInput.value);
-                sDate.setDate(sDate.getDate() + (direction * 7));
-                startInput.value = formatDateInputValue(sDate);
-
-                let eDate = parseLocalDate(endInput.value);
-                eDate.setDate(eDate.getDate() + (direction * 7));
-                endInput.value = formatDateInputValue(eDate);
-
-                currentWeekKey = getWeekKey();
-                loadWeekDraft(currentWeekKey);
-                saveState();
-            }
+            });
         }
 
-        // =======================
-        // CC BREAKDOWN LOGIC
-        // =======================
-        function setCCExpanded(cardId, expanded) {
-            const wrap = document.getElementById(`panelWrap-${cardId}`);
-            const btn = document.getElementById(`ccToggleBtn-${cardId}`);
+        function toggleCC(ccId) {
+            const wrap = document.getElementById(`panelWrap-${ccId}`);
+            const btn = document.getElementById(`ccToggleBtn-${ccId}`);
             if (!wrap || !btn) return;
-            wrap.classList.toggle('expanded', expanded);
-            btn.classList.toggle('expanded', expanded);
+            wrap.classList.toggle('expanded');
+            btn.classList.toggle('expanded');
+            renderCCBreakdown(ccId);
         }
 
-        function toggleCC(cardId) {
-            const wrap = document.getElementById(`panelWrap-${cardId}`);
-            const nowExpanded = !wrap.classList.contains('expanded');
-            setCCExpanded(cardId, nowExpanded);
-            if (nowExpanded) {
-                // Jump straight into data entry when opening the panel
-                setTimeout(() => document.getElementById(`ccDesc-${cardId}`)?.focus(), prefersReducedMotion ? 0 : 220);
+        function renderCCBreakdown(ccId) {
+            const listEl = document.getElementById(`list-${ccId}`);
+            if (!listEl) return;
+            const items = ccBreakdowns[ccId] || [];
+            if (items.length === 0) {
+                listEl.innerHTML = '<div class="cc-item-empty">No itemized charges added yet.</div>';
+            } else {
+                listEl.innerHTML = items.map((item, idx) => `
+                    <div class="cc-item ${ccEditIndex[ccId] === idx ? 'editing' : ''}">
+                        <span class="cc-item-text" onclick="editCCItem('${ccId}', ${idx})">${escapeHtml(item.desc)} — <strong>${formatCurrency(item.amt)}</strong></span>
+                        <div>
+                            <button class="link-btn" onclick="editCCItem('${ccId}', ${idx})">Edit</button>
+                            <button class="link-btn" style="color:var(--negative);" onclick="deleteCCItem('${ccId}', ${idx})">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (items.length > 0) {
+                const totalAmt = items.reduce((sum, i) => sum + (parseFloat(i.amt) || 0), 0);
+                const debtInput = document.getElementById(`debt-${ccId}`);
+                if (debtInput) {
+                    debtInput.value = totalAmt.toFixed(2);
+                }
             }
         }
 
-        function startCCEdit(cardId, index) {
-            const items = weeklyDrafts[currentWeekKey]?.ccBreakdowns[cardId] || [];
-            const item = items[index];
-            if (!item) return;
+        function addCCItem(ccId) {
+            const descEl = document.getElementById(`ccDesc-${ccId}`);
+            const amtEl = document.getElementById(`ccAmt-${ccId}`);
+            if (!descEl || !amtEl) return;
+            const desc = descEl.value.trim() || 'Item';
+            const amt = parseFloat(amtEl.value) || 0;
 
-            ccEditIndex[cardId] = index;
-            document.getElementById(`ccDesc-${cardId}`).value = item.desc;
-            document.getElementById(`ccAmt-${cardId}`).value = item.amt.toFixed(2);
-            document.getElementById(`ccSubmitBtn-${cardId}`).innerText = '✓ Update';
-            document.getElementById(`ccCancelBtn-${cardId}`).style.display = 'inline-block';
+            if (!ccBreakdowns[ccId]) ccBreakdowns[ccId] = [];
 
-            setCCExpanded(cardId, true);
-            renderCCItems(cardId);
-
-            const descEl = document.getElementById(`ccDesc-${cardId}`);
-            descEl.focus();
-            descEl.select();
-        }
-
-        function cancelCCEdit(cardId) {
-            if (ccEditIndex[cardId] === null) return;
-            ccEditIndex[cardId] = null;
-            document.getElementById(`ccDesc-${cardId}`).value = '';
-            document.getElementById(`ccAmt-${cardId}`).value = '0.00';
-            document.getElementById(`ccSubmitBtn-${cardId}`).innerText = '+ Add';
-            document.getElementById(`ccCancelBtn-${cardId}`).style.display = 'none';
-            renderCCItems(cardId);
-        }
-
-        function addCCItem(cardId) {
-            const descEl = document.getElementById(`ccDesc-${cardId}`);
-            const amtEl = document.getElementById(`ccAmt-${cardId}`);
-            const desc = descEl.value.trim();
-            const amt = parseFloat(amtEl.value);
-
-            descEl.style.borderColor = '';
-            amtEl.style.borderColor = '';
-
-            if (!desc) { descEl.style.borderColor = 'var(--negative)'; shakeEl(descEl); descEl.focus(); return; }
-            if (isNaN(amt) || amt <= 0) { amtEl.style.borderColor = 'var(--negative)'; shakeEl(amtEl); amtEl.focus(); return; }
-
-            initDraft(currentWeekKey);
-            const items = weeklyDrafts[currentWeekKey].ccBreakdowns[cardId];
-
-            const editingIndex = ccEditIndex[cardId];
-            let newIndex;
-            if (editingIndex !== null && items[editingIndex]) {
-                items[editingIndex] = { desc, amt };
-                newIndex = editingIndex;
-                ccEditIndex[cardId] = null;
-                document.getElementById(`ccSubmitBtn-${cardId}`).innerText = '+ Add';
-                document.getElementById(`ccCancelBtn-${cardId}`).style.display = 'none';
+            if (ccEditIndex[ccId] !== null && ccEditIndex[ccId] !== undefined) {
+                ccBreakdowns[ccId][ccEditIndex[ccId]] = { desc, amt };
+                ccEditIndex[ccId] = null;
+                document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '+ Add';
+                document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'none';
             } else {
-                items.push({ desc, amt });
-                newIndex = items.length - 1;
+                ccBreakdowns[ccId].push({ desc, amt });
             }
 
             descEl.value = '';
-            amtEl.value = '0.00';
-            descEl.focus();
-
-            renderCCItems(cardId, newIndex);
-            updateCCTotalUI(cardId);
+            amtEl.value = '';
+            renderCCBreakdown(ccId);
             calculateAll('other');
+            saveCurrentWeekDraft();
         }
 
-        function removeCCItem(cardId, index) {
-            const list = document.getElementById(`list-${cardId}`);
-            const el = list.querySelector(`[data-index="${index}"]`);
+        function editCCItem(ccId, idx) {
+            const items = ccBreakdowns[ccId] || [];
+            if (!items[idx]) return;
+            ccEditIndex[ccId] = idx;
+            document.getElementById(`ccDesc-${ccId}`).value = items[idx].desc;
+            document.getElementById(`ccAmt-${ccId}`).value = items[idx].amt;
+            document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '💾 Save';
+            document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'inline-block';
+            renderCCBreakdown(ccId);
+        }
 
-            const finish = () => {
-                weeklyDrafts[currentWeekKey].ccBreakdowns[cardId].splice(index, 1);
+        function cancelCCEdit(ccId) {
+            ccEditIndex[ccId] = null;
+            document.getElementById(`ccDesc-${ccId}`).value = '';
+            document.getElementById(`ccAmt-${ccId}`).value = '';
+            document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '+ Add';
+            document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'none';
+            renderCCBreakdown(ccId);
+        }
 
-                if (ccEditIndex[cardId] === index) {
-                    // The item currently being edited was just removed — reset the form
-                    ccEditIndex[cardId] = null;
-                    document.getElementById(`ccDesc-${cardId}`).value = '';
-                    document.getElementById(`ccAmt-${cardId}`).value = '0.00';
-                    document.getElementById(`ccSubmitBtn-${cardId}`).innerText = '+ Add';
-                    document.getElementById(`ccCancelBtn-${cardId}`).style.display = 'none';
-                } else if (ccEditIndex[cardId] !== null && ccEditIndex[cardId] > index) {
-                    // An earlier item was removed — shift the tracked edit index down so it
-                    // still points at the same item being edited, not whatever slid into its place
-                    ccEditIndex[cardId] -= 1;
-                }
+        function deleteCCItem(ccId, idx) {
+            if (!ccBreakdowns[ccId]) return;
+            ccBreakdowns[ccId].splice(idx, 1);
+            if (ccEditIndex[ccId] === idx) cancelCCEdit(ccId);
+            renderCCBreakdown(ccId);
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
 
-                renderCCItems(cardId);
-                updateCCTotalUI(cardId);
-                calculateAll('other');
-            };
-
-            if (el && !prefersReducedMotion) {
-                el.classList.add('cc-item-exit');
-                el.addEventListener('animationend', finish, { once: true });
-            } else {
-                finish();
+        function toggleColorPicker(ccId) {
+            const popover = document.getElementById(`ccColorPopover-${ccId}`);
+            if (!popover) return;
+            const isOpen = popover.classList.contains('open');
+            document.querySelectorAll('.cc-color-popover').forEach(p => p.classList.remove('open'));
+            if (!isOpen) {
+                popover.classList.add('open');
+                renderColorPopover(ccId);
             }
         }
 
-        function renderCCItems(cardId, animateNewIndex = null) {
-            const list = document.getElementById(`list-${cardId}`);
-            const items = (weeklyDrafts[currentWeekKey]?.ccBreakdowns[cardId]) || [];
-            if(items.length === 0) {
-                list.innerHTML = `<div class="cc-item-empty">No itemized purchases yet — add one below.</div>`;
-                return;
-            }
-            list.innerHTML = items.map((item, i) => `
-                <div class="cc-item${i === ccEditIndex[cardId] ? ' editing' : ''}${i === animateNewIndex ? ' cc-item-enter' : ''}" data-index="${i}">
-                    <span class="cc-item-text" title="Click to edit" onclick="startCCEdit('${cardId}', ${i})">${escapeHtml(item.desc)}</span>
-                    <span>${formatCurrency(item.amt)} <button style="color:var(--negative); background:none; border:none; cursor:pointer;" title="Remove" onclick="removeCCItem('${cardId}', ${i})">❌</button></span>
-                </div>
+        function renderColorPopover(ccId) {
+            const popover = document.getElementById(`ccColorPopover-${ccId}`);
+            if (!popover) return;
+            if (!ccCardMeta[ccId]) ccCardMeta[ccId] = { color: '' };
+            const currentColor = ccCardMeta[ccId].color || '';
+
+            let html = CC_LABEL_COLORS.map(c => `
+                <button class="cc-color-option" style="background-color: ${c}; ${currentColor === c ? 'transform: scale(1.2); border: 2px solid var(--text-main);' : ''}" onclick="setCardColor('${ccId}', '${c}')"></button>
             `).join('');
+
+            html += `<button class="cc-color-option cc-color-clear" onclick="setCardColor('${ccId}', '')" title="Clear Color">✕</button>`;
+            popover.innerHTML = html;
         }
 
-        function updateCCTotalUI(cardId) {
-            const input = document.getElementById(`debt-${cardId}`);
-            const items = (weeklyDrafts[currentWeekKey]?.ccBreakdowns[cardId]) || [];
-            if (items.length > 0) {
-                const sum = items.reduce((acc, curr) => acc + curr.amt, 0);
-                const changed = input.value !== sum.toFixed(2);
-                input.value = sum.toFixed(2);
-                input.setAttribute('readonly', true);
-                if (changed) flashEl(input.closest('.money-field'));
-            } else {
-                input.removeAttribute('readonly');
+        function setCardColor(ccId, color) {
+            if (!ccCardMeta[ccId]) ccCardMeta[ccId] = { color: '' };
+            ccCardMeta[ccId].color = color;
+            const btn = document.getElementById(`ccColorBtn-${ccId}`);
+            if (btn) {
+                if (color) {
+                    btn.style.backgroundColor = color;
+                    btn.classList.remove('is-empty');
+                } else {
+                    btn.style.backgroundColor = '';
+                    btn.classList.add('is-empty');
+                }
             }
-        }
-
-        // =======================
-        // CC CARD CUSTOMIZATION (color label + mini photo)
-        // =======================
-        function applyAllCCCardMetaUI() {
-            ['cc1', 'cc2', 'cc3'].forEach(id => applyCCCardMetaUI(id));
-        }
-
-        function applyCCCardMetaUI(cardId) {
-            const meta = ccCardMeta[cardId] || {};
-            const swatchBtn = document.getElementById(`ccColorBtn-${cardId}`);
-            if (swatchBtn) {
-                swatchBtn.style.backgroundColor = meta.color || 'transparent';
-                swatchBtn.classList.toggle('is-empty', !meta.color);
-            }
-        }
-
-        function toggleColorPicker(cardId) {
-            document.querySelectorAll('.cc-color-popover.open').forEach(p => {
-                if (p.id !== `ccColorPopover-${cardId}`) p.classList.remove('open');
-            });
-            const pop = document.getElementById(`ccColorPopover-${cardId}`);
-            const btn = document.getElementById(`ccColorBtn-${cardId}`);
-            const willOpen = !pop.classList.contains('open');
-
-            if (willOpen) {
-                const meta = ccCardMeta[cardId] || {};
-                const currentColor = /^#[0-9A-Fa-f]{6}$/.test(meta.color) ? meta.color : '#94a3b8';
-                pop.innerHTML = CC_LABEL_COLORS.map(c =>
-                    `<button class="cc-color-option" style="background-color:${c};" onclick="setCCColor('${cardId}', '${c}')" title="Set label color"></button>`
-                ).join('') + `<button class="cc-color-option cc-color-clear" onclick="setCCColor('${cardId}', '')" title="Clear label">✕</button>`
-                + `<div class="cc-color-popover-custom">
-                    <input type="color" class="cc-color-native" id="ccColorNative-${cardId}" value="${currentColor}" onchange="setCCColor('${cardId}', this.value)" title="Pick any custom color">
-                    <input type="text" class="cc-color-hex-input" id="ccColorHex-${cardId}" placeholder="#RRGGBB" maxlength="7" onkeydown="if(event.key==='Enter'){applyCCHexColor('${cardId}');}">
-                    <button class="btn-action btn-small" style="padding:4px 8px; font-size:0.72rem;" onclick="applyCCHexColor('${cardId}')">Set</button>
-                </div>`;
-
-                const rect = btn.getBoundingClientRect();
-                pop.style.top = `${rect.bottom + 4}px`;
-                pop.style.right = `${Math.max(4, window.innerWidth - rect.right)}px`;
-                pop.style.left = 'auto';
-            }
-            pop.classList.toggle('open', willOpen);
-        }
-
-        function applyCCHexColor(cardId) {
-            const input = document.getElementById(`ccColorHex-${cardId}`);
-            if (!input) return;
-            let val = input.value.trim();
-            if (!val) return;
-            if (!val.startsWith('#')) val = '#' + val;
-
-            if (!/^#[0-9A-Fa-f]{6}$/.test(val)) {
-                input.style.borderColor = 'var(--negative)';
-                shakeEl(input);
-                return;
-            }
-            input.style.borderColor = '';
-            setCCColor(cardId, val);
-        }
-
-        function setCCColor(cardId, color) {
-            ccCardMeta[cardId] = ccCardMeta[cardId] || { color: '' };
-            ccCardMeta[cardId].color = color;
-            applyCCCardMetaUI(cardId);
-            document.getElementById(`ccColorPopover-${cardId}`).classList.remove('open');
+            const popover = document.getElementById(`ccColorPopover-${ccId}`);
+            if (popover) popover.classList.remove('open');
             saveState();
         }
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.cc-color-picker-wrap')) {
-                document.querySelectorAll('.cc-color-popover.open').forEach(p => p.classList.remove('open'));
+                document.querySelectorAll('.cc-color-popover').forEach(p => p.classList.remove('open'));
             }
         });
 
-        // Close the popover on table scroll — with fixed positioning it won't
-        // follow the button, so don't leave it floating in the wrong spot.
-        document.querySelectorAll('.table-container').forEach(tc => {
-            tc.addEventListener('scroll', () => {
-                document.querySelectorAll('.cc-color-popover.open').forEach(p => p.classList.remove('open'));
+        // ==========================================
+        // CALCULATIONS & TRACKING
+        // ==========================================
+        let isSavingsManual = false;
+
+        function resetSavingsAuto() {
+            isSavingsManual = false;
+            const tag = document.getElementById('savingsModeTag');
+            if (tag) {
+                tag.innerText = 'Auto';
+                tag.className = 'mode-tag auto';
+            }
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
+
+        function calculateAll(source) {
+            const hourly = parseFloat(document.getElementById('hourlyRate').value) || 0;
+            const hours = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
+            const tax = parseFloat(document.getElementById('taxRate').value) || 0;
+
+            const grossWeekly = hourly * hours;
+            const netWeekly = grossWeekly * (1 - (tax / 100));
+
+            document.getElementById('grossWeekly').value = formatCurrency(grossWeekly);
+            document.getElementById('netWeekly').value = formatCurrency(netWeekly);
+            document.getElementById('summary-paycheck').innerText = formatCurrency(netWeekly);
+
+            currentNetIncome = netWeekly;
+
+            let totalDebt = 0;
+            document.querySelectorAll('.debt-input').forEach(input => {
+                totalDebt += (parseFloat(input.value) || 0);
             });
-        });
+            currentDebt = totalDebt;
+            document.getElementById('totalDebtDisplay').innerText = formatCurrency(totalDebt);
+            document.getElementById('summary-cc').innerText = formatCurrency(totalDebt);
 
-        // =======================
-        // DYNAMIC OTHER/MISC EXPENSE ROWS
-        // =======================
-        function renderMiscExpenseRows(animateNewIndex = null) {
+            let totalExp = 0;
+            document.querySelectorAll('.exp-input-fixed').forEach(input => {
+                totalExp += (parseFloat(input.value) || 0);
+            });
+            document.querySelectorAll('.exp-input-misc').forEach(input => {
+                totalExp += (parseFloat(input.value) || 0);
+            });
+            currentExp = totalExp;
+            document.getElementById('totalExpDisplay').innerText = formatCurrency(totalExp);
+            document.getElementById('summary-bills').innerText = formatCurrency(totalExp);
+
+            document.getElementById('trackIncome').innerText = formatCurrency(currentNetIncome);
+            document.getElementById('trackCCExp').innerText = formatCurrency(currentDebt);
+            document.getElementById('trackTotalExp').innerText = formatCurrency(currentExp);
+
+            const remainingBeforeSavings = currentNetIncome - currentDebt - currentExp;
+            currentRemaining = remainingBeforeSavings;
+            document.getElementById('trackRemaining').innerText = formatCurrency(remainingBeforeSavings);
+
+            const savingsInput = document.getElementById('savingsThisWeek');
+            if (source === 'savings') {
+                isSavingsManual = true;
+                const tag = document.getElementById('savingsModeTag');
+                if (tag) {
+                    tag.innerText = 'Manual';
+                    tag.className = 'mode-tag manual';
+                }
+            }
+
+            if (isSavingsManual) {
+                currentSavings = parseFloat(savingsInput.value) || 0;
+            } else {
+                currentSavings = Math.max(0, remainingBeforeSavings * 0.6);
+                if (savingsInput) savingsInput.value = currentSavings.toFixed(2);
+            }
+
+            const finalDiscretionary = remainingBeforeSavings - currentSavings;
+            document.getElementById('weeklyBudgetRemaining').innerText = formatCurrency(finalDiscretionary);
+
+            const sweepRolloverDisplay = document.getElementById('sweepRolloverDisplay');
+            if (sweepRolloverDisplay) sweepRolloverDisplay.innerText = formatCurrency(finalDiscretionary);
+
+            document.getElementById('summary-tracker').innerText = formatCurrency(finalDiscretionary);
+
+            updateSavingsProjections(remainingBeforeSavings);
+        }
+
+        function updateSavingsProjections(remainingBeforeSavings) {
+            document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
+
+            const pct = savingsGoal > 0 ? Math.min(100, Math.max(0, (globalSavingsBalance / savingsGoal) * 100)) : 0;
+            document.getElementById('goalProgressFill').style.width = pct.toFixed(1) + '%';
+            document.getElementById('goalProgressAmount').innerText = `${formatCurrency(globalSavingsBalance)} / ${formatCurrency(savingsGoal)}`;
+            document.getElementById('goalProgressPct').innerText = pct.toFixed(1) + '%';
+
+            const annualAfterTax = currentNetIncome * 52;
+            const nextYearProj = globalSavingsBalance + (annualAfterTax * 0.6);
+            document.getElementById('goalProjCurrent').innerText = formatCurrency(annualAfterTax);
+            document.getElementById('goalProjNext').innerText = formatCurrency(nextYearProj);
+        }
+
+        // Misc Expenses
+        function addMiscExpenseRow(note = '', amt = '0.00') {
             const tbody = document.getElementById('miscExpRows');
-            const items = weeklyDrafts[currentWeekKey]?.miscExpenses || [];
+            if (!tbody) return;
+            const tr = document.createElement('tr');
+            tr.className = 'misc-exp-row';
+            tr.innerHTML = `
+                <td>
+                    <input type="text" class="misc-note-input" placeholder="Category Name" value="${escapeHtml(note)}" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                    <button class="btn-action misc-remove-btn" onclick="removeMiscExpenseRow(this)">✕</button>
+                </td>
+                <td style="text-align: right;">
+                    <div class="money-field">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" inputmode="decimal" class="exp-input exp-input-misc money-input" value="${parseFloat(amt || 0).toFixed(2)}" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                    </div>
+                    <div class="inline-quick-bar">
+                        <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
+                        <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
+                        <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
+                        <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
+                        <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
+                        <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
 
-            if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:10px;">No Other/Misc categories yet.</td></tr>`;
+        function removeMiscExpenseRow(btn) {
+            const tr = btn.closest('tr');
+            if (tr) tr.remove();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
+
+        function adjustTableCell(btn, delta) {
+            const container = btn.closest('td');
+            if (!container) return;
+            const input = container.querySelector('input[type="number"]');
+            if (!input) return;
+            let val = parseFloat(input.value) || 0;
+            val += delta;
+            if (val < 0) val = 0;
+            input.value = val.toFixed(2);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        function adjustSpecificField(fieldId, delta, source = 'other') {
+            const input = document.getElementById(fieldId);
+            if (!input) return;
+            let val = parseFloat(input.value) || 0;
+            val += delta;
+            if (val < 0) val = 0;
+            input.value = val.toFixed(2);
+            if (fieldId === 'purchaseAmount') return;
+            calculateAll(source);
+            saveCurrentWeekDraft();
+        }
+
+        // Date Controls
+        function getFormattedDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDateRangeLabel(startDateStr, endDateStr) {
+            if (!startDateStr || !endDateStr) return '–';
+            const s = new Date(startDateStr + 'T00:00:00');
+            const e = new Date(endDateStr + 'T00:00:00');
+            const options = { month: 'short', day: 'numeric' };
+            return `${s.toLocaleDateString('en-US', options)} – ${e.toLocaleDateString('en-US', options)}, ${e.getFullYear()}`;
+        }
+
+        function setWeekDates(startDate) {
+            const start = new Date(startDate);
+            const day = start.getDay();
+            const diff = start.getDate() - day;
+            const sunday = new Date(start.setDate(diff));
+
+            const saturday = new Date(sunday);
+            saturday.setDate(sunday.getDate() + 6);
+
+            const startStr = getFormattedDate(sunday);
+            const endStr = getFormattedDate(saturday);
+
+            document.getElementById('weekStart').value = startStr;
+            document.getElementById('weekEnd').value = endStr;
+            document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(startStr, endStr);
+
+            currentWeekKey = `${startStr}_${endStr}`;
+            loadCurrentWeekDraft();
+        }
+
+        function jumpToThisWeek() {
+            setWeekDates(new Date());
+        }
+
+        function shiftWeek(weeks) {
+            const currentStart = document.getElementById('weekStart').value;
+            const date = currentStart ? new Date(currentStart + 'T00:00:00') : new Date();
+            date.setDate(date.getDate() + (weeks * 7));
+            setWeekDates(date);
+        }
+
+        function handleDateChange() {
+            const s = document.getElementById('weekStart').value;
+            const e = document.getElementById('weekEnd').value;
+            if (s && e) {
+                document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(s, e);
+                currentWeekKey = `${s}_${e}`;
+                loadCurrentWeekDraft();
+            }
+        }
+
+        function loadCurrentWeekDraft() {
+            if (!currentWeekKey) return;
+            initDraft(currentWeekKey);
+            const draft = weeklyDrafts[currentWeekKey];
+
+            if (draft.cards && Array.isArray(draft.cards) && draft.cards.length > 0) {
+                draft.cards.forEach(dc => {
+                    let card = creditCards.find(c => c.id === dc.id);
+                    if (!card) {
+                        creditCards.push({ id: dc.id, name: dc.name });
+                    } else {
+                        card.name = dc.name;
+                    }
+                });
+            }
+
+            if (draft.ccBreakdowns) {
+                ccBreakdowns = JSON.parse(JSON.stringify(draft.ccBreakdowns));
+            }
+
+            renderCreditCards();
+
+            if (draft.cards && Array.isArray(draft.cards)) {
+                draft.cards.forEach(dc => {
+                    const input = document.getElementById(`debt-${dc.id}`);
+                    if (input) input.value = parseFloat(dc.payment || 0).toFixed(2);
+                });
+            }
+
+            const fixedExpInputs = document.querySelectorAll('.exp-input-fixed');
+            if (draft.expenses && draft.expenses.length > 0) {
+                fixedExpInputs.forEach((input, i) => {
+                    if (draft.expenses[i] !== undefined) {
+                        input.value = parseFloat(draft.expenses[i] || 0).toFixed(2);
+                    }
+                });
+            }
+
+            const tbody = document.getElementById('miscExpRows');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (draft.miscExpenses && Array.isArray(draft.miscExpenses)) {
+                    draft.miscExpenses.forEach(m => addMiscExpenseRow(m.note, m.amt));
+                }
+            }
+
+            const savingsInput = document.getElementById('savingsThisWeek');
+            isSavingsManual = !!draft.savingsManual;
+            const tag = document.getElementById('savingsModeTag');
+            if (tag) {
+                tag.innerText = isSavingsManual ? 'Manual' : 'Auto';
+                tag.className = 'mode-tag ' + (isSavingsManual ? 'manual' : 'auto');
+            }
+
+            if (savingsInput && draft.savingsThisWeek !== "" && draft.savingsThisWeek !== undefined) {
+                savingsInput.value = parseFloat(draft.savingsThisWeek || 0).toFixed(2);
+            }
+
+            calculateAll('other');
+        }
+
+        function toggleCustomSweep() {
+            const customWrap = document.getElementById('customSweepWrap');
+            const selected = document.querySelector('input[name="sweepAction"]:checked')?.value;
+            if (customWrap) {
+                customWrap.style.display = (selected === 'sweep_custom') ? 'inline-flex' : 'none';
+            }
+        }
+
+        function saveWeekEntry() {
+            const weekStart = document.getElementById('weekStart').value;
+            const weekEnd = document.getElementById('weekEnd').value;
+            if (!weekStart || !weekEnd) {
+                alert('Please select valid week dates.');
                 return;
             }
 
-            tbody.innerHTML = items.map((item, i) => `
-                <tr class="misc-exp-row${i === animateNewIndex ? ' cc-item-enter' : ''}" data-index="${i}">
-                    <td>
-                        Other/Misc
-                        <input type="text" class="misc-note-input" placeholder="Note (e.g., Subscriptions)" value="${escapeHtml(item.note)}" oninput="saveState()">
-                        <button class="btn-action btn-small misc-remove-btn" title="Remove this category" onclick="removeMiscExpenseRow(${i})">✕</button>
-                    </td>
-                    <td style="text-align: right;">
-                        <div class="money-field">
-                            <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" class="exp-input money-input" value="${item.amt || '0.00'}" step="0.01" oninput="calculateAll('other')">
-                        </div>
-                        <div class="inline-quick-bar">
-                            <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
-                            <button class="iq-btn neg" onclick="adjustTableCell(this, -10)">-10</button>
-                            <button class="iq-btn neg" onclick="adjustTableCell(this, -1)">-1</button>
-                            <button class="iq-btn pos" onclick="adjustTableCell(this, 1)">+1</button>
-                            <button class="iq-btn pos" onclick="adjustTableCell(this, 10)">+10</button>
-                            <button class="iq-btn pos" onclick="adjustTableCell(this, 100)">+100</button>
-                        </div>
-                    </td>
-                </tr>
+            const rangeLabel = formatDateRangeLabel(weekStart, weekEnd);
+            const remainingBeforeSavings = currentNetIncome - currentDebt - currentExp;
+            const finalDiscretionary = remainingBeforeSavings - currentSavings;
+
+            const sweepAction = document.querySelector('input[name="sweepAction"]:checked')?.value || 'rollover';
+            let addedToSavings = currentSavings;
+            let addedToDiscretionary = finalDiscretionary;
+
+            if (sweepAction === 'sweep_all') {
+                addedToSavings += Math.max(0, finalDiscretionary);
+                addedToDiscretionary = 0;
+            } else if (sweepAction === 'sweep_custom') {
+                const customAmt = parseFloat(document.getElementById('customSweepAmount').value) || 0;
+                const sweepAmt = Math.min(Math.max(0, finalDiscretionary), customAmt);
+                addedToSavings += sweepAmt;
+                addedToDiscretionary = finalDiscretionary - sweepAmt;
+            }
+
+            globalSavingsBalance += addedToSavings;
+            globalDiscretionaryBalance += addedToDiscretionary;
+
+            const ccDetails = creditCards.map(c => {
+                const pInput = document.getElementById(`debt-${c.id}`);
+                const pAmt = parseFloat(pInput?.value || 0);
+                return {
+                    name: c.name,
+                    payment: pAmt,
+                    items: ccBreakdowns[c.id] ? [...ccBreakdowns[c.id]] : []
+                };
+            });
+
+            const entry = {
+                id: Date.now(),
+                weekKey: currentWeekKey,
+                rangeLabel,
+                netIncome: currentNetIncome,
+                debt: currentDebt,
+                exp: currentExp,
+                savedThisWeek: addedToSavings,
+                discretionaryAdded: addedToDiscretionary,
+                savingsBalanceAfter: globalSavingsBalance,
+                note: '',
+                ccDetails
+            };
+
+            logsData.unshift(entry);
+            saveState();
+            updateDisplays();
+            renderLogsTable();
+            openModal('purchaseModal');
+        }
+
+        // Transactions
+        function logTransaction(type) {
+            const nameEl = document.getElementById('purchaseName');
+            const catEl = document.getElementById('purchaseCategory');
+            const amtEl = document.getElementById('purchaseAmount');
+            const catErr = document.getElementById('purchaseCategoryError');
+
+            let amt = parseFloat(amtEl.value) || 0;
+            const category = catEl.value;
+
+            if (type === 'sub' && !category) {
+                catErr.classList.add('show');
+                return;
+            }
+            catErr.classList.remove('show');
+
+            if (type === 'sub') amt = -Math.abs(amt);
+
+            globalDiscretionaryBalance += amt;
+            purchasesData.unshift({
+                name: nameEl.value.trim() || category || 'Transaction',
+                category: category || 'General',
+                amount: amt,
+                timestamp: Date.now()
+            });
+
+            resetPurchaseFields();
+            updateDisplays();
+            saveState();
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('historyList');
+            if (!container) return;
+            if (purchasesData.length === 0) {
+                container.innerHTML = '<div class="history-empty">No transactions recorded yet.</div>';
+                return;
+            }
+
+            container.innerHTML = purchasesData.map((p, idx) => `
+                <div class="cc-item" style="margin-bottom: 6px;">
+                    <div>
+                        <strong>${escapeHtml(p.name || p.category || 'Transaction')}</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category || '')} • ${new Date(p.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="${p.amount < 0 ? 'negative-text' : 'positive-text'}">${formatCurrency(p.amount)}</span>
+                        <button class="link-btn" style="color: var(--negative); margin-left: 6px;" onclick="deletePurchase(${idx})">✕</button>
+                    </div>
+                </div>
             `).join('');
         }
 
-        function addMiscExpenseRow() {
-            initDraft(currentWeekKey);
-            weeklyDrafts[currentWeekKey].miscExpenses.push({ note: '', amt: '0.00' });
-            const newIndex = weeklyDrafts[currentWeekKey].miscExpenses.length - 1;
-            renderMiscExpenseRows(newIndex);
-            calculateAll('other');
-            setTimeout(() => {
-                document.querySelector(`#miscExpRows tr[data-index="${newIndex}"] .misc-note-input`)?.focus();
-            }, prefersReducedMotion ? 0 : 260);
-        }
-
-        function removeMiscExpenseRow(index) {
-            const row = document.querySelector(`#miscExpRows tr[data-index="${index}"]`);
-
-            const finish = () => {
-                initDraft(currentWeekKey);
-                weeklyDrafts[currentWeekKey].miscExpenses.splice(index, 1);
-                renderMiscExpenseRows();
-                calculateAll('other');
-            };
-
-            if (row && !prefersReducedMotion) {
-                row.style.transition = 'opacity 0.2s ease';
-                row.style.opacity = '0';
-                setTimeout(finish, 210);
-            } else {
-                finish();
-            }
-        }
-
-        // =======================
-        // CORE CALCULATION LOGIC
-        // =======================
-
-        function adjustSpecificField(elementId, amt, sourceContext = 'other') {
-            const el = document.getElementById(elementId);
-            if (el) {
-                let cur = parseFloat(el.value) || 0;
-                el.value = (cur + amt).toFixed(2);
-                calculateAll(sourceContext);
-            }
-        }
-
-        function adjustTableCell(btn, amt) {
-            const input = btn.closest('td').querySelector('input.money-input');
-            if (input && !input.hasAttribute('readonly')) {
-                let cur = parseFloat(input.value) || 0;
-                input.value = (cur + amt).toFixed(2);
-                calculateAll('other');
-            }
-        }
-
-        function saveState() {
-            saveCurrentWeekDraft();
-            const state = {
-                hourlyRate: document.getElementById('hourlyRate').value,
-                hoursPerWeek: document.getElementById('hoursPerWeek').value,
-                taxRate: document.getElementById('taxRate').value,
-                weekStart: document.getElementById('weekStart').value,
-                weekEnd: document.getElementById('weekEnd').value,
-                globalDiscretionaryBalance,
-                globalSavingsBalance,
-                savingsGoal,
-                logsData,
-                purchasesData,
-                weeklyDrafts,
-                ccCardMeta,
-                plannedAllocations
-            };
-            localStorage.setItem('budgetTrackerData', JSON.stringify(state));
-
-            if (SYNC_ENABLED && syncCode && !isApplyingRemoteState) {
-                queueSyncPush(state);
-            }
-        }
-
-        function applyStateObject(saved) {
-            document.getElementById('hourlyRate').value = saved.hourlyRate || "25.00";
-            document.getElementById('hoursPerWeek').value = saved.hoursPerWeek || "40";
-            document.getElementById('taxRate').value = saved.taxRate || "19.25";
-
-            if (saved.weekStart && saved.weekEnd) {
-                document.getElementById('weekStart').value = saved.weekStart;
-                document.getElementById('weekEnd').value = saved.weekEnd;
-            } else {
-                initDatesToMonFri();
-            }
-
-            globalDiscretionaryBalance = saved.globalDiscretionaryBalance || 0;
-            globalSavingsBalance = saved.globalSavingsBalance || 0;
-            savingsGoal = saved.savingsGoal || 16000;
-            logsData = saved.logsData || [];
-            purchasesData = saved.purchasesData || [];
-            weeklyDrafts = saved.weeklyDrafts || {};
-            // Restore planned allocations, sanitized to the known category keys only
-            const savedPlanned = saved.plannedAllocations || {};
-            plannedAllocations = {};
-            LIMINAL_CATEGORIES.forEach(cat => {
-                const v = parseFloat(savedPlanned[cat.key]);
-                plannedAllocations[cat.key] = isNaN(v) || v < 0 ? 0 : v;
-            });
-            // Photo feature was removed — keep only the color label, drop any legacy photo data
-            const savedMeta = saved.ccCardMeta || {};
-            ccCardMeta = {
-                cc1: { color: (savedMeta.cc1 && savedMeta.cc1.color) || '' },
-                cc2: { color: (savedMeta.cc2 && savedMeta.cc2.color) || '' },
-                cc3: { color: (savedMeta.cc3 && savedMeta.cc3.color) || '' }
-            };
-            applyAllCCCardMetaUI();
-
-            currentWeekKey = getWeekKey();
-            loadWeekDraft(currentWeekKey);
-
-            updateBalancesUI();
-            renderLogs();
-            renderPurchases();
-        }
-
-        function loadState() {
-            initCardCollapseState();
-            const savedData = localStorage.getItem('budgetTrackerData');
-
-            if (savedData) {
-                applyStateObject(JSON.parse(savedData));
-            } else {
-                initDatesToMonFri();
-                currentWeekKey = getWeekKey();
-                loadWeekDraft(currentWeekKey);
-
-                applyAllCCCardMetaUI();
-                updateBalancesUI();
-                renderLogs();
-                renderPurchases();
-
-                openModal('onboardModal');
-            }
-
-            initSync();
-        }
-
-        function completeOnboarding() {
-            const val = parseFloat(document.getElementById('onboardSavingsInput').value);
-            globalSavingsBalance = isNaN(val) ? 0 : val;
-            closeModal('onboardModal');
+        function deletePurchase(idx) {
+            if (!purchasesData[idx]) return;
+            const p = purchasesData[idx];
+            globalDiscretionaryBalance -= p.amount;
+            purchasesData.splice(idx, 1);
+            updateDisplays();
             saveState();
-            updateBalancesUI();
         }
 
+        function resetPurchaseFields() {
+            document.getElementById('purchaseName').value = '';
+            document.getElementById('purchaseCategory').selectedIndex = 0;
+            document.getElementById('purchaseAmount').value = '0.00';
+            document.getElementById('purchaseCategoryError').classList.remove('show');
+        }
+
+        function renderCategoryTotals() {
+            const wrap = document.getElementById('categoryTotalsOutput');
+            if (!wrap) return;
+            const realSpent = getRealSpentByCategory(purchasesData);
+            const keys = Object.keys(realSpent);
+            if (keys.length === 0) {
+                wrap.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted); padding: 4px 0;">No spending logged yet.</div>';
+                return;
+            }
+
+            wrap.innerHTML = keys.map(k => `
+                <div class="budget-row"><span>${escapeHtml(k)}</span><strong>${formatCurrency(realSpent[k])}</strong></div>
+            `).join('');
+        }
+
+        function renderAIBudget() {
+            const wrap = document.getElementById('aiBudgetOutput');
+            if (!wrap) return;
+            if (globalDiscretionaryBalance <= 0) {
+                wrap.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted); padding: 4px 0;">Add funds to see suggestions.</div>';
+                return;
+            }
+
+            wrap.innerHTML = LIMINAL_CATEGORIES.map(c => `
+                <div class="budget-row"><span>${c.icon} ${c.label} (${Math.round(c.pct * 100)}%)</span><strong>${formatCurrency(getSuggestedAmount(c.pct))}</strong></div>
+            `).join('');
+        }
+
+        // Modals & Edits
         function editSavingsBalance() {
             document.getElementById('savingsBalanceEditInput').value = globalSavingsBalance.toFixed(2);
             openModal('savingsEditModal');
         }
 
         function saveSavingsBalanceEdit() {
-            const newVal = parseFloat(document.getElementById('savingsBalanceEditInput').value);
-            if (!isNaN(newVal)) {
-                globalSavingsBalance = newVal;
-                saveState();
-                updateBalancesUI();
-            }
+            const val = parseFloat(document.getElementById('savingsBalanceEditInput').value) || 0;
+            globalSavingsBalance = val;
             closeModal('savingsEditModal');
+            updateDisplays();
+            saveState();
         }
 
         function editSavingsGoal() {
@@ -2483,256 +2312,34 @@
         }
 
         function saveGoalEdit() {
-            const newVal = parseFloat(document.getElementById('goalEditInput').value);
-            if (!isNaN(newVal) && newVal > 0) {
-                savingsGoal = newVal;
-                saveState();
-                updateSavingsGoalUI();
-            }
+            const val = parseFloat(document.getElementById('goalEditInput').value) || 0;
+            savingsGoal = val;
             closeModal('goalEditModal');
-        }
-
-        function updateSavingsGoalUI() {
-            const fill = document.getElementById('goalProgressFill');
-            const pct = savingsGoal > 0 ? Math.min(100, (globalSavingsBalance / savingsGoal) * 100) : 0;
-            fill.style.width = Math.max(0, pct).toFixed(1) + '%';
-            fill.style.background = pct >= 100 ? 'linear-gradient(90deg, #16a34a, #15803d)' : 'linear-gradient(90deg, #f59e0b, #ca8a04)';
-            document.getElementById('goalProgressAmount').innerText = `${formatCurrency(globalSavingsBalance)} / ${formatCurrency(savingsGoal)}`;
-            document.getElementById('goalProgressPct').innerText = (pct >= 100 ? '🎉 ' : '') + pct.toFixed(1) + '%';
-        }
-
-        function updateIncomeProjections() {
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const nextYear = currentYear + 1;
-            const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
-            const msPerDay = 86400000;
-
-            const daysRemaining = Math.max(0, Math.ceil((endOfYear - now) / msPerDay));
-            const weeksRemaining = daysRemaining / 7;
-            const remainingYearIncome = currentNetIncome * weeksRemaining;
-
-            const isLeapYear = (y) => (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
-            const weeksNextYear = (isLeapYear(nextYear) ? 366 : 365) / 7;
-            const nextYearIncome = currentNetIncome * weeksNextYear;
-
-            document.getElementById('goalProjLabelCurrent').innerText = `Remaining ${currentYear} Income (After Tax)`;
-            document.getElementById('goalProjCurrent').innerText = formatCurrency(remainingYearIncome);
-            document.getElementById('goalProjLabelNext').innerText = `${nextYear} Income Forecast (After Tax)`;
-            document.getElementById('goalProjNext').innerText = formatCurrency(nextYearIncome);
-        }
-
-        async function factoryReset() {
-            const ok = await showConfirm(
-                '⚠️ Full Reset — Clear All Data',
-                'This permanently deletes every log, purchase, weekly draft, and setting. This cannot be undone.',
-                'Yes, Delete Everything'
-            );
-            if (ok) {
-                localStorage.removeItem('budgetTrackerData');
-                localStorage.removeItem('budgetCardCollapse');
-                localStorage.removeItem('budgetSyncCode');
-                location.reload();
-            }
-        }
-
-        function calculateAll(source = 'other') {
-            const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
-            const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
-            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-
-            const grossWeekly = hourlyRate * hoursPerWeek;
-            currentNetIncome = grossWeekly * (1 - (taxRate / 100));
-
-            document.getElementById('grossWeekly').value = formatCurrency(grossWeekly);
-            document.getElementById('netWeekly').value = formatCurrency(currentNetIncome);
-            document.getElementById('summary-paycheck').innerText = formatCurrency(currentNetIncome);
-
-            currentDebt = 0;
-            document.querySelectorAll('.debt-input').forEach(i => currentDebt += parseFloat(i.value) || 0);
-            const ccTotalChanged = lastTotals.ccTotal !== null && lastTotals.ccTotal !== currentDebt;
-            lastTotals.ccTotal = currentDebt;
-            document.getElementById('totalDebtDisplay').innerText = formatCurrency(currentDebt);
-            document.getElementById('summary-cc').innerText = formatCurrency(currentDebt);
-            if (ccTotalChanged) {
-                flashEl(document.getElementById('totalDebtDisplay'));
-                flashEl(document.getElementById('summary-cc'));
-            }
-
-            currentExp = 0;
-            document.querySelectorAll('.exp-input').forEach(i => currentExp += parseFloat(i.value) || 0);
-            document.getElementById('totalExpDisplay').innerText = formatCurrency(currentExp);
-            document.getElementById('summary-bills').innerText = formatCurrency(currentExp);
-
-            const remainingBeforeSavings = currentNetIncome - currentDebt - currentExp;
-
-            initDraft(currentWeekKey);
-            const draft = weeklyDrafts[currentWeekKey];
-            const savingsEl = document.getElementById('savingsThisWeek');
-            const modeTag = document.getElementById('savingsModeTag');
-
-            if (source === 'savings') {
-                currentSavings = parseFloat(savingsEl.value) || 0;
-                if (draft) draft.savingsManual = true;
-            } else if (draft && draft.savingsManual) {
-                currentSavings = parseFloat(savingsEl.value) || 0;
-            } else {
-                currentSavings = remainingBeforeSavings > 0 ? (remainingBeforeSavings * 0.60) : 0;
-                if (document.activeElement !== savingsEl) {
-                    savingsEl.value = currentSavings.toFixed(2);
-                }
-            }
-
-            if (modeTag) {
-                const manual = draft && draft.savingsManual;
-                if (manual) {
-                    if (remainingBeforeSavings > 0) {
-                        const pctOfRemaining = (currentSavings / remainingBeforeSavings) * 100;
-                        modeTag.innerText = `Manual (${pctOfRemaining.toFixed(1)}%)`;
-                    } else {
-                        modeTag.innerText = 'Manual';
-                    }
-                    modeTag.className = 'mode-tag manual';
-                } else {
-                    modeTag.innerText = 'Auto (60%)';
-                    modeTag.className = 'mode-tag auto';
-                }
-            }
-
-            document.getElementById('trackIncome').innerText = formatCurrency(currentNetIncome);
-            document.getElementById('trackCCExp').innerText = formatCurrency(currentDebt);
-            document.getElementById('trackTotalExp').innerText = formatCurrency(currentExp);
-            document.getElementById('trackRemaining').innerText = formatCurrency(remainingBeforeSavings);
-
-            currentRemaining = remainingBeforeSavings - currentSavings;
-            const weeklyBudgetEl = document.getElementById('weeklyBudgetRemaining');
-            weeklyBudgetEl.innerText = formatCurrency(currentRemaining);
-            weeklyBudgetEl.className = currentRemaining < 0 ? 'negative-text' : 'highlight';
-
-            const summaryTracker = document.getElementById('summary-tracker');
-            summaryTracker.innerText = formatCurrency(currentRemaining);
-            summaryTracker.className = currentRemaining < 0 ? 'summary-badge negative-badge' : 'summary-badge';
-
-            document.getElementById('sweepRolloverDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
-            updateIncomeProjections();
+            updateDisplays();
             saveState();
         }
 
-        function resetSavingsAuto() {
-            initDraft(currentWeekKey);
-            weeklyDrafts[currentWeekKey].savingsManual = false;
-            calculateAll('other');
+        function completeOnboarding() {
+            const val = parseFloat(document.getElementById('onboardSavingsInput').value) || 0;
+            globalSavingsBalance = val;
+            localStorage.setItem('onboardingComplete', 'true');
+            closeModal('onboardModal');
+            updateDisplays();
+            saveState();
         }
 
-        function toggleCustomSweep() {
-            const action = document.querySelector('input[name="sweepAction"]:checked').value;
-            const customWrap = document.getElementById('customSweepWrap');
-            if(action === 'sweep_custom') {
-                customWrap.style.display = 'inline-flex';
-                document.getElementById('customSweepAmount').focus();
-            } else {
-                customWrap.style.display = 'none';
-            }
-        }
-
-        function saveWeekEntry() {
-            const startStr = document.getElementById('weekStart').value;
-            const endStr = document.getElementById('weekEnd').value;
-            const fmtDate = (dStr) => dStr ? `${dStr.split('-')[1]}/${dStr.split('-')[2]}` : "N/A";
-
-            const sweepAction = document.querySelector('input[name="sweepAction"]:checked').value;
-            let sweptAmount = 0;
-
-            if (sweepAction === 'sweep_all') {
-                sweptAmount = globalDiscretionaryBalance;
-            } else if (sweepAction === 'sweep_custom') {
-                sweptAmount = parseFloat(document.getElementById('customSweepAmount').value) || 0;
-                if(sweptAmount > globalDiscretionaryBalance) sweptAmount = globalDiscretionaryBalance;
-            }
-
-            let actualSaved = currentSavings + sweptAmount;
-
-            globalDiscretionaryBalance -= sweptAmount;
-            globalDiscretionaryBalance += currentRemaining;
-            globalSavingsBalance += actualSaved;
-
-            const debtsList = Array.from(document.querySelectorAll('.debt-input')).map(i => {
-                let name = i.dataset.name;
-                let id = i.id.replace('debt-', '');
-                let breakdowns = weeklyDrafts[currentWeekKey]?.ccBreakdowns[id];
-                if(breakdowns && breakdowns.length > 0) {
-                    name += " (" + breakdowns.map(b => b.desc).join(', ') + ")";
-                }
-                return { name: name, val: parseFloat(i.value) || 0 };
-            });
-
-            const expsList = Array.from(document.querySelectorAll('.exp-input-fixed')).map(i => ({
-                name: i.dataset.name,
-                val: parseFloat(i.value) || 0
-            }));
-            Array.from(document.querySelectorAll('#miscExpRows .misc-exp-row')).forEach(row => {
-                const note = row.querySelector('.misc-note-input')?.value.trim() || '';
-                const amt = parseFloat(row.querySelector('.exp-input')?.value) || 0;
-                expsList.push({ name: note ? `Other/Misc (${note})` : 'Other/Misc', val: amt });
-            });
-
-            const weeklyPurchasesSnapshot = [...purchasesData];
-
-            logsData.push({
-                date: `${fmtDate(startStr)} - ${fmtDate(endStr)}`,
-                net: currentNetIncome,
-                debt: currentDebt,
-                exp: currentExp,
-                save: actualSaved,
-                disc: currentRemaining,
-                swept: sweptAmount,
-                debtsList: debtsList,
-                expsList: expsList,
-                purchasesSnapshot: weeklyPurchasesSnapshot,
-                plannedSnapshot: { ...plannedAllocations },
-                savingsSnapshot: globalSavingsBalance,
-                note: ""
-            });
-
-            purchasesData = [];
-            // Planning restarts fresh each week
-            LIMINAL_CATEGORIES.forEach(cat => { plannedAllocations[cat.key] = 0; });
-
-            // Clear the just-logged week's draft, then reset the on-screen fields to
-            // blank defaults BEFORE navigating to the next week. This prevents
-            // shiftWeek()'s internal saveCurrentWeekDraft() call from re-creating
-            // (resurrecting) the just-deleted draft with the old, already-logged values.
-            delete weeklyDrafts[currentWeekKey];
-            document.querySelectorAll('.debt-input').forEach(i => { i.value = "0.00"; i.removeAttribute('readonly'); });
-            document.querySelectorAll('.exp-input').forEach(i => { i.value = "0.00"; });
-            document.getElementById('savingsThisWeek').value = "";
-
-            shiftWeek(1, true);
-
-            document.querySelector('input[value="rollover"]').checked = true;
-            toggleCustomSweep();
-            document.getElementById('customSweepAmount').value = '0.00';
-
-            updateBalancesUI();
-            renderLogs();
-            renderPurchases();
-        }
-
-        // =======================
-        // RENDERING & LOGS
-        // =======================
-
-        function renderLogs() {
+        // Saved Weekly Logs Table
+        function renderLogsTable() {
             const tbody = document.getElementById('logBody');
-            tbody.innerHTML = '';
+            if (!tbody) return;
 
             if (logsData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="8">
                             <div class="log-empty-state">
-                                <span class="emoji">📈</span>
-                                No weeks logged yet. Save your first week above to start building your history.
+                                <span class="emoji">📊</span>
+                                <div>No saved weekly logs yet. Use "Save Week to Log" above to save your first week!</div>
                             </div>
                         </td>
                     </tr>
@@ -2740,381 +2347,223 @@
                 return;
             }
 
-            logsData.forEach((log, index) => {
-                const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'log-row-even' : '';
-                const isNeg = val => parseFloat(val) < 0;
-                const hasNote = log.note && log.note.trim() !== "";
-                const savingsSnapshotValue = Number(log.savingsSnapshot);
-                const hasSavingsSnapshot = Number.isFinite(savingsSnapshotValue);
-
-                row.innerHTML = `
-                    <td class="log-cell editable"><strong>${escapeHtml(log.date)}</strong></td>
-                    <td class="log-cell editable positive-text">${formatCurrency(log.net)}</td>
-                    <td class="log-cell editable negative-text">${formatCurrency(log.debt)}</td>
-                    <td class="log-cell editable negative-text">${formatCurrency(log.exp)}</td>
-                    <td class="log-cell editable positive-text">${formatCurrency(log.save)}</td>
-                    <td class="log-cell editable ${isNeg(log.disc) ? 'negative-text' : 'highlight'}">${formatCurrency(log.disc)}</td>
-                    <td class="positive-text">${hasSavingsSnapshot ? formatCurrency(savingsSnapshotValue) : '—'}</td>
-                    <td>
-                        <div style="display:flex; gap:5px; align-items:center;">
-                            <button class="details-toggle-btn" id="detailsToggleBtn-${index}" onclick="toggleDetails(${index})" title="Show or hide this week's full breakdown">
-                                <span class="chevron">▾</span> Details
-                            </button>
-                            <button class="btn-small btn-action" onclick="openNoteModal(${index})" title="Add/Edit Note">${hasNote ? '📝*' : '📝'}</button>
-                            ${isEditMode ? `<button class="btn-small" style="background-color: var(--negative);" onclick="deleteLog(${index})" title="Delete Log">❌</button>` : ''}
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-
-                const detailsRow = document.createElement('tr');
-                detailsRow.id = `details-${index}`;
-                detailsRow.className = "log-details";
-
-                let debtsHtml = log.debtsList ? log.debtsList.filter(d => d.val > 0).map(d => `<div>${escapeHtml(d.name)}: ${formatCurrency(d.val)}</div>`).join('') : 'None logged.';
-                let expsHtml = log.expsList ? log.expsList.map(e => `<div>${escapeHtml(e.name)}: ${formatCurrency(e.val)}</div>`).join('') : 'None logged.';
-
-                let purchasesHtml = 'No transactions recorded.';
-                if (log.purchasesSnapshot && log.purchasesSnapshot.length > 0) {
-                    purchasesHtml = log.purchasesSnapshot.map(p => `<div>• ${escapeHtml(p.name)} (${escapeHtml(p.category)}): ${formatCurrency(p.amount)}</div>`).join('');
-                }
-
-                // Planned vs. Actual, from that week's snapshot (older logs saved
-                // before this feature existed won't have one — show a note instead).
-                let plannedVsActualHtml = `<div style="color:var(--text-muted); font-size:0.82rem;">No plan was recorded for this week.</div>`;
-                if (log.plannedSnapshot) {
-                    const realSpentThatWeek = getRealSpentByCategory(log.purchasesSnapshot || []);
-                    plannedVsActualHtml = LIMINAL_CATEGORIES.map(cat => {
-                        const planned = parseFloat(log.plannedSnapshot[cat.key]) || 0;
-                        const real = realSpentThatWeek[cat.value] || 0;
-                        if (planned === 0 && real === 0) return '';
-                        const diff = planned - real;
-                        const diffClass = diff < 0 ? 'review-diff-over' : (diff > 0 ? 'review-diff-under' : '');
-                        return `<div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:4px;">
-                            <span>${cat.icon} ${cat.label}</span>
-                            <span>${formatCurrency(real)} spent / ${formatCurrency(planned)} planned <span class="${diffClass}">(${diff < 0 ? 'over' : 'under'})</span></span>
-                        </div>`;
-                    }).join('') || `<div style="color:var(--text-muted); font-size:0.82rem;">Nothing was planned or spent by category this week.</div>`;
-                }
-
-                detailsRow.innerHTML = `
-                    <td colspan="8">
-                        <div class="log-details-wrap" id="detailsWrap-${index}">
-                        <div class="log-details-inner">
-                        <div class="log-summary-totals">
-                            <div class="log-summary-pill">CC Debt Total<strong class="negative-text">${formatCurrency(log.debt)}</strong></div>
-                            <div class="log-summary-pill">Bills/Expenses Total<strong class="negative-text">${formatCurrency(log.exp)}</strong></div>
-                            <div class="log-summary-pill">Spendable Balance<strong class="${isNeg(log.disc) ? 'negative-text' : 'highlight'}">${formatCurrency(log.disc)}</strong></div>
-                            <div class="log-summary-pill">Savings Balance<strong class="positive-text">${hasSavingsSnapshot ? formatCurrency(savingsSnapshotValue) : '—'}</strong></div>
-                        </div>
-                        <div class="details-grid">
-                            <div>
-                                <strong>Debt Breakdown:</strong><br>${debtsHtml || 'None logged.'}
-                                <br><br><strong>Bills Breakdown:</strong><br>${expsHtml}
-                                ${log.swept > 0 ? `<div style="margin-top:10px; color:var(--positive);"><em>Swept Spendable Balance: ${formatCurrency(log.swept)}</em></div>` : ''}
-                                <br><strong>Planned vs. Actual:</strong>
-                                <div style="margin-top:5px;">${plannedVsActualHtml}</div>
+            let html = '';
+            logsData.forEach((log, idx) => {
+                const isEven = (idx % 2 === 0);
+                html += `
+                    <tr class="${isEven ? 'log-row-even' : ''}">
+                        <td><strong>${escapeHtml(log.rangeLabel)}</strong></td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.netIncome.toFixed(2)}" onchange="updateLogNumber(${idx}, 'netIncome', this.value)">` : formatCurrency(log.netIncome)}</td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.debt.toFixed(2)}" onchange="updateLogNumber(${idx}, 'debt', this.value)">` : formatCurrency(log.debt)}</td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.exp.toFixed(2)}" onchange="updateLogNumber(${idx}, 'exp', this.value)">` : formatCurrency(log.exp)}</td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.savedThisWeek.toFixed(2)}" onchange="updateLogNumber(${idx}, 'savedThisWeek', this.value)">` : formatCurrency(log.savedThisWeek)}</td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.discretionaryAdded.toFixed(2)}" onchange="updateLogNumber(${idx}, 'discretionaryAdded', this.value)">` : formatCurrency(log.discretionaryAdded)}</td>
+                        <td>${isEditMode ? `<input type="number" class="money-input" value="${log.savingsBalanceAfter.toFixed(2)}" onchange="updateLogNumber(${idx}, 'savingsBalanceAfter', this.value)">` : formatCurrency(log.savingsBalanceAfter)}</td>
+                        <td>
+                            <button class="details-toggle-btn" id="logDetailsBtn-${idx}" onclick="toggleLogDetails(${idx})"><span class="chevron">▾</span> Details</button>
+                            <button class="link-btn" onclick="openNoteModal(${idx})" title="Edit Note">📝</button>
+                            <button class="link-btn" style="color:var(--negative);" onclick="deleteLogEntry(${idx})" title="Delete Log">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr class="log-details" id="logDetailsRow-${idx}">
+                        <td colspan="8">
+                            <div class="log-details-wrap" id="logDetailsWrap-${idx}">
+                            <div class="log-details-inner">
+                                ${log.note ? `<div style="margin-bottom: 10px; font-style: italic; color: var(--text-muted);"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
+                                <strong>Card Payment Breakdown:</strong>
+                                <div class="cc-item-list" style="margin-top: 6px;">
+                                    ${(log.ccDetails || []).map(cc => `
+                                        <div class="cc-item">
+                                            <span>${escapeHtml(cc.name)}</span>
+                                            <strong>${formatCurrency(cc.payment)}</strong>
+                                        </div>
+                                    `).join('') || '<div class="cc-item-empty">No card details recorded.</div>'}
+                                </div>
                             </div>
-                            <div>
-                                <strong>Spendable Balance Activity:</strong><br>
-                                <div style="max-height: 100px; overflow-y: auto; margin-top: 5px;">${purchasesHtml}</div>
                             </div>
-                        </div>
-                        ${hasNote ? `<div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border-color);"><strong>Note:</strong> ${escapeHtml(log.note)}</div>` : ''}
-                        </div>
-                        </div>
-                    </td>
+                        </td>
+                    </tr>
                 `;
-                tbody.appendChild(detailsRow);
             });
 
-            const sum = (key) => logsData.reduce((acc, l) => acc + (parseFloat(l[key]) || 0), 0);
-            const totalDisc = sum('disc');
-            const totalsRow = document.createElement('tr');
-            totalsRow.className = 'total-row';
-            totalsRow.innerHTML = `
-                <td>Totals (${logsData.length} wk${logsData.length === 1 ? '' : 's'})</td>
-                <td class="positive-text">${formatCurrency(sum('net'))}</td>
-                <td class="negative-text">${formatCurrency(sum('debt'))}</td>
-                <td class="negative-text">${formatCurrency(sum('exp'))}</td>
-                <td class="positive-text">${formatCurrency(sum('save'))}</td>
-                <td class="${totalDisc < 0 ? 'negative-text' : 'highlight'}">${formatCurrency(totalDisc)}</td>
-                <td>—</td>
-                <td></td>
-            `;
-            tbody.appendChild(totalsRow);
+            tbody.innerHTML = html;
+        }
 
-            const editables = document.querySelectorAll('.editable');
-            editables.forEach(cell => {
-                cell.setAttribute('contenteditable', isEditMode ? 'true' : 'false');
+        function toggleLogDetails(idx) {
+            const wrap = document.getElementById(`logDetailsWrap-${idx}`);
+            const btn = document.getElementById(`logDetailsBtn-${idx}`);
+            if (!wrap || !btn) return;
+            wrap.classList.toggle('expanded');
+            btn.classList.toggle('expanded');
+        }
+
+        function toggleEditLogs() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('editLogsBtn');
+            if (btn) btn.innerText = isEditMode ? '✅ Done Editing' : '✏️ Edit Numbers';
+            renderLogsTable();
+        }
+
+        function updateLogNumber(idx, field, val) {
+            if (!logsData[idx]) return;
+            logsData[idx][field] = parseFloat(val) || 0;
+            saveState();
+        }
+
+        function deleteLogEntry(idx) {
+            showConfirmModal('Delete this saved weekly log entry?', (confirmed) => {
+                if (!confirmed) return;
+                logsData.splice(idx, 1);
+                saveState();
+                renderLogsTable();
             });
         }
 
-        function toggleDetails(index) {
-            const wrap = document.getElementById(`detailsWrap-${index}`);
-            const btn = document.getElementById(`detailsToggleBtn-${index}`);
-            if (!wrap) return;
-            const nowExpanded = !wrap.classList.contains('expanded');
-            wrap.classList.toggle('expanded', nowExpanded);
-            if (btn) {
-                btn.classList.toggle('expanded', nowExpanded);
-                btn.innerHTML = `<span class="chevron">▾</span> ${nowExpanded ? 'Hide' : 'Details'}`;
-            }
-        }
-
-        function openNoteModal(index) {
-            document.getElementById('currentNoteIndex').value = index;
-            document.getElementById('noteTextarea').value = logsData[index].note || "";
+        function openNoteModal(idx) {
+            document.getElementById('currentNoteIndex').value = idx;
+            document.getElementById('noteTextarea').value = logsData[idx]?.note || '';
             openModal('noteModal');
         }
 
         function saveNote() {
-            const index = document.getElementById('currentNoteIndex').value;
-            const noteText = document.getElementById('noteTextarea').value;
-            logsData[index].note = noteText;
-            saveState();
-            renderLogs();
+            const idx = parseInt(document.getElementById('currentNoteIndex').value, 10);
+            if (!isNaN(idx) && logsData[idx]) {
+                logsData[idx].note = document.getElementById('noteTextarea').value.trim();
+                saveState();
+                renderLogsTable();
+            }
             closeModal('noteModal');
         }
 
-        async function deleteLog(index) {
-            const ok = await showConfirm(
-                'Delete this log?',
-                'This will reverse its totals from your overall savings and spendable balances.',
-                'Delete Log'
-            );
-            if (ok) {
-                globalSavingsBalance -= parseFloat(logsData[index].save) || 0;
-                globalDiscretionaryBalance -= parseFloat(logsData[index].disc) || 0;
-                logsData.splice(index, 1);
-                updateBalancesUI();
-                renderLogs();
-                saveState();
-            }
-        }
-
-        async function toggleEditLogs() {
-            const btn = document.getElementById('editLogsBtn');
-            const table = document.getElementById('logTable');
-
-            if (!isEditMode) {
-                if (logsData.length === 0) return;
-                const ok = await showConfirm(
-                    'Edit Logged Numbers?',
-                    'Adjusting these numbers will directly impact your current floating balances by the difference edited.',
-                    'Enable Editing'
-                );
-                if (!ok) return;
-
-                isEditMode = true;
-                btn.innerHTML = "💾 Save Edits";
-                btn.style.setProperty('background-color', 'var(--positive)');
-                btn.style.color = "white";
-                table.classList.add('edit-mode');
-                renderLogs();
-            } else {
-                isEditMode = false;
-                btn.innerHTML = "✏️ Edit Numbers";
-                btn.style.backgroundColor = "var(--text-muted)";
-                table.classList.remove('edit-mode');
-
-                let savingsDiff = 0;
-                let discDiff = 0;
-
-                const rows = document.getElementById('logBody').querySelectorAll('tr:not(.log-details):not(.total-row)');
-                rows.forEach((row, index) => {
-                    if (logsData[index]) {
-                        const cells = row.querySelectorAll('td');
-                        const oldSave = parseFloat(logsData[index].save) || 0;
-                        const oldDisc = parseFloat(logsData[index].disc) || 0;
-
-                        const newSave = parseFloat(cells[4].innerText.replace(/[^0-9.-]+/g,"")) || 0;
-                        const newDisc = parseFloat(cells[5].innerText.replace(/[^0-9.-]+/g,"")) || 0;
-
-                        savingsDiff += (newSave - oldSave);
-                        discDiff += (newDisc - oldDisc);
-
-                        logsData[index].date = cells[0].innerText;
-                        logsData[index].net = parseFloat(cells[1].innerText.replace(/[^0-9.-]+/g,"")) || 0;
-                        logsData[index].debt = parseFloat(cells[2].innerText.replace(/[^0-9.-]+/g,"")) || 0;
-                        logsData[index].exp = parseFloat(cells[3].innerText.replace(/[^0-9.-]+/g,"")) || 0;
-                        logsData[index].save = newSave;
-                        logsData[index].disc = newDisc;
-                    }
-                });
-
-                globalSavingsBalance += savingsDiff;
-                globalDiscretionaryBalance += discDiff;
-
-                updateBalancesUI();
-                renderLogs();
-                saveState();
-            }
-        }
-
-        function renderPurchases() {
-            const list = document.getElementById('historyList');
-            if (list) {
-                if (purchasesData.length === 0) {
-                    list.innerHTML = `<div class="history-empty">No transactions logged yet this week.</div>`;
-                } else {
-                    list.innerHTML = purchasesData.map((p, index) => {
-                        const isAdd = p.amount > 0;
-                        return `
-                            <div class="cc-item">
-                                <span>
-                                    <div>${escapeHtml(p.name)}</div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(p.category)}</div>
-                                </span>
-                                <span style="display:flex; align-items:center; gap:8px;">
-                                    <span class="${isAdd ? 'positive-text' : 'negative-text'}">${isAdd ? '+' : ''}${formatCurrency(p.amount)}</span>
-                                    <button style="background:none; border:none; cursor:pointer; font-size: 1.05rem;" onclick="deleteTransaction(${index})" title="Delete">❌</button>
-                                </span>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            }
-            generateCategoryTotals();
-        }
-
-        function resetPurchaseFields() {
-            document.getElementById('purchaseName').value = '';
-            document.getElementById('purchaseCategory').value = '';
-            document.getElementById('purchaseAmount').value = '0.00';
-            document.getElementById('purchaseCategoryError').classList.remove('show');
-        }
-
-        function logTransaction(type) {
-            const name = document.getElementById('purchaseName').value || (type === 'add' ? "Added Funds" : "Misc Item");
-            const categorySelect = document.getElementById('purchaseCategory');
-            const category = categorySelect.value;
-            let amt = parseFloat(document.getElementById('purchaseAmount').value) || 0;
-
-            if (!category) {
-                document.getElementById('purchaseCategoryError').classList.add('show');
-                categorySelect.focus();
-                return;
-            }
-
-            if (amt <= 0) return;
-            if (type === 'sub') amt = -Math.abs(amt);
-
-            globalDiscretionaryBalance += amt;
-            purchasesData.unshift({name, amount: amt, category});
-
-            updateBalancesUI();
-            renderPurchases();
-            saveState();
-
-            resetPurchaseFields();
-            calculateAll('other');
-        }
-
-        function deleteTransaction(index) {
-            globalDiscretionaryBalance -= parseFloat(purchasesData[index].amount) || 0;
-            purchasesData.splice(index, 1);
-            updateBalancesUI();
-            renderPurchases();
-            saveState();
-            calculateAll('other');
-        }
-
-        function generateCategoryTotals() {
-            const totals = getRealSpentByCategory(purchasesData);
-            const out = document.getElementById('categoryTotalsOutput');
-            out.innerHTML = LIMINAL_CATEGORIES.map(cat =>
-                `<div class="budget-row"><span>${cat.icon} ${cat.label}:</span> <strong>${formatCurrency(totals[cat.value] || 0)}</strong></div>`
-            ).join('');
-        }
-
-        function generateBudget() {
-            const bal = globalDiscretionaryBalance;
-            const out = document.getElementById('aiBudgetOutput');
-
-            if(bal <= 0) {
-                out.innerHTML = `<div style="color:var(--negative); font-weight:bold; margin-bottom: 10px;">Insufficient funds for budgeting.</div>`;
-                return;
-            }
-
-            out.innerHTML = LIMINAL_CATEGORIES.map(cat =>
-                `<div class="budget-row"><span>${cat.icon} ${cat.label} (${Math.round(cat.pct * 100)}%)</span> <strong>${formatCurrency(bal * cat.pct)}</strong></div>`
-            ).join('') + `<div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">Tip: set these as Planned amounts in the Liminal Budget Allocation panel to hold them aside.</div>`;
-        }
-
-        function updateBalancesUI() {
-            const available = globalDiscretionaryBalance - getTotalPlanned();
-            document.getElementById('floatingDiscretionary').innerText = formatCurrency(available);
-            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(available);
-            document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
-            document.getElementById('sweepRolloverDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
-            generateBudget();
-            updateSavingsGoalUI();
-            renderLiminalPanel();
-            renderWeeklyReview();
-        }
-
+        // Generic Modal Utilities
         function openModal(modalId) {
-            const overlay = document.getElementById(modalId);
-            overlay.style.display = 'flex';
-            // Force a reflow so the browser registers the pre-transition state
-            // before .open is added — otherwise the transition wouldn't play.
-            void overlay.offsetWidth;
-            overlay.classList.add('open');
-            if (modalId === 'purchaseModal') {
-                updateBalancesUI();
-            }
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.classList.add('open');
         }
+
         function closeModal(modalId) {
-            const overlay = document.getElementById(modalId);
-            overlay.classList.remove('open');
-            const finish = () => { overlay.style.display = 'none'; };
-            if (prefersReducedMotion) {
-                finish();
-            } else {
-                setTimeout(finish, 200);
-            }
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.remove('open');
+            setTimeout(() => { modal.style.display = 'none'; }, 200);
         }
 
-        let _confirmResolve = null;
-        function showConfirm(title, body, confirmLabel = 'Confirm') {
-            return new Promise((resolve) => {
-                document.getElementById('confirmModalTitle').innerText = title;
-                document.getElementById('confirmModalBody').innerText = body;
-                document.getElementById('confirmModalConfirmBtn').innerText = confirmLabel;
-                _confirmResolve = resolve;
-                openModal('confirmModal');
-            });
+        let confirmCallback = null;
+        function showConfirmModal(bodyText, callback, title = "Are you sure?") {
+            document.getElementById('confirmModalTitle').innerText = title;
+            document.getElementById('confirmModalBody').innerText = bodyText;
+            confirmCallback = callback;
+            openModal('confirmModal');
         }
-        function closeConfirmModal(result) {
+
+        function closeConfirmModal(confirmed) {
             closeModal('confirmModal');
-            if (_confirmResolve) {
-                const resolve = _confirmResolve;
-                _confirmResolve = null;
-                resolve(result);
+            if (confirmCallback) {
+                confirmCallback(confirmed);
+                confirmCallback = null;
             }
         }
 
-        window.onload = () => {
-            document.querySelectorAll('input').forEach(el => el.setAttribute('autocomplete', 'off'));
-            loadState();
-            setTimeout(() => { isFirstRender = false; }, 60);
-        };
-
-        // Register the service worker so the app keeps working offline once
-        // installed to the Home Screen. Safe to skip silently if unsupported
-        // or if the page isn't served over HTTPS (e.g. opened as a local file).
-        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => { /* offline caching just won't be available */ });
-            });
+        function factoryReset() {
+            showConfirmModal('WARNING: This will permanently erase ALL local data, custom cards, logs, and settings. Are you sure?', (confirmed) => {
+                if (!confirmed) return;
+                localStorage.clear();
+                location.reload();
+            }, '⚠️ Factory Reset');
         }
 
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                loadState();
+        // Persistence Management
+        function getStateObject() {
+            return {
+                globalDiscretionaryBalance,
+                globalSavingsBalance,
+                savingsGoal,
+                logsData,
+                purchasesData,
+                plannedAllocations,
+                weeklyDrafts,
+                creditCards,
+                ccBreakdowns,
+                ccCardMeta,
+                hourlyRate: document.getElementById('hourlyRate')?.value,
+                hoursPerWeek: document.getElementById('hoursPerWeek')?.value,
+                taxRate: document.getElementById('taxRate')?.value
+            };
+        }
+
+        function saveState() {
+            const state = getStateObject();
+            localStorage.setItem('budgetTrackerData', JSON.stringify(state));
+            if (!isApplyingRemoteState) {
+                queueSyncPush(state);
             }
+        }
+
+        function applyStateObject(state) {
+            if (!state) return;
+            if (typeof state.globalDiscretionaryBalance === 'number') globalDiscretionaryBalance = state.globalDiscretionaryBalance;
+            if (typeof state.globalSavingsBalance === 'number') globalSavingsBalance = state.globalSavingsBalance;
+            if (typeof state.savingsGoal === 'number') savingsGoal = state.savingsGoal;
+            if (Array.isArray(state.logsData)) logsData = state.logsData;
+            if (Array.isArray(state.purchasesData)) purchasesData = state.purchasesData;
+            if (state.plannedAllocations) plannedAllocations = { ...plannedAllocations, ...state.plannedAllocations };
+            if (state.weeklyDrafts) weeklyDrafts = state.weeklyDrafts;
+            if (Array.isArray(state.creditCards) && state.creditCards.length > 0) creditCards = state.creditCards;
+            if (state.ccBreakdowns) ccBreakdowns = state.ccBreakdowns;
+            if (state.ccCardMeta) ccCardMeta = state.ccCardMeta;
+
+            if (state.hourlyRate && document.getElementById('hourlyRate')) document.getElementById('hourlyRate').value = state.hourlyRate;
+            if (state.hoursPerWeek && document.getElementById('hoursPerWeek')) document.getElementById('hoursPerWeek').value = state.hoursPerWeek;
+            if (state.taxRate && document.getElementById('taxRate')) document.getElementById('taxRate').value = state.taxRate;
+
+            renderCreditCards();
+            loadCurrentWeekDraft();
+            updateDisplays();
+        }
+
+        function updateDisplays() {
+            document.getElementById('floatingDiscretionary').innerText = formatCurrency(globalDiscretionaryBalance);
+            document.getElementById('modalBalanceDisplay').innerText = formatCurrency(globalDiscretionaryBalance);
+            document.getElementById('totalSavingsDisplay').innerText = formatCurrency(globalSavingsBalance);
+
+            renderLiminalPanel();
+            renderHistoryList();
+            renderCategoryTotals();
+            renderAIBudget();
+            renderWeeklyReview();
+            calculateAll('other');
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initCardCollapseState();
+
+            const savedState = localStorage.getItem('budgetTrackerData');
+            if (savedState) {
+                try {
+                    applyStateObject(JSON.parse(savedState));
+                } catch (e) {
+                    console.error('Failed to parse saved state:', e);
+                    renderCreditCards();
+                    jumpToThisWeek();
+                }
+            } else {
+                renderCreditCards();
+                jumpToThisWeek();
+            }
+
+            renderLogsTable();
+            initSync();
+
+            if (!localStorage.getItem('onboardingComplete') && !savedState) {
+                openModal('onboardModal');
+            }
+
+            isFirstRender = false;
         });
     </script>
 </body>
