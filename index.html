@@ -2347,7 +2347,7 @@
         }
 
         // Misc Expenses
-        function addMiscExpenseRow(note = '', amt = '0.00') {
+        function addMiscExpenseRow(note = '', amt = '0.00', skipSave = false) {
             const tbody = document.getElementById('miscExpRows');
             if (!tbody) return;
             const tr = document.createElement('tr');
@@ -2373,8 +2373,10 @@
                 </td>
             `;
             tbody.appendChild(tr);
-            calculateAll('other');
-            saveCurrentWeekDraft();
+            if (!skipSave) {
+                calculateAll('other');
+                saveCurrentWeekDraft();
+            }
         }
 
         function removeMiscExpenseRow(btn) {
@@ -2421,7 +2423,7 @@
             return `${s.toLocaleDateString('en-US', options)} – ${e.toLocaleDateString('en-US', options)}, ${e.getFullYear()}`;
         }
 
-        function setWeekDates(startDate) {
+        function setCurrentWeekKeyOnly(startDate) {
             const start = new Date(startDate);
             const day = start.getDay();
             const diff = start.getDate() - day;
@@ -2438,6 +2440,10 @@
             document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(startStr, endStr);
 
             currentWeekKey = `${startStr}_${endStr}`;
+        }
+
+        function setWeekDates(startDate) {
+            setCurrentWeekKeyOnly(startDate);
             loadCurrentWeekDraft();
         }
 
@@ -2523,7 +2529,7 @@
 
                 miscTbody.innerHTML = '';
                 if (draft.miscExpenses && Array.isArray(draft.miscExpenses)) {
-                    draft.miscExpenses.forEach(m => addMiscExpenseRow(m.note, m.amt));
+                    draft.miscExpenses.forEach(m => addMiscExpenseRow(m.note, m.amt, true));
                 }
 
                 if (restoreMisc) {
@@ -3139,18 +3145,25 @@
             initTheme();
             initCardCollapseState();
 
+            // Establish which week it is (currentWeekKey) WITHOUT rendering or
+            // saving anything yet -- loadCurrentWeekDraft() must not run
+            // against still-default in-memory data, or any save side effect
+            // triggered along the way (e.g. reconstructing a blank draft)
+            // could overwrite real saved/synced data before it's even been
+            // read from localStorage.
+            renderCreditCards();
+            setCurrentWeekKeyOnly(new Date());
+
             const savedState = localStorage.getItem('budgetTrackerData');
             if (savedState) {
                 try {
                     applyStateObject(JSON.parse(savedState));
                 } catch (e) {
                     console.error('Failed to parse saved state:', e);
-                    renderCreditCards();
-                    jumpToThisWeek();
+                    loadCurrentWeekDraft();
                 }
             } else {
-                renderCreditCards();
-                jumpToThisWeek();
+                loadCurrentWeekDraft();
             }
 
             renderLogsTable();
