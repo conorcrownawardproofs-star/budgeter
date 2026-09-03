@@ -1973,6 +1973,13 @@
                 if (wrap) wrap.classList.add('expanded');
                 if (toggleBtn) toggleBtn.classList.add('expanded');
                 renderCCBreakdown(id);
+
+                if (ccEditIndex[id] !== null && ccEditIndex[id] !== undefined) {
+                    const submitBtn = document.getElementById(`ccSubmitBtn-${id}`);
+                    const cancelBtn = document.getElementById(`ccCancelBtn-${id}`);
+                    if (submitBtn) submitBtn.innerText = '💾 Save';
+                    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+                }
             });
 
             if (restoreFocus) {
