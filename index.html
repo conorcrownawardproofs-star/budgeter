@@ -413,13 +413,21 @@
         .cc-name-input:focus { outline: none; background-color: var(--card-bg); border-color: var(--primary); }
         .cc-row-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         .cc-detail-toggle { flex-shrink: 0; white-space: nowrap; }
-        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        /* flex: 1 1 auto + min-width: 0 lets this group fill whatever space
+           is left over after the "Details" toggle, so the Network field
+           inside it (which grows to fill this group -- see .cc-network-input)
+           actually has room to grow into instead of being boxed to a fixed
+           92px. The color swatch and delete button stay flex-shrink: 0 so
+           all of that extra room goes to the text field, not to them. */
+        .cc-card-accessories { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
+        .cc-card-accessories > .cc-color-picker-wrap,
+        .cc-card-accessories > button { flex-shrink: 0; }
 
         .cc-color-picker-wrap { position: relative; }
         .cc-network-input {
             font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
             padding: 3px 7px; border-radius: 4px; background-color: var(--surface-muted); color: var(--text-muted);
-            border: 1px solid transparent; cursor: text; flex-shrink: 0; width: 92px; text-align: center;
+            border: 1px solid transparent; cursor: text; flex: 1 1 auto; min-width: 0; text-align: center;
         }
         .cc-network-input::placeholder { color: var(--text-muted); text-transform: none; font-weight: 500; letter-spacing: normal; }
         .cc-network-input:hover, .cc-network-input:focus { border-color: var(--border-color); background-color: var(--card-bg); outline: none; }
