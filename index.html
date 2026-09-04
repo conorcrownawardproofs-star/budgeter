@@ -1751,6 +1751,25 @@
             setupRealtimeChannel();
         }
 
+        // An installed PWA gets frozen when you switch away from it, and the
+        // realtime websocket dies with it. On reopening, the channel's own
+        // retry only fires if it noticed the drop while the page was awake --
+        // otherwise you're looking at whatever localStorage had, with no clue
+        // it's stale. Re-pull on resume so the app is current the moment you
+        // look at it. Throttled so quick app-switching doesn't hammer it.
+        let lastResumeSync = 0;
+        function resyncOnResume() {
+            if (!supabaseClient || !syncCode) return;
+            if (document.visibilityState !== 'visible') return;
+            const now = Date.now();
+            if (now - lastResumeSync < 10000) return;
+            lastResumeSync = now;
+            startSync();
+        }
+
+        document.addEventListener('visibilitychange', resyncOnResume);
+        window.addEventListener('online', () => { flushPendingSync(); resyncOnResume(); });
+
         function setupRealtimeChannel() {
             if (!supabaseClient || !syncCode) return;
             try {
@@ -1821,7 +1840,10 @@
                     console.error('Sync push failed', error);
                     updateSyncStatus('error');
                     setSaveStatus('error');
+                    scheduleSyncRetry();
                 } else {
+                    syncRetryAttempt = 0;
+                    clearTimeout(syncRetryTimer);
                     updateSyncStatus('live');
                     setSaveStatus('saved');
                 }
@@ -1829,6 +1851,33 @@
                 console.error('Sync push failed', err);
                 updateSyncStatus('error');
                 setSaveStatus('error');
+                scheduleSyncRetry();
+            }
+        }
+
+        // A push that failed (phone briefly offline, a dropped request) used
+        // to just set the badge red and stop. Nothing retried it, so that
+        // edit sat on the one device until you happened to change something
+        // else -- the other device silently stayed out of date. Back off and
+        // try again, and jump on it the moment the network returns.
+        let syncRetryTimer = null;
+        let syncRetryAttempt = 0;
+
+        function scheduleSyncRetry() {
+            if (!syncCode) return;
+            clearTimeout(syncRetryTimer);
+            if (syncRetryAttempt >= 6) return;
+            const delay = Math.min(60000, 2000 * Math.pow(2, syncRetryAttempt));
+            syncRetryAttempt++;
+            syncRetryTimer = setTimeout(() => pushStateToSupabase(), delay);
+        }
+
+        function flushPendingSync() {
+            if (!supabaseClient || !syncCode) return;
+            if (syncSaveStatus === 'error' || syncSaveStatus === 'unsaved') {
+                syncRetryAttempt = 0;
+                clearTimeout(syncRetryTimer);
+                pushStateToSupabase();
             }
         }
 
@@ -2369,6 +2418,18 @@
             wrap.classList.toggle('expanded');
             btn.classList.toggle('expanded');
             renderCCBreakdown(ccId);
+            // renderCCBreakdown() rewrites the Payment field from the card's
+            // itemized total, but nothing here told the rest of the app that
+            // the number had changed. Opening a card's Details panel could
+            // therefore leave Payment reading $100.00 while Total Debt,
+            // Remaining Income and the Current Week Tracker all still showed
+            // $0.00 -- and because the draft wasn't re-saved either, that
+            // corrected payment was lost the moment you changed weeks.
+            // (This is deliberately here rather than inside
+            // renderCCBreakdown(), which also runs during renderCreditCards()
+            // on load, where writing to the draft is unsafe.)
+            calculateAll('other');
+            saveCurrentWeekDraft();
         }
 
         function renderCCBreakdown(ccId) {
@@ -2840,6 +2901,10 @@
         function loadCurrentWeekDraft() {
             if (!currentWeekKey) return;
             initDraft(currentWeekKey);
+            // Paging through weeks with the ‹ › arrows spawns a draft per
+            // week visited; clear out the ones still holding nothing so they
+            // never reach storage or the sync payload in the first place.
+            pruneEmptyDrafts();
             const draft = weeklyDrafts[currentWeekKey];
 
             if (draft.cards && Array.isArray(draft.cards) && draft.cards.length > 0) {
@@ -3596,9 +3661,55 @@
             };
         }
 
+        let localSaveFailed = false;
+
+        // initDraft() creates a draft the moment a week is merely LOOKED at,
+        // and it was then persisted and synced forever. Paging back through
+        // 20 weeks to check something left 20 empty objects in the payload,
+        // permanently, on every device. Drop the ones that hold nothing --
+        // revisiting the week rebuilds an identical blank draft on demand.
+        function isDraftEmpty(draft) {
+            if (!draft) return true;
+            const zero = v => (parseFloat(v) || 0) === 0;
+            if (Array.isArray(draft.cards) && draft.cards.some(c => !zero(c.payment))) return false;
+            if (draft.ccBreakdowns && Object.values(draft.ccBreakdowns).some(items => Array.isArray(items) && items.length > 0)) return false;
+            if (Array.isArray(draft.expenses) && draft.expenses.some(e => !zero(e))) return false;
+            if (Array.isArray(draft.miscExpenses) && draft.miscExpenses.some(m => (m.note || '').trim() !== '' || !zero(m.amt))) return false;
+            if (draft.savingsManual) return false;
+            if (draft.savingsThisWeek !== '' && draft.savingsThisWeek !== undefined && !zero(draft.savingsThisWeek)) return false;
+            return true;
+        }
+
+        function pruneEmptyDrafts() {
+            Object.keys(weeklyDrafts).forEach(key => {
+                // Never drop the week on screen -- it may be empty simply
+                // because it hasn't been filled in yet.
+                if (key === currentWeekKey) return;
+                if (isDraftEmpty(weeklyDrafts[key])) delete weeklyDrafts[key];
+            });
+        }
+
         function saveState() {
+            pruneEmptyDrafts();
             const state = getStateObject();
-            localStorage.setItem('budgetTrackerData', JSON.stringify(state));
+            // localStorage.setItem throws on a full quota, and Safari throws
+            // outright in some private/locked-down modes. This was uncaught,
+            // so the exception escaped mid-update: logTransaction() had
+            // already adjusted the balance and pushed the purchase, but
+            // updateDisplays() never ran and the sync push was never queued.
+            // One failed write took the whole interaction down. Keep going --
+            // the sync push below is the more important of the two saves.
+            try {
+                localStorage.setItem('budgetTrackerData', JSON.stringify(state));
+                localSaveFailed = false;
+            } catch (e) {
+                console.error('Local save failed:', e);
+                if (!localSaveFailed) {
+                    localSaveFailed = true;
+                    const textEl = document.getElementById('syncLastSavedText');
+                    if (textEl) textEl.innerText = "This device's local storage is full, so changes can't be kept offline.";
+                }
+            }
             if (!isApplyingRemoteState) {
                 queueSyncPush(state);
             }
@@ -3617,9 +3728,19 @@
             if (state.ccBreakdowns) ccBreakdowns = state.ccBreakdowns;
             if (state.ccCardMeta) ccCardMeta = state.ccCardMeta;
 
-            if (state.hourlyRate && document.getElementById('hourlyRate')) document.getElementById('hourlyRate').value = state.hourlyRate;
-            if (state.hoursPerWeek && document.getElementById('hoursPerWeek')) document.getElementById('hoursPerWeek').value = state.hoursPerWeek;
-            if (state.taxRate && document.getElementById('taxRate')) document.getElementById('taxRate').value = state.taxRate;
+            // Every other input the sync touches (misc rows, card payments,
+            // fixed bills, the savings field) already skips the field you're
+            // currently typing in. These three didn't, so an incoming update
+            // from your other device would replace your hourly rate or hours
+            // mid-keystroke -- the digits you'd typed simply vanished.
+            const setIfNotFocused = (id, value) => {
+                if (value === undefined || value === null || value === '') return;
+                const el = document.getElementById(id);
+                if (el && document.activeElement !== el) el.value = value;
+            };
+            setIfNotFocused('hourlyRate', state.hourlyRate);
+            setIfNotFocused('hoursPerWeek', state.hoursPerWeek);
+            setIfNotFocused('taxRate', state.taxRate);
 
             loadCurrentWeekDraft();
             renderLogsTable();
