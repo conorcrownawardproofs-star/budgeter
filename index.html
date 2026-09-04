@@ -159,7 +159,14 @@
         .percent-field .percent-symbol { position: absolute; right: 9px; color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
         .percent-field input { padding-right: 22px !important; }
 
-        .input-with-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        /* .input-group is a wrapping flex row with justify-content:
+           space-between. Once the label is long enough to force this block
+           onto its own line (the Savings Allocation row on mobile), it
+           becomes the ONLY item on that line -- and space-between puts a
+           lone item at flex-start, dropping it to the left while every
+           other tracker row keeps its value right-aligned. margin-left:auto
+           holds it against the right edge whether it wraps or not. */
+        .input-with-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; }
         .input-with-controls input[type="number"] { width: 150px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; text-align: right; font-size: 0.95rem; }
 
         .inline-quick-bar { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; margin-top: 2px; }
@@ -233,7 +240,29 @@
         .log-empty-state { text-align: center; color: var(--text-muted); padding: 36px 20px; }
         .log-empty-state .emoji { font-size: 1.8rem; display: block; margin-bottom: 8px; }
 
-        .disc-balance-banner { display: flex; justify-content: space-between; align-items: center; background-color: var(--floating-bg); color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); transition: transform 0.15s, box-shadow 0.15s; }
+        /* Deliberately a quiet inline strip, not a dialog -- it's a nudge,
+           not something to interrupt what you opened the app to do. */
+        .unsaved-week-banner {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            background-color: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
+            padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;
+            font-size: 0.85rem; font-weight: 600;
+        }
+        .unsaved-week-banner .uwb-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .unsaved-week-banner .btn { padding: 5px 10px; font-size: 0.78rem; }
+        .unsaved-week-banner .uwb-dismiss {
+            background: transparent; border: none; color: #92400e; cursor: pointer;
+            font-size: 1.15rem; line-height: 1; padding: 0 4px;
+        }
+        html[data-theme="dark"] .unsaved-week-banner { background-color: #2a1c04; border-color: #8a6114; color: #fcd34d; }
+        html[data-theme="dark"] .unsaved-week-banner .uwb-dismiss { color: #fcd34d; }
+        @media (max-width: 600px) {
+            .unsaved-week-banner { flex-wrap: wrap; row-gap: 8px; }
+            .unsaved-week-banner .uwb-text { flex: 1 1 100%; }
+            .unsaved-week-banner .uwb-actions { margin-left: auto; }
+        }
+
+        .disc-balance-banner { display: flex; justify-content: space-between; align-items: center; background-color: var(--floating-bg); color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); }
         .disc-balance-banner { transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, background-color 0.25s ease, color 0.25s ease; }
         .disc-balance-banner:hover { transform: translateY(-2px); box-shadow: 0 10px 18px -6px rgba(0, 0, 0, 0.32); }
         .disc-balance-banner:active { transform: translateY(0) scale(0.995); }
@@ -713,6 +742,32 @@
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
 
+        /* The Saved Weekly Logs heading is a space-between flex row, and its
+           button group wraps internally. On a phone the title claims most of
+           the width, leaving the two buttons to wrap against each other at
+           whatever ragged width remains. Give them their own full-width row
+           below the title and split it evenly. */
+        @media (max-width: 600px) {
+            .log-section .card h2 {
+                flex-wrap: wrap;
+                align-items: flex-start;
+                row-gap: 10px;
+            }
+            .log-section .card h2 > span {
+                width: 100%;
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+            .log-section .card h2 > span > .btn {
+                flex: 1 1 0;
+                min-width: 0;
+                justify-content: center;
+                text-align: center;
+                white-space: nowrap;
+            }
+        }
+
         @media (max-width: 480px) {
             body { padding-top: max(38px, calc(env(safe-area-inset-top) + 18px)); }
 
@@ -1168,6 +1223,14 @@
         </div>
 
         <div class="right-col">
+            <div class="unsaved-week-banner" id="unsavedWeekBanner" style="display:none;">
+                <span class="uwb-text" id="unsavedWeekText"></span>
+                <span class="uwb-actions">
+                    <button class="btn btn-small" onclick="goToUnsavedWeek()">Go to that week</button>
+                    <button class="uwb-dismiss" onclick="dismissUnsavedWeek()" aria-label="Dismiss">&times;</button>
+                </span>
+            </div>
+
             <div class="disc-balance-banner" onclick="openModal('purchaseModal')">
                 <span>🛒 Discretionary Balance</span>
                 <span class="disc-balance-amount" id="floatingDiscretionary">$0.00</span>
@@ -2992,8 +3055,69 @@
             updateDisplays();
         }
 
-        function toggleCustomSweep() {
-            const customWrap = document.getElementById('customSweepWrap');
+        // ---- "You didn't save last week" nudge ----------------------
+        // If Sunday gets away from you, the draft just sits there and the
+        // log quietly has a hole in it. Surface that once, as a strip you
+        // can dismiss -- never a dialog, and never for someone who hasn't
+        // saved a week yet (nothing to be behind on).
+        let pendingUnsavedWeek = null;
+
+        function getPreviousWeekRange() {
+            const start = new Date();
+            start.setDate(start.getDate() - start.getDay() - 7);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            return { start: getFormattedDate(start), end: getFormattedDate(end) };
+        }
+
+        function checkUnsavedWeek() {
+            const banner = document.getElementById('unsavedWeekBanner');
+            if (!banner) return;
+
+            const { start, end } = getPreviousWeekRange();
+            const key = `${start}_${end}`;
+            pendingUnsavedWeek = { start, end, key };
+
+            const alreadyLogged = logsData.some(l => l.weekKey === key);
+            const dismissed = localStorage.getItem('unsavedWeekDismissed') === key;
+            const draft = weeklyDrafts[key];
+            const draftHasData = draft && !isDraftEmpty(draft);
+
+            // Only nudge someone with a habit to be behind on: they've saved
+            // a week before, or they've already put numbers into that week.
+            const worthNudging = logsData.length > 0 || draftHasData;
+
+            if (alreadyLogged || dismissed || !worthNudging) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('unsavedWeekText').innerText =
+                `${formatDateRangeLabel(start, end)} hasn't been saved to your log yet.`;
+            banner.style.display = 'flex';
+        }
+
+        function goToUnsavedWeek() {
+            if (!pendingUnsavedWeek) return;
+            document.getElementById('weekStart').value = pendingUnsavedWeek.start;
+            document.getElementById('weekEnd').value = pendingUnsavedWeek.end;
+            handleDateChange();
+            document.getElementById('unsavedWeekBanner').style.display = 'none';
+            const tracker = document.getElementById('card-tracker');
+            if (tracker) {
+                if (cardCollapseState.tracker) toggleCard('tracker');
+                else revealCard(tracker);
+            }
+        }
+
+        function dismissUnsavedWeek() {
+            if (pendingUnsavedWeek) {
+                try { localStorage.setItem('unsavedWeekDismissed', pendingUnsavedWeek.key); } catch (e) {}
+            }
+            document.getElementById('unsavedWeekBanner').style.display = 'none';
+        }
+
+        function toggleCustomSweep() {            const customWrap = document.getElementById('customSweepWrap');
             const selected = document.querySelector('input[name="sweepAction"]:checked')?.value;
             if (customWrap) {
                 customWrap.style.display = (selected === 'sweep_custom') ? 'inline-flex' : 'none';
@@ -3123,6 +3247,7 @@
             saveState();
             updateDisplays();
             renderLogsTable();
+            checkUnsavedWeek();
             openModal('purchaseModal');
         }
 
@@ -3514,19 +3639,56 @@
             renderLogsTable();
         }
 
+        // Editing a saved week used to be cosmetic: correcting "Total Saved"
+        // changed the number in the table but left your actual Savings
+        // Balance untouched, so the ledger and the balance drifted apart with
+        // no way to tell which was right. The two fields that represent real
+        // money moving now push their change through to the running balances.
         function updateLogNumber(idx, field, val) {
-            if (!logsData[idx]) return;
-            logsData[idx][field] = parseFloat(val) || 0;
+            const log = logsData[idx];
+            if (!log) return;
+            const next = parseFloat(val) || 0;
+            const prev = safeNum(log[field]);
+            const delta = next - prev;
+            log[field] = next;
+
+            if (field === 'savedThisWeek') {
+                globalSavingsBalance += delta;
+                // This row's recorded closing balance moves with it. Rows for
+                // OTHER weeks are snapshots of how things stood at the time
+                // and are deliberately left as they were.
+                log.savingsBalanceAfter = safeNum(log.savingsBalanceAfter) + delta;
+            } else if (field === 'discretionaryAdded') {
+                globalDiscretionaryBalance += delta;
+            }
+
             saveState();
+            if (field === 'savedThisWeek' || field === 'discretionaryAdded') {
+                updateDisplays();
+                renderLogsTable();
+            }
         }
 
         function deleteLogEntry(idx) {
-            showConfirmModal('Delete this saved weekly log entry?', (confirmed) => {
-                if (!confirmed) return;
-                logsData.splice(idx, 1);
-                saveState();
-                renderLogsTable();
-            });
+            const log = logsData[idx];
+            if (!log) return;
+            const saved = safeNum(log.savedThisWeek);
+            const disc = safeNum(log.discretionaryAdded);
+            // Deleting a week now backs its contribution out of the running
+            // balances -- the same reversal the "replace this week" path in
+            // saveWeekEntry() already does, so the two behave consistently.
+            showConfirmModal(
+                `Delete the log for ${log.rangeLabel || 'this week'}? ${formatCurrency(saved)} will be removed from your Savings Balance and ${formatCurrency(disc)} from your Spendable Balance.`,
+                (confirmed) => {
+                    if (!confirmed) return;
+                    globalSavingsBalance -= saved;
+                    globalDiscretionaryBalance -= disc;
+                    logsData.splice(idx, 1);
+                    saveState();
+                    updateDisplays();
+                    renderLogsTable();
+                    checkUnsavedWeek();
+                });
         }
 
         function openNoteModal(idx) {
@@ -3557,9 +3719,12 @@
             const modal = document.getElementById(modalId);
             if (!modal) return;
             clearTimeout(modalHideTimers[modalId]);
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
             modal.style.display = 'flex';
             void modal.offsetWidth;
             modal.classList.add('open');
+            applyBodyScrollLock();
         }
 
         function closeModal(modalId) {
@@ -3568,6 +3733,35 @@
             modal.classList.remove('open');
             clearTimeout(modalHideTimers[modalId]);
             modalHideTimers[modalId] = setTimeout(() => { modal.style.display = 'none'; }, 200);
+            applyBodyScrollLock();
+        }
+
+        // With a dialog open, the page behind it still scrolled. On a phone
+        // that's the difference between flicking the Balance menu's own list
+        // and dragging the whole app out from under it -- and when the dialog
+        // closed you'd be somewhere else entirely. Freeze the page while
+        // anything is open, and restore the exact scroll position after.
+        let lockedScrollY = null;
+        function applyBodyScrollLock() {
+            const anyOpen = document.querySelectorAll('.modal-overlay.open').length > 0;
+            const body = document.body;
+            if (anyOpen && lockedScrollY === null) {
+                lockedScrollY = window.scrollY || 0;
+                body.style.position = 'fixed';
+                body.style.top = `-${lockedScrollY}px`;
+                body.style.left = '0';
+                body.style.right = '0';
+                body.style.overflow = 'hidden';
+            } else if (!anyOpen && lockedScrollY !== null) {
+                const y = lockedScrollY;
+                lockedScrollY = null;
+                body.style.position = '';
+                body.style.top = '';
+                body.style.left = '';
+                body.style.right = '';
+                body.style.overflow = '';
+                window.scrollTo(0, y);
+            }
         }
 
         function getOpenModals() {
@@ -3593,6 +3787,40 @@
         // made the modals feel stuck on desktop.
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') dismissTopModal();
+        });
+
+        // Every one of these dialogs is a single field plus one button, and
+        // Enter did nothing in all of them -- you had to dismiss the keyboard
+        // and tap. Wire the obvious action. Deliberately NOT applied to the
+        // Balance menu's amount box, where Add and Subtract are equally
+        // plausible and guessing wrong would move real money.
+        const ENTER_ACTIONS = {
+            goalEditInput: () => saveGoalEdit(),
+            savingsBalanceEditInput: () => saveSavingsBalanceEdit(),
+            syncCodeInput: () => saveSyncCode(),
+            pastLogWeekStart: () => addPastLogEntry(),
+            pastLogWeekEnd: () => addPastLogEntry(),
+            onboardSavingsInput: () => completeOnboarding(),
+            // Logging a spend is far and away the common case here.
+            purchaseAmount: () => logTransaction('sub'),
+            purchaseName: () => logTransaction('sub')
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const el = e.target;
+            if (!el || !el.id) return;
+            if (ENTER_ACTIONS[el.id]) {
+                e.preventDefault();
+                ENTER_ACTIONS[el.id]();
+                return;
+            }
+            // Itemized charge rows: Enter from either field adds the item.
+            const ccMatch = el.id.match(/^cc(?:Desc|Amt)-(.+)$/);
+            if (ccMatch) {
+                e.preventDefault();
+                addCCItem(ccMatch[1]);
+            }
         });
 
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -3789,6 +4017,7 @@
             }
 
             renderLogsTable();
+            checkUnsavedWeek();
             initSync();
 
             if (!localStorage.getItem('onboardingComplete') && !savedState) {
