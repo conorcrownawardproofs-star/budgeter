@@ -742,6 +742,103 @@
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
 
+        /* --- Saved Weekly Logs: card layout on narrow screens ------------
+           Eight columns will never fit on a phone. The table was scrolling
+           sideways, so you could see a date OR a figure but never a whole
+           week at once -- and the empty-state message ran off the edge too.
+           Below 700px each row becomes a self-contained card with the
+           column headings moved inline as labels, so a full week reads top
+           to bottom with no horizontal scrolling. The desktop table is
+           untouched. */
+        @media (max-width: 700px) {
+            .log-section .table-container { overflow-x: visible; }
+            #logTable { border-collapse: separate; border-spacing: 0; }
+            #logTable thead { display: none; }
+            #logTable, #logTable tbody, #logTable tr, #logTable td { display: block; width: 100%; }
+
+            #logTable tbody tr:not(.log-details) {
+                border: 1px solid var(--border-color);
+                border-radius: 10px;
+                margin-bottom: 10px;
+                padding: 4px 12px 8px;
+                /* --surface doesn't exist in this stylesheet; --surface-muted
+                   is the correct token and it's theme-aware. */
+                background-color: var(--surface-muted);
+            }
+            /* The details row is the continuation of the card above it, so
+               it tucks under that card rather than floating on its own. */
+            #logTable tbody tr.log-details {
+                margin: -10px 0 10px;
+                border: 1px solid var(--border-color);
+                border-top: 0;
+                border-radius: 0 0 10px 10px;
+            }
+            #logTable tbody tr.log-details td { padding: 0; }
+            /* #logTable tbody tr.log-row-even:not(.total-row) outranks the
+               card rule above on specificity, so the zebra striping would
+               win and half the cards would lose their background. */
+            #logTable tbody tr.log-row-even:not(.total-row):not(.log-details) {
+                background-color: var(--surface-muted);
+            }
+            #logTable tbody tr:not(.log-details) td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 14px;
+                padding: 7px 0;
+                border: 0;
+                border-bottom: 1px solid var(--border-color);
+                text-align: right;
+                font-size: 0.9rem;
+                font-variant-numeric: tabular-nums;
+            }
+            #logTable tbody tr:not(.log-details) td[data-label]::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 0.78rem;
+                color: var(--text-muted);
+                text-align: left;
+                letter-spacing: 0.01em;
+                flex: 0 0 auto;
+            }
+            /* Date range acts as the card's title. */
+            #logTable td.log-week-cell {
+                justify-content: flex-start;
+                font-size: 1rem;
+                padding-top: 10px;
+                border-bottom: 2px solid var(--border-color);
+            }
+            #logTable td.log-actions-cell {
+                justify-content: flex-end;
+                gap: 8px;
+                border-bottom: 0;
+                padding-top: 10px;
+            }
+            /* Edit-mode fields fill the row instead of sitting at a fixed
+               desktop width that overflowed the card. */
+            #logTable tbody tr:not(.log-details) td .money-input {
+                width: auto;
+                flex: 1 1 auto;
+                min-width: 0;
+                max-width: 60%;
+                text-align: right;
+            }
+            /* Empty state is a single full-width cell -- no label, no card
+               chrome, and it must wrap inside the container. */
+            #logTable tbody tr.log-empty-row {
+                border: 0;
+                padding: 0;
+                background-color: transparent;
+            }
+            #logTable td.log-empty-cell {
+                display: block;
+                border-bottom: 0;
+                padding: 0;
+            }
+            .log-empty-state { padding: 28px 10px; }
+            .log-empty-state div { max-width: 100%; }
+        }
+
         /* The Saved Weekly Logs heading is a space-between flex row, and its
            button group wraps internally. On a phone the title claims most of
            the width, leaving the two buttons to wrap against each other at
@@ -3498,8 +3595,8 @@
 
             if (logsData.length === 0) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8">
+                    <tr class="log-empty-row">
+                        <td colspan="8" class="log-empty-cell">
                             <div class="log-empty-state">
                                 <span class="emoji">📊</span>
                                 <div>No saved weekly logs yet. Use "Save Week to Log" above to save your first week!</div>
@@ -3515,14 +3612,14 @@
                 const isEven = (idx % 2 === 0);
                 html += `
                     <tr class="${isEven ? 'log-row-even' : ''}">
-                        <td><strong>${escapeHtml(log.rangeLabel)}</strong></td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.netIncome).toFixed(2)}" onchange="updateLogNumber(${idx}, 'netIncome', this.value)">` : formatCurrency(safeNum(log.netIncome))}</td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.debt).toFixed(2)}" onchange="updateLogNumber(${idx}, 'debt', this.value)">` : formatCurrency(safeNum(log.debt))}</td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.exp).toFixed(2)}" onchange="updateLogNumber(${idx}, 'exp', this.value)">` : formatCurrency(safeNum(log.exp))}</td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savedThisWeek).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savedThisWeek', this.value)">` : formatCurrency(safeNum(log.savedThisWeek))}</td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.discretionaryAdded).toFixed(2)}" onchange="updateLogNumber(${idx}, 'discretionaryAdded', this.value)">` : formatCurrency(safeNum(log.discretionaryAdded))}</td>
-                        <td>${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savingsBalanceAfter).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savingsBalanceAfter', this.value)">` : formatCurrency(safeNum(log.savingsBalanceAfter))}</td>
-                        <td>
+                        <td class="log-week-cell"><strong>${escapeHtml(log.rangeLabel)}</strong></td>
+                        <td data-label="Net Income">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.netIncome).toFixed(2)}" onchange="updateLogNumber(${idx}, 'netIncome', this.value)">` : formatCurrency(safeNum(log.netIncome))}</td>
+                        <td data-label="Debt Payments">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.debt).toFixed(2)}" onchange="updateLogNumber(${idx}, 'debt', this.value)">` : formatCurrency(safeNum(log.debt))}</td>
+                        <td data-label="Bills">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.exp).toFixed(2)}" onchange="updateLogNumber(${idx}, 'exp', this.value)">` : formatCurrency(safeNum(log.exp))}</td>
+                        <td data-label="Total Saved">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savedThisWeek).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savedThisWeek', this.value)">` : formatCurrency(safeNum(log.savedThisWeek))}</td>
+                        <td data-label="Discretionary Added">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.discretionaryAdded).toFixed(2)}" onchange="updateLogNumber(${idx}, 'discretionaryAdded', this.value)">` : formatCurrency(safeNum(log.discretionaryAdded))}</td>
+                        <td data-label="Savings Balance">${isEditMode ? `<input type="number" step="0.01" class="money-input" value="${safeNum(log.savingsBalanceAfter).toFixed(2)}" onchange="updateLogNumber(${idx}, 'savingsBalanceAfter', this.value)">` : formatCurrency(safeNum(log.savingsBalanceAfter))}</td>
+                        <td class="log-actions-cell">
                             <button class="details-toggle-btn" id="logDetailsBtn-${idx}" onclick="toggleLogDetails(${idx})"><span class="chevron">▾</span> Details</button>
                             <button class="link-btn" onclick="openNoteModal(${idx})" title="Edit Note">📝</button>
                             <button class="link-btn" style="color:var(--negative);" onclick="deleteLogEntry(${idx})" title="Delete Log">🗑️</button>
