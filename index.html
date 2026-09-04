@@ -237,6 +237,9 @@
 
         #logTable tbody tr:not(.log-details):not(.total-row):hover { background-color: #f8fafc; }
         #logTable tbody tr.log-row-even:not(.total-row) { background-color: #fcfdfe; }
+        .cc-empty-state { text-align: center; color: var(--text-muted); padding: 26px 16px; font-size: 0.88rem; line-height: 1.5; }
+        .cc-empty-state .cc-empty-emoji { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+        .cc-empty-row td { border-bottom: 1px solid var(--border-color); }
         .log-empty-state { text-align: center; color: var(--text-muted); padding: 36px 20px; }
         .log-empty-state .emoji { font-size: 1.8rem; display: block; margin-bottom: 8px; }
 
@@ -1520,13 +1523,15 @@
         let isEditMode = false;
 
         // Dynamic Credit Cards state
-        let creditCards = [
-            { id: 'cc1', name: 'BoFA Customized Cash Rewards' },
-            { id: 'cc2', name: 'BoFA Unlimited Cash Rewards' },
-            { id: 'cc3', name: 'Wells Fargo Unlimited' }
-        ];
-        let ccBreakdowns = { cc1: [], cc2: [], cc3: [] };
-        let ccCardMeta = { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } };
+        // No preset accounts -- these were one specific person's cards, and
+        // a new user shouldn't have to rename or delete someone else's
+        // banking before they can start. Everyone adds their own.
+        // (Existing installs are unaffected: applyStateObject() restores
+        // whatever cards are already in saved/synced state, so nothing is
+        // lost on upgrade.)
+        let creditCards = [];
+        let ccBreakdowns = {};
+        let ccCardMeta = {};
         let ccEditIndex = {};
 
         // Draft Memory tracking
@@ -2050,13 +2055,9 @@
                 purchasesData: [],
                 plannedAllocations: { groceries: 0, fastfood: 0, dining: 0, gas: 0, coffee: 0, entertainment: 0, shopping: 0, subscriptions: 0, personalcare: 0, health: 0 },
                 weeklyDrafts: {},
-                creditCards: [
-                    { id: 'cc1', name: 'BoFA Customized Cash Rewards' },
-                    { id: 'cc2', name: 'BoFA Unlimited Cash Rewards' },
-                    { id: 'cc3', name: 'Wells Fargo Unlimited' }
-                ],
-                ccBreakdowns: { cc1: [], cc2: [], cc3: [] },
-                ccCardMeta: { cc1: { color: '' }, cc2: { color: '' }, cc3: { color: '' } },
+                creditCards: [],
+                ccBreakdowns: {},
+                ccCardMeta: {},
                 hourlyRate: '25.00',
                 hoursPerWeek: '40',
                 taxRate: '19.25'
@@ -2398,6 +2399,23 @@
             const expandedIds = creditCards
                 .filter(card => document.getElementById(`panelWrap-${card.id}`)?.classList.contains('expanded'))
                 .map(card => card.id);
+
+            // With the presets gone, an empty tracker is now a normal state
+            // rather than an impossible one -- say so instead of rendering a
+            // bare table with a lone header and nothing under it.
+            if (creditCards.length === 0) {
+                tbody.innerHTML = `
+                    <tr class="cc-empty-row">
+                        <td colspan="2">
+                            <div class="cc-empty-state">
+                                <span class="cc-empty-emoji">💳</span>
+                                <div>No debt accounts yet. Add a credit card, loan, or any other recurring debt payment to start tracking it.</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
             tbody.innerHTML = creditCards.map(card => {
                 const meta = ccCardMeta[card.id] || { color: '' };
