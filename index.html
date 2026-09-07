@@ -2111,7 +2111,11 @@
         async function pushStateToSupabase(state) {
             if (!supabaseClient || !syncCode) return;
             setSaveStatus('saving');
-            const payload = state || JSON.parse(localStorage.getItem('budgetTrackerData') || '{}');
+            // Fall back to the pending in-memory state before the disk copy --
+            // with the local write coalesced, localStorage can briefly be a
+            // few hundred ms behind, and pushing that would sync a stale
+            // snapshot over the top of a newer edit.
+            const payload = state || pendingLocalState || JSON.parse(localStorage.getItem('budgetTrackerData') || '{}');
             try {
                 const { error } = await supabaseClient
                     .from('budget_state')
@@ -2195,6 +2199,10 @@
                         }
                         const blank = getBlankStateObject();
                         applyRemoteState(blank);
+                        // Drop any coalesced write still in flight, or it
+                        // would land on top of the blank slate a moment later.
+                        clearTimeout(localSaveTimer);
+                        pendingLocalState = null;
                         localStorage.setItem('budgetTrackerData', JSON.stringify(blank));
                         clearTimeout(syncPushTimer);
                         if (supabaseClient) {
@@ -2228,6 +2236,8 @@
                             return;
                         }
                         clearTimeout(syncPushTimer);
+                        clearTimeout(localSaveTimer);
+                        pendingLocalState = null;
                         const state = getStateObject();
                         localStorage.setItem('budgetTrackerData', JSON.stringify(state));
                         Promise.resolve(pushStateToSupabase(state))
@@ -2805,7 +2815,15 @@
         function deleteCCItem(ccId, idx) {
             if (!ccBreakdowns[ccId]) return;
             ccBreakdowns[ccId].splice(idx, 1);
-            if (ccEditIndex[ccId] === idx) cancelCCEdit(ccId);
+            if (ccEditIndex[ccId] === idx) {
+                cancelCCEdit(ccId);
+            } else if (typeof ccEditIndex[ccId] === 'number' && ccEditIndex[ccId] > idx) {
+                // Deleting an item ABOVE the one being edited shifted every
+                // later index down by one, but ccEditIndex still pointed at
+                // the old slot -- so saving the edit overwrote the wrong
+                // charge. Follow the item down.
+                ccEditIndex[ccId] -= 1;
+            }
             if (ccBreakdowns[ccId].length === 0) {
                 // renderCCBreakdown() only re-syncs the Payment field from
                 // the item total while items exist -- that's needed so
@@ -3791,6 +3809,17 @@
             const tbody = document.getElementById('logBody');
             if (!tbody) return;
 
+            // Editing a figure, deleting a row or an incoming sync update all
+            // rebuild this table from scratch, which silently slammed shut
+            // every Details panel the user had open. Remember which weeks
+            // were expanded (by weekKey, so the set survives a re-sort) and
+            // put them back.
+            const expandedKeys = new Set();
+            logsData.forEach((log, i) => {
+                const w = document.getElementById(`logDetailsWrap-${i}`);
+                if (w && w.classList.contains('expanded')) expandedKeys.add(log.weekKey || log.rangeLabel);
+            });
+
             if (logsData.length === 0) {
                 tbody.innerHTML = `
                     <tr class="log-empty-row">
@@ -3836,6 +3865,14 @@
             });
 
             tbody.innerHTML = html;
+
+            if (expandedKeys.size) {
+                logsData.forEach((log, i) => {
+                    if (!expandedKeys.has(log.weekKey || log.rangeLabel)) return;
+                    document.getElementById(`logDetailsWrap-${i}`)?.classList.add('expanded');
+                    document.getElementById(`logDetailsBtn-${i}`)?.classList.add('expanded');
+                });
+            }
         }
 
         function buildLogDetailsHtml(log) {
@@ -4151,15 +4188,22 @@
 
         function closeConfirmModal(confirmed) {
             closeModal('confirmModal');
-            if (confirmCallback) {
-                confirmCallback(confirmed);
-                confirmCallback = null;
-            }
+            // Clear the reference BEFORE invoking. A callback is allowed to
+            // open a second confirm of its own (which sets a new
+            // confirmCallback); nulling afterwards wiped that brand-new
+            // callback out, so the second dialog's buttons did nothing.
+            const cb = confirmCallback;
+            confirmCallback = null;
+            if (typeof cb === 'function') cb(confirmed);
         }
 
         function factoryReset() {
             showConfirmModal('WARNING: This will permanently erase ALL local data, custom cards, logs, and settings. Are you sure?', (confirmed) => {
                 if (!confirmed) return;
+                // Cancel the coalesced write first -- otherwise it can fire
+                // between clear() and the reload and resurrect everything.
+                clearTimeout(localSaveTimer);
+                pendingLocalState = null;
                 localStorage.clear();
                 location.reload();
             }, '⚠️ Factory Reset');
@@ -4212,16 +4256,30 @@
             });
         }
 
-        function saveState() {
-            pruneEmptyDrafts();
-            const state = getStateObject();
+        // saveState() runs on every keystroke in every money field, and the
+        // expensive half of it is JSON.stringify() over the WHOLE state
+        // (every log, every draft, every transaction) followed by a
+        // synchronous localStorage write. On a phone with a year of history
+        // that is real jank while typing. The write is now coalesced: the
+        // in-memory state is authoritative and always current, and the disk
+        // copy catches up a moment later. Anything that needs the bytes on
+        // disk right now calls flushLocalSave() first.
+        let localSaveTimer = null;
+        let pendingLocalState = null;
+
+        function flushLocalSave() {
+            clearTimeout(localSaveTimer);
+            localSaveTimer = null;
+            if (!pendingLocalState) return;
+            const state = pendingLocalState;
+            pendingLocalState = null;
             // localStorage.setItem throws on a full quota, and Safari throws
             // outright in some private/locked-down modes. This was uncaught,
             // so the exception escaped mid-update: logTransaction() had
             // already adjusted the balance and pushed the purchase, but
             // updateDisplays() never ran and the sync push was never queued.
             // One failed write took the whole interaction down. Keep going --
-            // the sync push below is the more important of the two saves.
+            // the sync push is the more important of the two saves.
             try {
                 localStorage.setItem('budgetTrackerData', JSON.stringify(state));
                 localSaveFailed = false;
@@ -4233,6 +4291,22 @@
                     if (textEl) textEl.innerText = "This device's local storage is full, so changes can't be kept offline.";
                 }
             }
+        }
+
+        // Never let a coalesced write be the thing that's lost when the app
+        // is backgrounded, closed or killed by iOS.
+        window.addEventListener('pagehide', flushLocalSave);
+        window.addEventListener('beforeunload', flushLocalSave);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushLocalSave();
+        });
+
+        function saveState() {
+            pruneEmptyDrafts();
+            const state = getStateObject();
+            pendingLocalState = state;
+            clearTimeout(localSaveTimer);
+            localSaveTimer = setTimeout(flushLocalSave, 400);
             if (!isApplyingRemoteState) {
                 queueSyncPush(state);
             }
