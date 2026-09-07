@@ -1092,15 +1092,24 @@
            Nothing animates width, top, or background-position on an
            element that contains text.
            ========================================================== */
+        /* The overlay used to sit at z-index 1, which put petals in FRONT of
+           the cards -- readable, but wrong. It now paints at -1, behind
+           everything on the page.
+
+           A negative-z-index child is drawn above the root background but
+           below its own parent's background, so the scene gradient has to
+           live on <html> and <body> must be transparent. Every data-fx theme
+           below follows that rule. */
         #themeFx {
             position: fixed;
             inset: 0;
             overflow: hidden;
             pointer-events: none;
-            z-index: 1;
+            z-index: -1;
             display: none;
         }
         html[data-fx] #themeFx { display: block; }
+        html[data-fx] body { background-color: transparent; background-image: none; }
 
         /* ---------- Cherry Blossom ---------- */
         html[data-theme="cherry"] {
@@ -1117,8 +1126,8 @@
             --floating-bg: #46303a;
             --surface-muted: #fdeef2;
         }
-        html[data-theme="cherry"] body {
-            background-color: var(--bg-color);
+        html[data-theme="cherry"] {
+            background-color: #fff5f7;
             background-image:
                 radial-gradient(ellipse at 12% 0%, rgba(255, 205, 220, 0.75), transparent 55%),
                 radial-gradient(ellipse at 88% 8%, rgba(228, 216, 255, 0.55), transparent 50%),
@@ -1187,12 +1196,10 @@
             --surface-muted: #142233;
             background-color: #050b14;
         }
-        html[data-theme="aurora"] body { background-color: transparent; }
-        html[data-theme="aurora"] body::before {
+        html[data-theme="aurora"] #themeFx::before {
             content: "";
-            position: fixed;
+            position: absolute;
             inset: -20%;
-            z-index: -1;
             background:
                 radial-gradient(closest-side at 28% 22%, rgba(56, 220, 180, 0.30), transparent 70%),
                 radial-gradient(closest-side at 68% 34%, rgba(96, 130, 255, 0.26), transparent 70%),
@@ -1223,6 +1230,253 @@
         html[data-theme="aurora"] .card { border-color: #22364b; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
         html[data-theme="aurora"] .summary-badge { background-color: #123243; color: #6ee7d0; }
 
+        /* ---------- Cherry Blossom Dark ---------- */
+        /* Same petals, night palette: the blossoms read as pale against a
+           deep plum sky instead of a bright one. */
+        html[data-theme="cherry-dark"] {
+            color-scheme: dark;
+            --primary: #f0a0bd;
+            --primary-hover: #f7c3d6;
+            --bg-color: #14090f;
+            --card-bg: #1e1018;
+            --text-main: #f2e2e8;
+            --text-muted: #a98a97;
+            --border-color: #3a2130;
+            --positive: #6ee7a8;
+            --negative: #f4707a;
+            --floating-bg: #0a0407;
+            --surface-muted: #2a1722;
+            background-color: #14090f;
+            background-image:
+                radial-gradient(ellipse at 15% 0%, rgba(120, 40, 75, 0.55), transparent 58%),
+                radial-gradient(ellipse at 85% 10%, rgba(60, 40, 110, 0.45), transparent 55%),
+                linear-gradient(180deg, #1a0c13 0%, #14090f 55%, #0d0509 100%);
+            background-attachment: fixed;
+        }
+        html[data-theme="cherry-dark"] .card { border-color: #3a2130; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+        html[data-theme="cherry-dark"] .summary-badge { background-color: #3a1f2c; color: #f0a0bd; }
+
+        /* ---------- Ocean ---------- */
+        html[data-theme="ocean"] {
+            color-scheme: dark;
+            --primary: #5dd6e8;
+            --primary-hover: #96e8f4;
+            --bg-color: #02131f;
+            --card-bg: #0b2233;
+            --text-main: #dbeef5;
+            --text-muted: #7ba3b8;
+            --border-color: #1d3f55;
+            --positive: #4ade80;
+            --negative: #f87171;
+            --floating-bg: #010a11;
+            --surface-muted: #123044;
+            background-color: #02131f;
+            background-image: linear-gradient(180deg, #0a3350 0%, #052237 40%, #02131f 72%, #010a11 100%);
+            background-attachment: fixed;
+        }
+        /* Two offset sine-ish bands drifting at different speeds read as
+           moving water without a canvas or an image. */
+        html[data-theme="ocean"] #themeFx::before,
+        html[data-theme="ocean"] #themeFx::after {
+            content: "";
+            position: absolute;
+            left: -50%;
+            width: 200%;
+            height: 46vh;
+            background: radial-gradient(ellipse 50% 100% at 50% 100%, rgba(90, 200, 230, 0.16), transparent 70%);
+            animation: oceanSwell 17s ease-in-out infinite alternate;
+        }
+        html[data-theme="ocean"] #themeFx::before { top: 8%; }
+        html[data-theme="ocean"] #themeFx::after { top: 46%; animation-duration: 24s; animation-direction: alternate-reverse; opacity: 0.7; }
+        @keyframes oceanSwell {
+            from { transform: translate3d(-6%, 0, 0) scaleY(0.92); }
+            to   { transform: translate3d(6%, 2vh, 0) scaleY(1.1); }
+        }
+        .bubble {
+            position: absolute;
+            bottom: -6vh;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75), rgba(150, 225, 245, 0.28) 55%, rgba(90, 190, 220, 0.12) 100%);
+            border: 1px solid rgba(190, 240, 255, 0.28);
+            opacity: 0;
+            will-change: transform, opacity;
+            animation-name: bubbleRise;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        @keyframes bubbleRise {
+            0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+            10%  { opacity: 0.75; }
+            35%  { transform: translate3d(14px, -30vh, 0); }
+            65%  { transform: translate3d(-12px, -62vh, 0); }
+            90%  { opacity: 0.5; }
+            100% { transform: translate3d(8px, -108vh, 0); opacity: 0; }
+        }
+        html[data-theme="ocean"] .card { border-color: #1d3f55; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+        html[data-theme="ocean"] .summary-badge { background-color: #123c4e; color: #5dd6e8; }
+
+        /* ---------- Forest ---------- */
+        html[data-theme="forest"] {
+            color-scheme: dark;
+            --primary: #8fd18a;
+            --primary-hover: #b6e5b1;
+            --bg-color: #0a1410;
+            --card-bg: #132119;
+            --text-main: #e0ece0;
+            --text-muted: #8aa38e;
+            --border-color: #24382b;
+            --positive: #6ee7a8;
+            --negative: #f4707a;
+            --floating-bg: #050b08;
+            --surface-muted: #1a2c21;
+            background-color: #0a1410;
+            background-image:
+                radial-gradient(ellipse at 30% -5%, rgba(120, 190, 110, 0.18), transparent 55%),
+                linear-gradient(180deg, #16281c 0%, #0f1d15 45%, #0a1410 100%);
+            background-attachment: fixed;
+        }
+        /* Angled light shafts through a canopy, drifting very slowly. */
+        html[data-theme="forest"] #themeFx::before {
+            content: "";
+            position: absolute;
+            inset: -30% -10%;
+            background: repeating-linear-gradient(74deg,
+                rgba(190, 235, 170, 0.055) 0 26px,
+                transparent 26px 130px);
+            animation: forestShafts 30s ease-in-out infinite alternate;
+        }
+        @keyframes forestShafts {
+            from { transform: translate3d(-3%, 0, 0); }
+            to   { transform: translate3d(4%, 2%, 0); }
+        }
+        .leaf {
+            position: absolute;
+            top: -8vh;
+            opacity: 0;
+            will-change: transform, opacity;
+            animation-name: petalFall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        .leaf::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 0 100% 0 100%;
+            background: linear-gradient(140deg, #a8cf76 0%, #6fa348 50%, #c9a13f 100%);
+            animation: petalSpin var(--petal-spin, 3.2s) linear infinite;
+        }
+        html[data-theme="forest"] .card { border-color: #24382b; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+        html[data-theme="forest"] .summary-badge { background-color: #1d3a26; color: #8fd18a; }
+
+        /* ---------- Beach ---------- */
+        html[data-theme="beach"] {
+            color-scheme: light;
+            --primary: #0d8ba1;
+            --primary-hover: #0a6f81;
+            --bg-color: #fdf6e7;
+            --card-bg: #fffdf7;
+            --text-main: #3d3526;
+            --text-muted: #8a7c63;
+            --border-color: #ecdcbd;
+            --positive: #2f9e68;
+            --negative: #d1543f;
+            --floating-bg: #3d3526;
+            --surface-muted: #fbf1dd;
+            background-color: #fdf6e7;
+            background-image:
+                radial-gradient(circle at 78% 6%, rgba(255, 224, 138, 0.85), transparent 42%),
+                linear-gradient(180deg, #bfe9f2 0%, #dff2f2 26%, #fdf3e0 58%, #f6e6c5 100%);
+            background-attachment: fixed;
+        }
+        /* A slow shoreline glimmer across the middle of the page. */
+        html[data-theme="beach"] #themeFx::before {
+            content: "";
+            position: absolute;
+            left: -40%; right: -40%;
+            top: 40%; height: 26vh;
+            background: repeating-linear-gradient(97deg,
+                rgba(255, 255, 255, 0.34) 0 3px,
+                transparent 3px 22px);
+            opacity: 0.5;
+            animation: beachShimmer 14s linear infinite;
+        }
+        @keyframes beachShimmer {
+            from { transform: translate3d(0, 0, 0); }
+            to   { transform: translate3d(80px, 0, 0); }
+        }
+        .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 6px rgba(255, 240, 190, 0.9);
+            opacity: 0.4;
+            will-change: transform, opacity;
+            animation: starTwinkle 5s ease-in-out infinite;
+        }
+        html[data-theme="beach"] .card { border-color: #ecdcbd; box-shadow: 0 6px 18px rgba(160, 140, 100, 0.14); }
+        html[data-theme="beach"] .summary-badge { background-color: #d9f0f4; color: #0a6f81; }
+        html[data-theme="beach"] .card-header:hover,
+        html[data-theme="beach"] .total-row { background-color: #fbf1dd; }
+
+        /* ---------- Neon Night ---------- */
+        html[data-theme="neon"] {
+            color-scheme: dark;
+            --primary: #29e0ff;
+            --primary-hover: #7fecff;
+            --bg-color: #05030c;
+            --card-bg: #100a1e;
+            --text-main: #e9e2ff;
+            --text-muted: #9186b8;
+            --border-color: #2e2350;
+            --positive: #3bffa1;
+            --negative: #ff4d8d;
+            --floating-bg: #020106;
+            --surface-muted: #1a1130;
+            background-color: #05030c;
+            background-image:
+                radial-gradient(ellipse at 20% 4%, rgba(255, 40, 150, 0.24), transparent 52%),
+                radial-gradient(ellipse at 82% 14%, rgba(40, 200, 255, 0.22), transparent 52%),
+                linear-gradient(180deg, #0d0720 0%, #07040f 60%, #05030c 100%);
+            background-attachment: fixed;
+        }
+        /* A perspective grid receding to the horizon, scrolling toward you. */
+        html[data-theme="neon"] #themeFx::before {
+            content: "";
+            position: absolute;
+            left: -50%; right: -50%; bottom: -10%;
+            height: 55vh;
+            background:
+                repeating-linear-gradient(90deg, rgba(255, 45, 160, 0.30) 0 1px, transparent 1px 62px),
+                repeating-linear-gradient(0deg,  rgba(45, 210, 255, 0.26) 0 1px, transparent 1px 46px);
+            transform: perspective(320px) rotateX(64deg);
+            transform-origin: bottom center;
+            mask-image: linear-gradient(to top, #000 0%, transparent 88%);
+            -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 88%);
+            animation: neonGrid 5.5s linear infinite;
+        }
+        @keyframes neonGrid {
+            from { background-position: 0 0, 0 0; }
+            to   { background-position: 0 0, 0 46px; }
+        }
+        .neon-mote {
+            position: absolute;
+            border-radius: 50%;
+            background: #29e0ff;
+            box-shadow: 0 0 8px 2px rgba(41, 224, 255, 0.85);
+            opacity: 0.4;
+            will-change: transform, opacity;
+            animation: starTwinkle 4s ease-in-out infinite;
+        }
+        .neon-mote:nth-child(3n) { background: #ff2d9f; box-shadow: 0 0 8px 2px rgba(255, 45, 159, 0.85); }
+        .neon-mote:nth-child(5n) { background: #b76bff; box-shadow: 0 0 8px 2px rgba(183, 107, 255, 0.8); }
+        html[data-theme="neon"] .card {
+            border-color: #2e2350;
+            box-shadow: 0 0 0 1px rgba(41, 224, 255, 0.10), 0 8px 26px rgba(0, 0, 0, 0.6);
+        }
+        html[data-theme="neon"] .summary-badge { background-color: #21143c; color: #29e0ff; }
+        html[data-theme="neon"] .header-title { text-shadow: 0 0 14px rgba(41, 224, 255, 0.45); }
+
 
         /* This shared rule sits AFTER .modal-content and .disc-balance-banner
            in the stylesheet and sets the whole `transition` shorthand, which
@@ -1250,9 +1504,10 @@
             html[data-theme^="metal"] .goal-progress-fill,
             html[data-theme^="metal"] .header-title { animation: none; }
             html[data-theme^="metal"] .header-title { background: none; color: var(--text-main); }
-            .petal, .petal::before, .aurora-star,
-            html[data-theme="aurora"] body::before { animation: none; }
-            .petal { display: none; }
+            .petal, .petal::before, .leaf, .leaf::before, .bubble,
+            .aurora-star, .sparkle, .neon-mote,
+            html[data-theme="aurora"] #themeFx::before { animation: none; }
+            .petal, .leaf, .bubble { display: none; }
         }
 
         body, .card, .card-header,
@@ -1823,7 +2078,12 @@
                         </optgroup>
                         <optgroup label="Animated">
                             <option value="cherry">Cherry Blossom</option>
+                            <option value="cherry-dark">Cherry Blossom Dark</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="forest">Forest</option>
+                            <option value="beach">Beach</option>
                             <option value="aurora">Aurora</option>
+                            <option value="neon">Neon Night</option>
                         </optgroup>
                         <optgroup label="Classic">
                             <option value="dark">Dark</option>
@@ -2565,8 +2825,13 @@
             'metal-emerald': { label: 'Emerald Metallic', chrome: '#050506', scheme: 'dark' },
             'metal-purple':  { label: 'Purple Metallic', chrome: '#050506', scheme: 'dark' },
             'metal-copper':  { label: 'Copper Metallic', chrome: '#050506', scheme: 'dark' },
-            'cherry':        { label: 'Cherry Blossom', chrome: '#fdeef3', scheme: 'light', fx: 'cherry' },
-            'aurora':        { label: 'Aurora',         chrome: '#050b14', scheme: 'dark',  fx: 'aurora' },
+            'cherry':        { label: 'Cherry Blossom',      chrome: '#fdeef3', scheme: 'light', fx: 'cherry' },
+            'cherry-dark':   { label: 'Cherry Blossom Dark', chrome: '#14090f', scheme: 'dark',  fx: 'cherry' },
+            'ocean':         { label: 'Ocean',               chrome: '#02131f', scheme: 'dark',  fx: 'ocean' },
+            'forest':        { label: 'Forest',              chrome: '#0a1410', scheme: 'dark',  fx: 'forest' },
+            'beach':         { label: 'Beach',               chrome: '#bfe9f2', scheme: 'light', fx: 'beach' },
+            'aurora':        { label: 'Aurora',              chrome: '#050b14', scheme: 'dark',  fx: 'aurora' },
+            'neon':          { label: 'Neon Night',          chrome: '#05030c', scheme: 'dark',  fx: 'neon' },
             'dark':          { label: 'Dark',           chrome: '#0b1220', scheme: 'dark'  },
             'light':         { label: 'Light',          chrome: '#2563eb', scheme: 'light' }
         };
@@ -2597,44 +2862,55 @@
         // nothing animating in the background. Under prefers-reduced-motion
         // nothing is built at all -- the CSS also stops the animations, but
         // not creating the nodes is cheaper and unambiguous.
+        // Each scene names a particle class and the motion that drives it.
+        // Three motions cover all of them, so a new scene is one table row
+        // plus its CSS -- no new builder code.
+        const FX_SPECS = {
+            cherry: { cls: 'petal',       motion: 'fall',    count: 22 },
+            forest: { cls: 'leaf',        motion: 'fall',    count: 18 },
+            ocean:  { cls: 'bubble',      motion: 'rise',    count: 20 },
+            aurora: { cls: 'aurora-star', motion: 'twinkle', count: 40 },
+            beach:  { cls: 'sparkle',     motion: 'twinkle', count: 26 },
+            neon:   { cls: 'neon-mote',   motion: 'twinkle', count: 30 }
+        };
+
         function renderThemeFx(fx) {
             const layer = document.getElementById('themeFx');
             if (!layer) return;
             layer.innerHTML = '';
-            if (!fx || prefersReducedMotion) return;
+            const spec = FX_SPECS[fx];
+            if (!spec || prefersReducedMotion) return;
 
-            // Deterministic-ish spread rather than pure random: petals are
-            // distributed across evenly spaced lanes with a jitter, so they
-            // never clump into one column the way Math.random() alone does.
-            if (fx === 'cherry') {
-                const COUNT = 22;
-                let html = '';
-                for (let i = 0; i < COUNT; i++) {
-                    const lane = (i + 0.5) / COUNT * 100;
-                    const left = Math.max(0, Math.min(98, lane + (Math.random() * 8 - 4)));
-                    const size = 8 + Math.random() * 9;
-                    const dur = 9 + Math.random() * 8;
-                    const delay = -Math.random() * dur;
-                    const spin = 2.4 + Math.random() * 3.2;
-                    html += `<span class="petal" style="left:${left.toFixed(2)}%;width:${size.toFixed(1)}px;height:${(size * 0.82).toFixed(1)}px;`
-                          + `animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;`
-                          + `--petal-spin:${spin.toFixed(2)}s;"></span>`;
-                }
-                layer.innerHTML = html;
-                return;
-            }
+            const rand = (min, max) => min + Math.random() * (max - min);
+            let html = '';
 
-            if (fx === 'aurora') {
-                const COUNT = 40;
-                let html = '';
-                for (let i = 0; i < COUNT; i++) {
-                    const size = 1 + Math.random() * 1.8;
-                    html += `<span class="aurora-star" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 100).toFixed(2)}%;`
+            if (spec.motion === 'twinkle') {
+                for (let i = 0; i < spec.count; i++) {
+                    const size = rand(1, 2.8);
+                    html += `<span class="${spec.cls}" style="left:${rand(0, 100).toFixed(2)}%;top:${rand(0, 100).toFixed(2)}%;`
                           + `width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`
-                          + `animation-duration:${(4 + Math.random() * 7).toFixed(2)}s;animation-delay:${(-Math.random() * 8).toFixed(2)}s;"></span>`;
+                          + `animation-duration:${rand(4, 11).toFixed(2)}s;animation-delay:${(-rand(0, 8)).toFixed(2)}s;"></span>`;
                 }
-                layer.innerHTML = html;
+            } else {
+                // Falling and rising particles both spread across evenly
+                // spaced lanes with a jitter -- pure Math.random() reliably
+                // clumps them into a few columns. Negative delays put them
+                // mid-flight on load instead of all starting together.
+                const rising = spec.motion === 'rise';
+                for (let i = 0; i < spec.count; i++) {
+                    const lane = (i + 0.5) / spec.count * 100;
+                    const left = Math.max(0, Math.min(98, lane + rand(-4, 4)));
+                    const size = rising ? rand(5, 15) : rand(8, 17);
+                    const dur = rising ? rand(11, 20) : rand(9, 17);
+                    const delay = -rand(0, dur);
+                    const ratio = rising ? 1 : 0.82;
+                    html += `<span class="${spec.cls}" style="left:${left.toFixed(2)}%;`
+                          + `width:${size.toFixed(1)}px;height:${(size * ratio).toFixed(1)}px;`
+                          + `animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;`
+                          + `--petal-spin:${rand(2.4, 5.6).toFixed(2)}s;"></span>`;
+                }
             }
+            layer.innerHTML = html;
         }
 
         function setTheme(theme) {
