@@ -62,22 +62,27 @@
         .sync-widget { display: none; align-items: center; gap: 8px; }
         .header-widgets { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
-        .theme-toggle { display: inline-flex; align-items: center; cursor: pointer; flex-shrink: 0; }
-        .theme-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
-        .theme-toggle-track {
-            width: 44px; height: 24px; border-radius: 999px; position: relative; flex-shrink: 0;
-            background-color: var(--border-color);
-            transition: background-color 0.25s ease;
+        .theme-picker { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; }
+        .theme-picker-icon { font-size: 0.95rem; line-height: 1; }
+        .theme-picker select {
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 26px 5px 9px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+            background-position: right 11px top 50%, right 6px top 50%;
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
         }
-        .theme-toggle-thumb {
-            position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
-            background: white; display: flex; align-items: center; justify-content: center; font-size: 11px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: transform 0.25s ease, background-color 0.25s ease;
-        }
-        .theme-toggle input:checked + .theme-toggle-track { background-color: var(--primary); }
-        .theme-toggle input:checked + .theme-toggle-track .theme-toggle-thumb { transform: translateX(20px); background-color: #0f172a; }
-        .theme-toggle input:focus-visible + .theme-toggle-track { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .theme-picker select:hover { border-color: var(--primary); }
+        .theme-picker select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
         .sync-badge { font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; background-color: #f1f5f9; color: var(--text-muted); white-space: nowrap; }
         .sync-badge.live { background-color: #dcfce7; color: #15803d; }
         .sync-badge.connecting { background-color: #fef9c3; color: #a16207; }
@@ -265,8 +270,8 @@
             background: transparent; border: none; color: #92400e; cursor: pointer;
             font-size: 1.15rem; line-height: 1; padding: 0 4px;
         }
-        html[data-theme="dark"] .unsaved-week-banner { background-color: #2a1c04; border-color: #8a6114; color: #fcd34d; }
-        html[data-theme="dark"] .unsaved-week-banner .uwb-dismiss { color: #fcd34d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .unsaved-week-banner { background-color: #2a1c04; border-color: #8a6114; color: #fcd34d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .unsaved-week-banner .uwb-dismiss { color: #fcd34d; }
         @media (max-width: 600px) {
             .unsaved-week-banner { flex-wrap: wrap; row-gap: 8px; }
             .unsaved-week-banner .uwb-text { flex: 1 1 100%; }
@@ -643,7 +648,7 @@
         .cc-color-native { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: none; }
         .cc-color-hex-input { width: 76px; padding: 4px 6px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; text-transform: uppercase; }
 
-        html[data-theme="dark"] {
+        html:is([data-theme="dark"],[data-theme="metal"]) {
             color-scheme: dark;
             --primary: #60a5fa;
             --primary-hover: #3b82f6;
@@ -658,83 +663,261 @@
             --surface-muted: #1e293b;
         }
 
-        html[data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-main); }
+        html:is([data-theme="dark"],[data-theme="metal"]) body { background-color: var(--bg-color); color: var(--text-main); }
 
-        html[data-theme="dark"] .sync-badge,
-        html[data-theme="dark"] .sync-badge.disconnected,
-        html[data-theme="dark"] .input-group input[readonly],
-        html[data-theme="dark"] .iq-btn,
-        html[data-theme="dark"] th,
-        html[data-theme="dark"] .btn-action,
-        html[data-theme="dark"] .week-selector,
-        html[data-theme="dark"] .cc-item-text:hover,
-        html[data-theme="dark"] .cc-color-clear { background-color: #1e293b; color: var(--text-main); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge,
+        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.disconnected,
+        html:is([data-theme="dark"],[data-theme="metal"]) .input-group input[readonly],
+        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn,
+        html:is([data-theme="dark"],[data-theme="metal"]) th,
+        html:is([data-theme="dark"],[data-theme="metal"]) .btn-action,
+        html:is([data-theme="dark"],[data-theme="metal"]) .week-selector,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item-text:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-color-clear { background-color: #1e293b; color: var(--text-main); }
 
-        html[data-theme="dark"] .card-header:hover,
-        html[data-theme="dark"] .total-row,
-        html[data-theme="dark"] .log-details,
-        html[data-theme="dark"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
-        html[data-theme="dark"] .cc-panel-pad { background-color: #172033; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .card-header:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .total-row,
+        html:is([data-theme="dark"],[data-theme="metal"]) .log-details,
+        html:is([data-theme="dark"],[data-theme="metal"]) #logTable tbody tr:not(.log-details):not(.total-row):hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-panel-pad { background-color: #172033; }
 
-        html[data-theme="dark"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
+        html:is([data-theme="dark"],[data-theme="metal"]) #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
 
-        html[data-theme="dark"] .iq-btn { border-color: #475569; }
-        html[data-theme="dark"] .iq-btn:hover,
-        html[data-theme="dark"] .btn-action:hover,
-        html[data-theme="dark"] .btn-subtle-reset:hover,
-        html[data-theme="dark"] .arrow-btn:hover { background-color: #334155; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn { border-color: #475569; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .btn-action:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .btn-subtle-reset:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .arrow-btn:hover { background-color: #334155; }
 
-        html[data-theme="dark"] .summary-badge,
-        html[data-theme="dark"] .link-btn:hover,
-        html[data-theme="dark"] .mode-tag.auto,
-        html[data-theme="dark"] .cc-item.editing { background-color: #1e3a5f; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .summary-badge,
+        html:is([data-theme="dark"],[data-theme="metal"]) .link-btn:hover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .mode-tag.auto,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item.editing { background-color: #1e3a5f; }
 
-        html[data-theme="dark"] .summary-badge.negative-badge,
-        html[data-theme="dark"] .btn-reset-subtle:hover { background-color: #3f1d1d; }
-        html[data-theme="dark"] .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .summary-badge.negative-badge,
+        html:is([data-theme="dark"],[data-theme="metal"]) .btn-reset-subtle:hover { background-color: #3f1d1d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
 
-        html[data-theme="dark"] .sync-badge.live { background-color: #14532d; color: #4ade80; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.live { background-color: #14532d; color: #4ade80; }
 
-        html[data-theme="dark"] .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
 
-        html[data-theme="dark"] .mode-tag.manual { background-color: #431407; color: #fb923c; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .mode-tag.manual { background-color: #431407; color: #fb923c; }
 
-        html[data-theme="dark"] .savings-balance-card { background: linear-gradient(152deg, #0d2818 0%, #10321e 58%, #14432a 100%); border-color: #2f7a4d; }
-        html[data-theme="dark"] .savings-balance-card::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0) 68%); }
-        html[data-theme="dark"] .savings-balance-heading { border-bottom-color: #2f7a4d; color: #34d399; }
-        html[data-theme="dark"] .savings-amount { color: #34d399; text-shadow: none; }
-        html[data-theme="dark"] .savings-edit-btn { color: #64748b; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-card { background: linear-gradient(152deg, #0d2818 0%, #10321e 58%, #14432a 100%); border-color: #2f7a4d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-card::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0) 68%); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-heading { border-bottom-color: #2f7a4d; color: #34d399; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-amount { color: #34d399; text-shadow: none; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-edit-btn { color: #64748b; }
 
-        html[data-theme="dark"] .savings-goal-card { background: linear-gradient(158deg, #2a1c04 0%, #332206 62%, #402b08 100%); border-color: #8a6114; }
-        html[data-theme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #8a6114; }
-        html[data-theme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #8a6114; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4); }
-        html[data-theme="dark"] .goal-progress-bar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(253, 230, 138, 0.22) calc(25% - 1px) 25%); }
-        html[data-theme="dark"] .goal-progress-text { color: #fcd34d; }
-        html[data-theme="dark"] .goal-pct { color: #fbbf24; }
-        html[data-theme="dark"] .goal-projections { border-top-color: #6b4a10; }
-        html[data-theme="dark"] .goal-projection-row { color: #eab308; }
-        html[data-theme="dark"] .goal-projection-row strong { color: #fcd34d; }
-        html[data-theme="dark"] .edit-icon-btn { color: #facc15; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-goal-card { background: linear-gradient(158deg, #2a1c04 0%, #332206 62%, #402b08 100%); border-color: #8a6114; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #8a6114; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-bar { background-color: #3a2707; border-color: #8a6114; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-bar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(253, 230, 138, 0.22) calc(25% - 1px) 25%); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-text { color: #fcd34d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-pct { color: #fbbf24; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projections { border-top-color: #6b4a10; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projection-row { color: #eab308; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projection-row strong { color: #fcd34d; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .edit-icon-btn { color: #facc15; }
 
-        html[data-theme="dark"] .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
 
-        html[data-theme="dark"] .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
+        html:is([data-theme="dark"],[data-theme="metal"]) .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
 
-        html[data-theme="dark"] .modal-content,
-        html[data-theme="dark"] .cc-item,
-        html[data-theme="dark"] .cc-add-form,
-        html[data-theme="dark"] .cc-color-popover,
-        html[data-theme="dark"] .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .modal-content,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-add-form,
+        html:is([data-theme="dark"],[data-theme="metal"]) .cc-color-popover,
+        html:is([data-theme="dark"],[data-theme="metal"]) .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
 
-        html[data-theme="dark"] input,
-        html[data-theme="dark"] select,
-        html[data-theme="dark"] textarea {
+        html:is([data-theme="dark"],[data-theme="metal"]) input,
+        html:is([data-theme="dark"],[data-theme="metal"]) select,
+        html:is([data-theme="dark"],[data-theme="metal"]) textarea {
             background-color: #1e293b;
             color: var(--text-main);
             border-color: var(--border-color);
         }
-        html[data-theme="dark"] input[readonly] { background-color: #1e293b; color: var(--primary); }
-        html[data-theme="dark"] .header-icon img { opacity: 0.95; }
+        html:is([data-theme="dark"],[data-theme="metal"]) input[readonly] { background-color: #1e293b; color: var(--primary); }
+        html:is([data-theme="dark"],[data-theme="metal"]) .header-icon img { opacity: 0.95; }
+
+        /* ==========================================================
+           DARK METALLIC THEME
+           Inherits every rule in the dark block above (those selectors
+           match [data-theme="metal"] too), then overrides the palette to
+           near-black with brushed-steel surfaces. Sits after the dark
+           block so equal-specificity rules resolve in its favour.
+           All motion here is slow and low-contrast on purpose, and every
+           animation is switched off under prefers-reduced-motion below.
+           ========================================================== */
+        html[data-theme="metal"] {
+            color-scheme: dark;
+            --primary: #9fb3c8;
+            --primary-hover: #c3d3e0;
+            --bg-color: #050506;
+            --card-bg: #101114;
+            --text-main: #e8eaee;
+            --text-muted: #8b9199;
+            --border-color: #2b2e34;
+            --positive: #6ee7a8;
+            --negative: #f4707a;
+            --floating-bg: #000000;
+            --surface-muted: #1a1c21;
+            /* Shared brushed-metal fills, so every surface reads as the
+               same milled material lit from the same angle. */
+            --metal-sheen: linear-gradient(145deg, #1c1e23 0%, #131418 40%, #0d0e11 62%, #16181d 100%);
+            --metal-edge: linear-gradient(90deg, transparent, rgba(210, 225, 240, 0.5), transparent);
+        }
+
+        html[data-theme="metal"] body {
+            background-color: #050506;
+            background-image:
+                radial-gradient(ellipse at 50% -10%, rgba(120, 140, 165, 0.10), transparent 60%),
+                repeating-linear-gradient(96deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px);
+            background-attachment: fixed;
+        }
+
+        /* Cards are milled plates: a soft diagonal sheen, a hairline top
+           highlight that catches the light, and a real drop shadow. */
+        html[data-theme="metal"] .card,
+        html[data-theme="metal"] .modal-content {
+            background-image: var(--metal-sheen);
+            border-color: #2b2e34;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 26px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+        html[data-theme="metal"] .card::after,
+        html[data-theme="metal"] .modal-content::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--metal-edge);
+            background-size: 220% 100%;
+            animation: metalEdge 9s linear infinite;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+        @keyframes metalEdge {
+            0%   { background-position: 220% 0; }
+            100% { background-position: -120% 0; }
+        }
+
+        html[data-theme="metal"] .card-header:hover,
+        html[data-theme="metal"] .total-row,
+        html[data-theme="metal"] .log-details,
+        html[data-theme="metal"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
+        html[data-theme="metal"] .cc-panel-pad { background-color: #17191e; }
+        html[data-theme="metal"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #141519; }
+
+        html[data-theme="metal"] .sync-badge,
+        html[data-theme="metal"] .sync-badge.disconnected,
+        html[data-theme="metal"] .input-group input[readonly],
+        html[data-theme="metal"] .iq-btn,
+        html[data-theme="metal"] th,
+        html[data-theme="metal"] .btn-action,
+        html[data-theme="metal"] .week-selector,
+        html[data-theme="metal"] .cc-item-text:hover,
+        html[data-theme="metal"] .cc-color-clear {
+            background-color: #1a1c21;
+            background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+            color: var(--text-main);
+            border-color: #33373e;
+        }
+        html[data-theme="metal"] .iq-btn:hover,
+        html[data-theme="metal"] .btn-action:hover,
+        html[data-theme="metal"] .btn-subtle-reset:hover,
+        html[data-theme="metal"] .arrow-btn:hover { background-color: #272a31; }
+
+        html[data-theme="metal"] input,
+        html[data-theme="metal"] select,
+        html[data-theme="metal"] textarea { background-color: #16181d; border-color: #33373e; }
+        html[data-theme="metal"] input[readonly] { background-color: #16181d; color: var(--primary); }
+        html[data-theme="metal"] .modal-content,
+        html[data-theme="metal"] .cc-item,
+        html[data-theme="metal"] .cc-add-form,
+        html[data-theme="metal"] .cc-color-popover,
+        html[data-theme="metal"] .week-date-inputs input[type="date"] { background-color: #131418; }
+
+        /* Primary buttons get a polished-steel face with a slow sheen that
+           sweeps across on hover. The .btn rules the app already relies on
+           for size, radius and layout are untouched. */
+        html[data-theme="metal"] .btn {
+            background-image: linear-gradient(180deg, #3a4048 0%, #23272d 52%, #171a1f 100%);
+            border: 1px solid #454b54;
+            color: #eef1f5;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 2px 6px rgba(0, 0, 0, 0.55);
+            position: relative;
+            overflow: hidden;
+        }
+        html[data-theme="metal"] .btn:hover { background-image: linear-gradient(180deg, #464d57 0%, #2c313a 52%, #1d2126 100%); }
+        html[data-theme="metal"] .btn::after {
+            content: "";
+            position: absolute;
+            top: 0; bottom: 0; left: -60%;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+            transform: skewX(-18deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+        html[data-theme="metal"] .btn:hover::after { opacity: 1; animation: metalSweep 0.85s ease-out; }
+        @keyframes metalSweep {
+            from { left: -60%; }
+            to   { left: 130%; }
+        }
+
+        html[data-theme="metal"] .summary-badge,
+        html[data-theme="metal"] .link-btn:hover,
+        html[data-theme="metal"] .mode-tag.auto,
+        html[data-theme="metal"] .cc-item.editing { background-color: #232a33; color: #cfe0f0; }
+        html[data-theme="metal"] .summary-badge.negative-badge { background-color: #2e1b1e; color: #f4707a; }
+
+        /* The two hero cards keep their green/gold identity but rendered as
+           anodised metal rather than flat colour, with a very slow drift so
+           the finish looks like it's catching light. */
+        html[data-theme="metal"] .savings-balance-card {
+            background: linear-gradient(150deg, #071410 0%, #0d211a 45%, #061a13 70%, #0f2b20 100%);
+            background-size: 200% 200%;
+            animation: metalDrift 22s ease-in-out infinite;
+            border-color: #2c6b4b;
+        }
+        html[data-theme="metal"] .savings-goal-card {
+            background: linear-gradient(156deg, #171204 0%, #241b06 45%, #141003 70%, #2b2008 100%);
+            background-size: 200% 200%;
+            animation: metalDrift 26s ease-in-out infinite;
+            border-color: #6f5215;
+        }
+        @keyframes metalDrift {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+
+        html[data-theme="metal"] .goal-progress-fill {
+            background-image: linear-gradient(90deg, #a9741d, #e6c063, #a9741d);
+            background-size: 200% 100%;
+            animation: metalDrift 8s linear infinite;
+        }
+
+        html[data-theme="metal"] .disc-balance-banner {
+            background-image: linear-gradient(145deg, #1a1d22 0%, #0e0f13 55%, #17191e 100%);
+            border: 1px solid #33373e;
+        }
+        html[data-theme="metal"] .sweep-box { background-color: #191505; border-color: #5c4712; }
+        html[data-theme="metal"] .header-container { border-bottom-color: #2b2e34; }
+        html[data-theme="metal"] .header-title {
+            background: linear-gradient(92deg, #d8dee6 0%, #ffffff 22%, #9aa3ad 46%, #e6ebf1 70%, #b7c0ca 100%);
+            background-size: 260% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: metalTitle 14s linear infinite;
+        }
+        @keyframes metalTitle {
+            0%   { background-position: 0% 0; }
+            100% { background-position: 260% 0; }
+        }
+
 
         /* This shared rule sits AFTER .modal-content and .disc-balance-banner
            in the stylesheet and sets the whole `transition` shorthand, which
@@ -754,10 +937,18 @@
             .goal-progress-fill::after { animation: none; display: none; }
             .savings-amount.bump { animation: none; }
             .disc-balance-banner { transition: none; }
+            html[data-theme="metal"] .card::after,
+            html[data-theme="metal"] .modal-content::after,
+            html[data-theme="metal"] .btn:hover::after,
+            html[data-theme="metal"] .savings-balance-card,
+            html[data-theme="metal"] .savings-goal-card,
+            html[data-theme="metal"] .goal-progress-fill,
+            html[data-theme="metal"] .header-title { animation: none; }
+            html[data-theme="metal"] .header-title { background: none; color: var(--text-main); }
         }
 
         body, .card, .card-header,
-        input, select, textarea, .theme-toggle-track {
+        input, select, textarea, .theme-picker select {
             transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
 
@@ -1247,11 +1438,13 @@
                     <span class="sync-badge" id="syncSaveBadgeHeader" style="display:none;">💾 Saved</span>
                     <button type="button" class="link-btn" onclick="openSyncSettingsModal()">⚙ Sync Settings</button>
                 </div>
-                <label class="theme-toggle" for="themeToggleInput" title="Toggle dark mode">
-                    <input type="checkbox" id="themeToggleInput" onchange="setTheme(this.checked ? 'dark' : 'light')">
-                    <span class="theme-toggle-track">
-                        <span class="theme-toggle-thumb" id="themeToggleThumb">☀️</span>
-                    </span>
+                <label class="theme-picker" title="Appearance">
+                    <span class="theme-picker-icon" id="themePickerIcon" aria-hidden="true">⚙️</span>
+                    <select id="themeSelect" aria-label="Theme" onchange="setTheme(this.value)">
+                        <option value="metal">⚙️ Dark Metallic</option>
+                        <option value="dark">🌙 Dark</option>
+                        <option value="light">☀️ Light</option>
+                    </select>
                 </label>
             </div>
         </div>
@@ -1815,27 +2008,48 @@
             wrap.innerHTML = rows;
         }
 
-        // Dark Mode
+        // Themes
+        // Each entry drives the <html data-theme> attribute, the picker's
+        // icon, and the browser/PWA chrome colour. Order here is the order
+        // shown in the dropdown.
+        const THEMES = {
+            metal: { label: 'Dark Metallic', icon: '⚙️', chrome: '#050506' },
+            dark:  { label: 'Dark',          icon: '🌙', chrome: '#0b1220' },
+            light: { label: 'Light',         icon: '☀️', chrome: '#2563eb' }
+        };
+        const DEFAULT_THEME = 'light';
+
         function applyTheme(theme) {
+            if (!THEMES[theme]) theme = DEFAULT_THEME;
             document.documentElement.setAttribute('data-theme', theme);
-            const input = document.getElementById('themeToggleInput');
-            const thumb = document.getElementById('themeToggleThumb');
-            if (input) input.checked = (theme === 'dark');
-            if (thumb) thumb.textContent = (theme === 'dark') ? '🌙' : '☀️';
+
+            // The picker lives in the header, which exists by the time this
+            // script runs -- but guard anyway so applyTheme() is safe to call
+            // from anywhere, including before a re-render.
+            const select = document.getElementById('themeSelect');
+            if (select && select.value !== theme) select.value = theme;
+            const icon = document.getElementById('themePickerIcon');
+            if (icon) icon.textContent = THEMES[theme].icon;
+
             const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-            if (themeColorMeta) themeColorMeta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#2563eb');
+            if (themeColorMeta) themeColorMeta.setAttribute('content', THEMES[theme].chrome);
+            return theme;
         }
 
         function setTheme(theme) {
-            applyTheme(theme);
-            try { localStorage.setItem('budgetThemePref', theme); } catch (e) {}
+            const applied = applyTheme(theme);
+            try { localStorage.setItem('budgetThemePref', applied); } catch (e) {}
         }
 
         function initTheme() {
             let saved = null;
             try { saved = localStorage.getItem('budgetThemePref'); } catch (e) {}
+            // Anyone upgrading from the old toggle already has 'light' or
+            // 'dark' stored under this same key, and both are still valid
+            // theme ids -- so their choice carries over untouched.
+            if (saved && THEMES[saved]) { applyTheme(saved); return; }
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+            applyTheme(prefersDark ? 'dark' : DEFAULT_THEME);
         }
 
         initTheme();
