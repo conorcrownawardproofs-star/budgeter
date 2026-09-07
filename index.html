@@ -199,6 +199,14 @@
         .positive-text { color: var(--positive); font-weight: bold; }
         .negative-text { color: var(--negative); font-weight: bold; }
         .note { font-size: 0.8rem; color: var(--text-muted); font-weight: normal; }
+        /* Projected savings balance: a read-only preview of where the Total
+           Savings Balance lands if this week gets saved with the allocation
+           and sweep choice currently on screen. Deliberately quieter than
+           the Final Discretionary Balance row below it -- it's a what-if,
+           not a figure you act on directly. */
+        .projected-savings-row { align-items: flex-start; margin-top: 4px; }
+        .projected-savings-row label { flex-direction: column; align-items: flex-start; gap: 1px; }
+        .projected-savings-amount { font-weight: bold; font-variant-numeric: tabular-nums; }
 
         .btn { display: block; width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 20px; text-align: center; }
         .btn:hover { background-color: var(--primary-hover); }
@@ -1537,6 +1545,14 @@
                     </div>
                 </div>
 
+                <div class="input-group projected-savings-row">
+                    <label>
+                        <span>If Saved, Savings Balance Would Be</span>
+                        <span class="note" id="projectedSavingsBreakdown">&nbsp;</span>
+                    </label>
+                    <span id="projectedSavingsDisplay" class="positive-text projected-savings-amount">$0.00</span>
+                </div>
+
                 <div class="input-group total-row" style="background-color: var(--surface-muted); padding: 15px; border-radius: 4px; margin-top: 15px;">
                     <label>Final Discretionary Balance</label>
                     <span id="weeklyBudgetRemaining" class="highlight" style="font-size: 1.2rem;">$0.00</span>
@@ -1560,7 +1576,7 @@
                         <span>Sweep Custom Amount:</span>
                         <div class="money-field" style="display:none;" id="customSweepWrap">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="customSweepAmount" class="money-input" value="0.00" step="0.01" min="0" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <input type="number" inputmode="decimal" id="customSweepAmount" class="money-input" value="0.00" step="0.01" min="0" oninput="updateProjectedSavings()" style="width: 90px; padding: 4px 4px 4px 18px; border: 1px solid var(--border-color); border-radius: 4px;">
                         </div>
                     </label>
                 </div>
@@ -2924,6 +2940,48 @@
             saveCurrentWeekDraft();
         }
 
+        // The savings figure a week would actually contribute, honouring the
+        // End of Week Balance Sweep choice. commitWeekEntry() derives the
+        // same number when the week is saved -- this is the preview of it.
+        function getPlannedSavingsContribution(finalDiscretionary) {
+            const sweepAction = document.querySelector('input[name="sweepAction"]:checked')?.value || 'rollover';
+            let added = currentSavings;
+            if (sweepAction === 'sweep_all') {
+                added += Math.max(0, finalDiscretionary);
+            } else if (sweepAction === 'sweep_custom') {
+                const customAmt = Math.max(0, parseFloat(document.getElementById('customSweepAmount')?.value) || 0);
+                added += Math.min(Math.max(0, finalDiscretionary), customAmt);
+            }
+            return added;
+        }
+
+        // "If Saved, Savings Balance Would Be" -- reads from the same
+        // currentNetIncome / currentDebt / currentExp / currentSavings that
+        // calculateAll() has already set, so it can also be called on its
+        // own when only the sweep choice changes.
+        function updateProjectedSavings() {
+            const display = document.getElementById('projectedSavingsDisplay');
+            const breakdown = document.getElementById('projectedSavingsBreakdown');
+            if (!display) return;
+
+            const remainingBeforeSavings = currentNetIncome - currentDebt - currentExp;
+            const finalDiscretionary = remainingBeforeSavings - currentSavings;
+            const contribution = getPlannedSavingsContribution(finalDiscretionary);
+            const projected = globalSavingsBalance + contribution;
+
+            display.innerText = formatCurrency(projected);
+            display.classList.toggle('positive-text', projected >= 0);
+            display.classList.toggle('negative-text', projected < 0);
+
+            if (breakdown) {
+                const swept = contribution - currentSavings;
+                const parts = `${formatCurrency(globalSavingsBalance)} now + ${formatCurrency(currentSavings)} allocated`;
+                breakdown.innerText = swept > 0.005
+                    ? `${parts} + ${formatCurrency(swept)} swept`
+                    : parts;
+            }
+        }
+
         function calculateAll(source) {
             const hourly = parseFloat(document.getElementById('hourlyRate').value) || 0;
             const hours = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
@@ -2994,6 +3052,7 @@
 
             document.getElementById('summary-tracker').innerText = formatCurrency(finalDiscretionary);
 
+            updateProjectedSavings();
             updateSavingsProjections();
         }
 
@@ -3346,6 +3405,9 @@
             if (customWrap) {
                 customWrap.style.display = (selected === 'sweep_custom') ? 'inline-flex' : 'none';
             }
+            // Switching sweep option changes how much of the week lands in
+            // savings, so the projection above has to move with it.
+            updateProjectedSavings();
         }
 
         function saveWeekEntry() {
