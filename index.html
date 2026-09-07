@@ -59,31 +59,87 @@
         .header-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .header-title { color: var(--text-main); margin: 0; font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
         .header-subtitle { margin: 3px 0 0 0; color: var(--text-muted); font-size: 0.92rem; }
-        .sync-widget { display: none; align-items: center; gap: 8px; }
-        .header-widgets { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        /* The status badge, Sync Settings and the theme picker are one row of
+           three matched chips. .sync-widget is display:contents when active
+           (initSync sets it) so its children sit directly in this flex row
+           rather than forming a nested group that wraps as a block -- that
+           nesting is what pushed the theme picker onto its own line. */
+        .sync-widget { display: none; }
+        .header-widgets { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-        .theme-picker { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; }
-        .theme-picker-icon { font-size: 0.95rem; line-height: 1; }
+        .header-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            padding: 5px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.2;
+            white-space: nowrap;
+            flex: 0 1 auto;
+            min-width: 0;
+        }
+        /* Every chip -- badge, button and picker -- draws from the same
+           metrics so the row reads as one set of controls: identical font
+           size and weight, identical icon size, identical height. */
+        .header-chip .chip-icon { flex: 0 0 auto; font-size: 0.95em; line-height: 1; }
+        .header-chip .chip-words { margin-left: 5px; overflow: hidden; text-overflow: ellipsis; }
+        .header-chip-btn { color: var(--primary); cursor: pointer; }
+        .header-chip-btn:hover { border-color: var(--primary); }
+        .header-chip-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+        .theme-picker { padding: 0; cursor: pointer; overflow: hidden; }
         .theme-picker select {
             font: inherit;
-            font-size: 0.82rem;
-            font-weight: 600;
-            padding: 5px 26px 5px 9px;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            background-color: var(--card-bg);
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            padding: 5px 26px 5px 12px;
+            border: 0;
+            border-radius: inherit;
+            background-color: transparent;
             color: var(--text-main);
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
             background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-            background-position: right 11px top 50%, right 6px top 50%;
+            background-position: right 13px top 50%, right 8px top 50%;
             background-size: 5px 5px, 5px 5px;
             background-repeat: no-repeat;
+            max-width: 100%;
+            text-overflow: ellipsis;
         }
-        .theme-picker select:hover { border-color: var(--primary); }
-        .theme-picker select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-        .sync-badge { font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; background-color: #f1f5f9; color: var(--text-muted); white-space: nowrap; }
+        .theme-picker:hover { border-color: var(--primary); }
+        .theme-picker:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .theme-picker select:focus { outline: none; }
+        .header-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        /* The pencil sits OUTSIDE the h1: the metallic themes paint the title
+           with background-clip:text, which would swallow a nested button. */
+        .title-edit-btn {
+            background: none; border: none; cursor: pointer; padding: 2px 4px;
+            color: var(--text-muted); font-size: 0.85rem; line-height: 1; border-radius: 4px; flex: 0 0 auto;
+        }
+        .title-edit-btn:hover { color: var(--primary); }
+        .title-edit-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .bill-name-input {
+            width: 100%; font: inherit; font-size: 0.9rem; font-weight: 500;
+            background: transparent; border: 1px solid transparent; border-radius: 4px;
+            padding: 4px 6px; margin: -4px -6px; color: var(--text-main); text-overflow: ellipsis;
+        }
+        .bill-name-input:hover { border-color: var(--border-color); }
+        .bill-name-input:focus { border-color: var(--primary); background-color: var(--card-bg); outline: none; }
+        .period-setting { border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; background-color: var(--surface-muted); }
+        .period-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.85rem; font-weight: 600; }
+        .period-setting-row + .period-setting-row { margin-top: 8px; }
+        .period-setting-row select,
+        .period-setting-row input[type="date"] { font: inherit; font-size: 0.85rem; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--card-bg); color: var(--text-main); min-height: 34px; }
+        .period-setting-note { margin: 8px 0 0; font-size: 0.75rem; font-weight: 400; color: var(--text-muted); line-height: 1.35; }
+        .sync-badge { background-color: #f1f5f9; color: var(--text-muted); }
         .sync-badge.live { background-color: #dcfce7; color: #15803d; }
         .sync-badge.connecting { background-color: #fef9c3; color: #a16207; }
         .sync-badge.disconnected { background-color: #f1f5f9; color: var(--text-muted); }
@@ -270,8 +326,8 @@
             background: transparent; border: none; color: #92400e; cursor: pointer;
             font-size: 1.15rem; line-height: 1; padding: 0 4px;
         }
-        html:is([data-theme="dark"],[data-theme="metal"]) .unsaved-week-banner { background-color: #2a1c04; border-color: #8a6114; color: #fcd34d; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .unsaved-week-banner .uwb-dismiss { color: #fcd34d; }
+        html[data-scheme="dark"] .unsaved-week-banner { background-color: #2a1c04; border-color: #8a6114; color: #fcd34d; }
+        html[data-scheme="dark"] .unsaved-week-banner .uwb-dismiss { color: #fcd34d; }
         @media (max-width: 600px) {
             .unsaved-week-banner { flex-wrap: wrap; row-gap: 8px; }
             .unsaved-week-banner .uwb-text { flex: 1 1 100%; }
@@ -648,7 +704,7 @@
         .cc-color-native { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; background: none; }
         .cc-color-hex-input { width: 76px; padding: 4px 6px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; text-transform: uppercase; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) {
+        html[data-scheme="dark"] {
             color-scheme: dark;
             --primary: #60a5fa;
             --primary-hover: #3b82f6;
@@ -663,97 +719,98 @@
             --surface-muted: #1e293b;
         }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) body { background-color: var(--bg-color); color: var(--text-main); }
+        html[data-scheme="dark"] body { background-color: var(--bg-color); color: var(--text-main); }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge,
-        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.disconnected,
-        html:is([data-theme="dark"],[data-theme="metal"]) .input-group input[readonly],
-        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn,
-        html:is([data-theme="dark"],[data-theme="metal"]) th,
-        html:is([data-theme="dark"],[data-theme="metal"]) .btn-action,
-        html:is([data-theme="dark"],[data-theme="metal"]) .week-selector,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item-text:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-color-clear { background-color: #1e293b; color: var(--text-main); }
+        html[data-scheme="dark"] .sync-badge,
+        html[data-scheme="dark"] .sync-badge.disconnected,
+        html[data-scheme="dark"] .input-group input[readonly],
+        html[data-scheme="dark"] .iq-btn,
+        html[data-scheme="dark"] th,
+        html[data-scheme="dark"] .btn-action,
+        html[data-scheme="dark"] .week-selector,
+        html[data-scheme="dark"] .cc-item-text:hover,
+        html[data-scheme="dark"] .cc-color-clear { background-color: #1e293b; color: var(--text-main); }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .card-header:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .total-row,
-        html:is([data-theme="dark"],[data-theme="metal"]) .log-details,
-        html:is([data-theme="dark"],[data-theme="metal"]) #logTable tbody tr:not(.log-details):not(.total-row):hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-panel-pad { background-color: #172033; }
+        html[data-scheme="dark"] .card-header:hover,
+        html[data-scheme="dark"] .total-row,
+        html[data-scheme="dark"] .log-details,
+        html[data-scheme="dark"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
+        html[data-scheme="dark"] .cc-panel-pad { background-color: #172033; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
+        html[data-scheme="dark"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn { border-color: #475569; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .iq-btn:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .btn-action:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .btn-subtle-reset:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .arrow-btn:hover { background-color: #334155; }
+        html[data-scheme="dark"] .iq-btn { border-color: #475569; }
+        html[data-scheme="dark"] .iq-btn:hover,
+        html[data-scheme="dark"] .btn-action:hover,
+        html[data-scheme="dark"] .btn-subtle-reset:hover,
+        html[data-scheme="dark"] .arrow-btn:hover { background-color: #334155; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .summary-badge,
-        html:is([data-theme="dark"],[data-theme="metal"]) .link-btn:hover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .mode-tag.auto,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item.editing { background-color: #1e3a5f; }
+        html[data-scheme="dark"] .summary-badge,
+        html[data-scheme="dark"] .link-btn:hover,
+        html[data-scheme="dark"] .mode-tag.auto,
+        html[data-scheme="dark"] .cc-item.editing { background-color: #1e3a5f; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .summary-badge.negative-badge,
-        html:is([data-theme="dark"],[data-theme="metal"]) .btn-reset-subtle:hover { background-color: #3f1d1d; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
+        html[data-scheme="dark"] .summary-badge.negative-badge,
+        html[data-scheme="dark"] .btn-reset-subtle:hover { background-color: #3f1d1d; }
+        html[data-scheme="dark"] .sync-badge.error { background-color: #4c1d1d; color: #f87171; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.live { background-color: #14532d; color: #4ade80; }
+        html[data-scheme="dark"] .sync-badge.live { background-color: #14532d; color: #4ade80; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
+        html[data-scheme="dark"] .sync-badge.connecting { background-color: #4a3510; color: #fbbf24; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .mode-tag.manual { background-color: #431407; color: #fb923c; }
+        html[data-scheme="dark"] .mode-tag.manual { background-color: #431407; color: #fb923c; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-card { background: linear-gradient(152deg, #0d2818 0%, #10321e 58%, #14432a 100%); border-color: #2f7a4d; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-card::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0) 68%); }
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-balance-heading { border-bottom-color: #2f7a4d; color: #34d399; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-amount { color: #34d399; text-shadow: none; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-edit-btn { color: #64748b; }
+        html[data-scheme="dark"] .savings-balance-card { background: linear-gradient(152deg, #0d2818 0%, #10321e 58%, #14432a 100%); border-color: #2f7a4d; }
+        html[data-scheme="dark"] .savings-balance-card::before { background: radial-gradient(circle, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0) 68%); }
+        html[data-scheme="dark"] .savings-balance-heading { border-bottom-color: #2f7a4d; color: #34d399; }
+        html[data-scheme="dark"] .savings-amount { color: #34d399; text-shadow: none; }
+        html[data-scheme="dark"] .savings-edit-btn { color: #64748b; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-goal-card { background: linear-gradient(158deg, #2a1c04 0%, #332206 62%, #402b08 100%); border-color: #8a6114; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #8a6114; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-bar { background-color: #3a2707; border-color: #8a6114; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4); }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-bar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(253, 230, 138, 0.22) calc(25% - 1px) 25%); }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-progress-text { color: #fcd34d; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-pct { color: #fbbf24; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projections { border-top-color: #6b4a10; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projection-row { color: #eab308; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .goal-projection-row strong { color: #fcd34d; }
-        html:is([data-theme="dark"],[data-theme="metal"]) .edit-icon-btn { color: #facc15; }
+        html[data-scheme="dark"] .savings-goal-card { background: linear-gradient(158deg, #2a1c04 0%, #332206 62%, #402b08 100%); border-color: #8a6114; }
+        html[data-scheme="dark"] .savings-goal-card h2 { color: #fbbf24; border-bottom-color: #8a6114; }
+        html[data-scheme="dark"] .goal-progress-bar { background-color: #3a2707; border-color: #8a6114; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4); }
+        html[data-scheme="dark"] .goal-progress-bar::after { background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(253, 230, 138, 0.22) calc(25% - 1px) 25%); }
+        html[data-scheme="dark"] .goal-progress-text { color: #fcd34d; }
+        html[data-scheme="dark"] .goal-pct { color: #fbbf24; }
+        html[data-scheme="dark"] .goal-projections { border-top-color: #6b4a10; }
+        html[data-scheme="dark"] .goal-projection-row { color: #eab308; }
+        html[data-scheme="dark"] .goal-projection-row strong { color: #fcd34d; }
+        html[data-scheme="dark"] .edit-icon-btn { color: #facc15; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
+        html[data-scheme="dark"] .edit-mode td.editable { background-color: #3a2707; border-color: #f59e0b; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
+        html[data-scheme="dark"] .sweep-box { background-color: #2a1c04; border-color: #6b4a10; }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) .modal-content,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-item,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-add-form,
-        html:is([data-theme="dark"],[data-theme="metal"]) .cc-color-popover,
-        html:is([data-theme="dark"],[data-theme="metal"]) .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
+        html[data-scheme="dark"] .modal-content,
+        html[data-scheme="dark"] .cc-item,
+        html[data-scheme="dark"] .cc-add-form,
+        html[data-scheme="dark"] .cc-color-popover,
+        html[data-scheme="dark"] .week-date-inputs input[type="date"] { background-color: #141b2d; color: var(--text-main); }
 
-        html:is([data-theme="dark"],[data-theme="metal"]) input,
-        html:is([data-theme="dark"],[data-theme="metal"]) select,
-        html:is([data-theme="dark"],[data-theme="metal"]) textarea {
+        html[data-scheme="dark"] input,
+        html[data-scheme="dark"] select,
+        html[data-scheme="dark"] textarea {
             background-color: #1e293b;
             color: var(--text-main);
             border-color: var(--border-color);
         }
-        html:is([data-theme="dark"],[data-theme="metal"]) input[readonly] { background-color: #1e293b; color: var(--primary); }
-        html:is([data-theme="dark"],[data-theme="metal"]) .header-icon img { opacity: 0.95; }
+        html[data-scheme="dark"] input[readonly] { background-color: #1e293b; color: var(--primary); }
+        html[data-scheme="dark"] .header-icon img { opacity: 0.95; }
 
         /* ==========================================================
-           DARK METALLIC THEME
-           Inherits every rule in the dark block above (those selectors
-           match [data-theme="metal"] too), then overrides the palette to
-           near-black with brushed-steel surfaces. Sits after the dark
-           block so equal-specificity rules resolve in its favour.
-           All motion here is slow and low-contrast on purpose, and every
-           animation is switched off under prefers-reduced-motion below.
+           METALLIC THEMES  (Dark / Red / Blue)
+           All three inherit every rule in the dark block above -- those
+           selectors match [data-theme^="metal"] too -- then override the
+           palette to near-black with brushed-metal surfaces.
+
+           The finish itself is written ONCE against a set of tint
+           variables; each variant below only redefines those variables,
+           so the three stay visually identical apart from the metal's
+           colour. Every animation is slow and low-contrast, and all of
+           them are switched off under prefers-reduced-motion.
            ========================================================== */
-        html[data-theme="metal"] {
+        html[data-theme^="metal"] {
             color-scheme: dark;
-            --primary: #9fb3c8;
-            --primary-hover: #c3d3e0;
             --bg-color: #050506;
             --card-bg: #101114;
             --text-main: #e8eaee;
@@ -763,36 +820,141 @@
             --negative: #f4707a;
             --floating-bg: #000000;
             --surface-muted: #1a1c21;
-            /* Shared brushed-metal fills, so every surface reads as the
-               same milled material lit from the same angle. */
-            --metal-sheen: linear-gradient(145deg, #1c1e23 0%, #131418 40%, #0d0e11 62%, #16181d 100%);
-            --metal-edge: linear-gradient(90deg, transparent, rgba(210, 225, 240, 0.5), transparent);
+
+            /* --- tint knobs, overridden per variant --- */
+            --primary: #9fb3c8;
+            --primary-hover: #c3d3e0;
+            --metal-glow: rgba(120, 140, 165, 0.10);   /* halo behind the header */
+            --metal-edge-hi: rgba(210, 225, 240, 0.5);  /* travelling top hairline */
+            --metal-plate-a: #1c1e23;                   /* card sheen, lit face */
+            --metal-plate-b: #0d0e11;                   /* card sheen, shadow face */
+            --metal-btn-a: #3a4048;                     /* button face, top */
+            --metal-btn-b: #171a1f;                     /* button face, bottom */
+            --metal-btn-edge: #454b54;
+            --metal-chip: #232a33;                      /* summary badges */
+            --metal-chip-text: #cfe0f0;
+            --metal-title: linear-gradient(92deg, #d8dee6 0%, #ffffff 22%, #9aa3ad 46%, #e6ebf1 70%, #b7c0ca 100%);
         }
 
-        html[data-theme="metal"] body {
-            background-color: #050506;
+        html[data-theme="metal-red"] {
+            --primary: #e8909a;
+            --primary-hover: #f4b3ba;
+            --border-color: #3a2b2d;
+            --metal-glow: rgba(190, 70, 80, 0.13);
+            --metal-edge-hi: rgba(255, 190, 195, 0.55);
+            --metal-plate-a: #241a1c;
+            --metal-plate-b: #120c0d;
+            --metal-btn-a: #5a3036;
+            --metal-btn-b: #241518;
+            --metal-btn-edge: #6d3b42;
+            --metal-chip: #3a2024;
+            --metal-chip-text: #f6c8cd;
+            --metal-title: linear-gradient(92deg, #f0c3c8 0%, #ffffff 22%, #b26069 46%, #ffd9dd 70%, #d18c95 100%);
+        }
+
+        html[data-theme="metal-gold"] {
+            --primary: #e8c882;
+            --primary-hover: #f4dcae;
+            --border-color: #3a3323;
+            --metal-glow: rgba(200, 160, 70, 0.13);
+            --metal-edge-hi: rgba(255, 235, 185, 0.55);
+            --metal-plate-a: #241f14;
+            --metal-plate-b: #120f08;
+            --metal-btn-a: #5a4a26;
+            --metal-btn-b: #241d10;
+            --metal-btn-edge: #6d5a2f;
+            --metal-chip: #3a3020;
+            --metal-chip-text: #f6e3bd;
+            --metal-title: linear-gradient(92deg, #f0dcb4 0%, #ffffff 22%, #b2955c 46%, #ffeecd 70%, #d1b884 100%);
+        }
+
+        html[data-theme="metal-emerald"] {
+            --primary: #86d8ae;
+            --primary-hover: #aeeac9;
+            --border-color: #233a2f;
+            --metal-glow: rgba(60, 175, 120, 0.13);
+            --metal-edge-hi: rgba(190, 255, 220, 0.55);
+            --metal-plate-a: #14231c;
+            --metal-plate-b: #08120d;
+            --metal-btn-a: #275240;
+            --metal-btn-b: #10241a;
+            --metal-btn-edge: #316b52;
+            --metal-chip: #1c3a2c;
+            --metal-chip-text: #c3f8dc;
+            --metal-title: linear-gradient(92deg, #c3f0d8 0%, #ffffff 22%, #63b28c 46%, #dcffee 70%, #93d8b3 100%);
+        }
+
+        html[data-theme="metal-purple"] {
+            --primary: #c39fe8;
+            --primary-hover: #dcc3f4;
+            --border-color: #33263a;
+            --metal-glow: rgba(150, 90, 200, 0.13);
+            --metal-edge-hi: rgba(230, 200, 255, 0.55);
+            --metal-plate-a: #201826;
+            --metal-plate-b: #100b13;
+            --metal-btn-a: #4a3160;
+            --metal-btn-b: #1e1426;
+            --metal-btn-edge: #5c3f78;
+            --metal-chip: #2e2040;
+            --metal-chip-text: #ded0f8;
+            --metal-title: linear-gradient(92deg, #ddc8f0 0%, #ffffff 22%, #8f6db2 46%, #efdcff 70%, #b893d8 100%);
+        }
+
+        html[data-theme="metal-copper"] {
+            --primary: #e8a882;
+            --primary-hover: #f4c8ae;
+            --border-color: #3a2c23;
+            --metal-glow: rgba(200, 110, 60, 0.13);
+            --metal-edge-hi: rgba(255, 215, 185, 0.55);
+            --metal-plate-a: #241a14;
+            --metal-plate-b: #120c08;
+            --metal-btn-a: #5e3a24;
+            --metal-btn-b: #26170f;
+            --metal-btn-edge: #74492c;
+            --metal-chip: #3a281e;
+            --metal-chip-text: #f6d5bd;
+            --metal-title: linear-gradient(92deg, #f0d0b4 0%, #ffffff 22%, #b2795c 46%, #ffe2cd 70%, #d1a284 100%);
+        }
+
+        html[data-theme="metal-blue"] {
+            --primary: #86b4e8;
+            --primary-hover: #aed0f4;
+            --metal-glow: rgba(70, 120, 200, 0.13);
+            --metal-edge-hi: rgba(190, 220, 255, 0.55);
+            --metal-plate-a: #181d26;
+            --metal-plate-b: #0a0d13;
+            --metal-btn-a: #2f4160;
+            --metal-btn-b: #141b26;
+            --metal-btn-edge: #3c5478;
+            --metal-chip: #1e2c40;
+            --metal-chip-text: #c3ddf8;
+            --metal-title: linear-gradient(92deg, #c3d8f0 0%, #ffffff 22%, #6d8cb2 46%, #dceaff 70%, #93b3d8 100%);
+        }
+
+        html[data-theme^="metal"] body {
+            background-color: var(--bg-color);
             background-image:
-                radial-gradient(ellipse at 50% -10%, rgba(120, 140, 165, 0.10), transparent 60%),
+                radial-gradient(ellipse at 50% -10%, var(--metal-glow), transparent 60%),
                 repeating-linear-gradient(96deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px);
             background-attachment: fixed;
         }
 
-        /* Cards are milled plates: a soft diagonal sheen, a hairline top
-           highlight that catches the light, and a real drop shadow. */
-        html[data-theme="metal"] .card,
-        html[data-theme="metal"] .modal-content {
-            background-image: var(--metal-sheen);
-            border-color: #2b2e34;
+        /* Cards are milled plates: a diagonal sheen, a hairline top highlight
+           that travels across catching the light, and a real drop shadow. */
+        html[data-theme^="metal"] .card,
+        html[data-theme^="metal"] .modal-content {
+            background-image: linear-gradient(145deg, var(--metal-plate-a) 0%, var(--card-bg) 40%, var(--metal-plate-b) 62%, var(--metal-plate-a) 100%);
+            border-color: var(--border-color);
             box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 26px rgba(0, 0, 0, 0.6);
             position: relative;
         }
-        html[data-theme="metal"] .card::after,
-        html[data-theme="metal"] .modal-content::after {
+        html[data-theme^="metal"] .card::after,
+        html[data-theme^="metal"] .modal-content::after {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 1px;
-            background: var(--metal-edge);
+            background: linear-gradient(90deg, transparent, var(--metal-edge-hi), transparent);
             background-size: 220% 100%;
             animation: metalEdge 9s linear infinite;
             pointer-events: none;
@@ -803,55 +965,55 @@
             100% { background-position: -120% 0; }
         }
 
-        html[data-theme="metal"] .card-header:hover,
-        html[data-theme="metal"] .total-row,
-        html[data-theme="metal"] .log-details,
-        html[data-theme="metal"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
-        html[data-theme="metal"] .cc-panel-pad { background-color: #17191e; }
-        html[data-theme="metal"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #141519; }
+        html[data-theme^="metal"] .card-header:hover,
+        html[data-theme^="metal"] .total-row,
+        html[data-theme^="metal"] .log-details,
+        html[data-theme^="metal"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
+        html[data-theme^="metal"] .cc-panel-pad { background-color: var(--metal-plate-a); }
+        html[data-theme^="metal"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: var(--metal-plate-b); }
 
-        html[data-theme="metal"] .sync-badge,
-        html[data-theme="metal"] .sync-badge.disconnected,
-        html[data-theme="metal"] .input-group input[readonly],
-        html[data-theme="metal"] .iq-btn,
-        html[data-theme="metal"] th,
-        html[data-theme="metal"] .btn-action,
-        html[data-theme="metal"] .week-selector,
-        html[data-theme="metal"] .cc-item-text:hover,
-        html[data-theme="metal"] .cc-color-clear {
-            background-color: #1a1c21;
+        html[data-theme^="metal"] .sync-badge,
+        html[data-theme^="metal"] .sync-badge.disconnected,
+        html[data-theme^="metal"] .input-group input[readonly],
+        html[data-theme^="metal"] .iq-btn,
+        html[data-theme^="metal"] th,
+        html[data-theme^="metal"] .btn-action,
+        html[data-theme^="metal"] .week-selector,
+        html[data-theme^="metal"] .cc-item-text:hover,
+        html[data-theme^="metal"] .cc-color-clear {
+            background-color: var(--surface-muted);
             background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
             color: var(--text-main);
-            border-color: #33373e;
+            border-color: var(--metal-btn-edge);
         }
-        html[data-theme="metal"] .iq-btn:hover,
-        html[data-theme="metal"] .btn-action:hover,
-        html[data-theme="metal"] .btn-subtle-reset:hover,
-        html[data-theme="metal"] .arrow-btn:hover { background-color: #272a31; }
+        html[data-theme^="metal"] .iq-btn:hover,
+        html[data-theme^="metal"] .btn-action:hover,
+        html[data-theme^="metal"] .btn-subtle-reset:hover,
+        html[data-theme^="metal"] .arrow-btn:hover { background-color: var(--metal-btn-a); }
 
-        html[data-theme="metal"] input,
-        html[data-theme="metal"] select,
-        html[data-theme="metal"] textarea { background-color: #16181d; border-color: #33373e; }
-        html[data-theme="metal"] input[readonly] { background-color: #16181d; color: var(--primary); }
-        html[data-theme="metal"] .modal-content,
-        html[data-theme="metal"] .cc-item,
-        html[data-theme="metal"] .cc-add-form,
-        html[data-theme="metal"] .cc-color-popover,
-        html[data-theme="metal"] .week-date-inputs input[type="date"] { background-color: #131418; }
+        html[data-theme^="metal"] input,
+        html[data-theme^="metal"] select,
+        html[data-theme^="metal"] textarea { background-color: var(--metal-plate-b); border-color: var(--metal-btn-edge); }
+        html[data-theme^="metal"] input[readonly] { background-color: var(--metal-plate-b); color: var(--primary); }
+        html[data-theme^="metal"] .modal-content,
+        html[data-theme^="metal"] .cc-item,
+        html[data-theme^="metal"] .cc-add-form,
+        html[data-theme^="metal"] .cc-color-popover,
+        html[data-theme^="metal"] .week-date-inputs input[type="date"] { background-color: var(--card-bg); }
 
-        /* Primary buttons get a polished-steel face with a slow sheen that
-           sweeps across on hover. The .btn rules the app already relies on
-           for size, radius and layout are untouched. */
-        html[data-theme="metal"] .btn {
-            background-image: linear-gradient(180deg, #3a4048 0%, #23272d 52%, #171a1f 100%);
-            border: 1px solid #454b54;
+        /* Primary buttons get a polished face with a sheen that sweeps across
+           on hover. The .btn rules the app relies on for size, radius and
+           layout are untouched. */
+        html[data-theme^="metal"] .btn {
+            background-image: linear-gradient(180deg, var(--metal-btn-a) 0%, var(--metal-plate-a) 52%, var(--metal-btn-b) 100%);
+            border: 1px solid var(--metal-btn-edge);
             color: #eef1f5;
             box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 2px 6px rgba(0, 0, 0, 0.55);
             position: relative;
             overflow: hidden;
         }
-        html[data-theme="metal"] .btn:hover { background-image: linear-gradient(180deg, #464d57 0%, #2c313a 52%, #1d2126 100%); }
-        html[data-theme="metal"] .btn::after {
+        html[data-theme^="metal"] .btn:hover { filter: brightness(1.18); }
+        html[data-theme^="metal"] .btn::after {
             content: "";
             position: absolute;
             top: 0; bottom: 0; left: -60%;
@@ -861,28 +1023,28 @@
             opacity: 0;
             pointer-events: none;
         }
-        html[data-theme="metal"] .btn:hover::after { opacity: 1; animation: metalSweep 0.85s ease-out; }
+        html[data-theme^="metal"] .btn:hover::after { opacity: 1; animation: metalSweep 0.85s ease-out; }
         @keyframes metalSweep {
             from { left: -60%; }
             to   { left: 130%; }
         }
 
-        html[data-theme="metal"] .summary-badge,
-        html[data-theme="metal"] .link-btn:hover,
-        html[data-theme="metal"] .mode-tag.auto,
-        html[data-theme="metal"] .cc-item.editing { background-color: #232a33; color: #cfe0f0; }
-        html[data-theme="metal"] .summary-badge.negative-badge { background-color: #2e1b1e; color: #f4707a; }
+        html[data-theme^="metal"] .summary-badge,
+        html[data-theme^="metal"] .link-btn:hover,
+        html[data-theme^="metal"] .mode-tag.auto,
+        html[data-theme^="metal"] .cc-item.editing { background-color: var(--metal-chip); color: var(--metal-chip-text); }
+        html[data-theme^="metal"] .summary-badge.negative-badge { background-color: #2e1b1e; color: #f4707a; }
 
         /* The two hero cards keep their green/gold identity but rendered as
-           anodised metal rather than flat colour, with a very slow drift so
-           the finish looks like it's catching light. */
-        html[data-theme="metal"] .savings-balance-card {
+           anodised metal, with a very slow drift so the finish reads as
+           catching light rather than sitting flat. */
+        html[data-theme^="metal"] .savings-balance-card {
             background: linear-gradient(150deg, #071410 0%, #0d211a 45%, #061a13 70%, #0f2b20 100%);
             background-size: 200% 200%;
             animation: metalDrift 22s ease-in-out infinite;
             border-color: #2c6b4b;
         }
-        html[data-theme="metal"] .savings-goal-card {
+        html[data-theme^="metal"] .savings-goal-card {
             background: linear-gradient(156deg, #171204 0%, #241b06 45%, #141003 70%, #2b2008 100%);
             background-size: 200% 200%;
             animation: metalDrift 26s ease-in-out infinite;
@@ -893,20 +1055,20 @@
             50%      { background-position: 100% 50%; }
         }
 
-        html[data-theme="metal"] .goal-progress-fill {
+        html[data-theme^="metal"] .goal-progress-fill {
             background-image: linear-gradient(90deg, #a9741d, #e6c063, #a9741d);
             background-size: 200% 100%;
             animation: metalDrift 8s linear infinite;
         }
 
-        html[data-theme="metal"] .disc-balance-banner {
-            background-image: linear-gradient(145deg, #1a1d22 0%, #0e0f13 55%, #17191e 100%);
-            border: 1px solid #33373e;
+        html[data-theme^="metal"] .disc-balance-banner {
+            background-image: linear-gradient(145deg, var(--metal-plate-a) 0%, var(--metal-plate-b) 55%, var(--metal-plate-a) 100%);
+            border: 1px solid var(--metal-btn-edge);
         }
-        html[data-theme="metal"] .sweep-box { background-color: #191505; border-color: #5c4712; }
-        html[data-theme="metal"] .header-container { border-bottom-color: #2b2e34; }
-        html[data-theme="metal"] .header-title {
-            background: linear-gradient(92deg, #d8dee6 0%, #ffffff 22%, #9aa3ad 46%, #e6ebf1 70%, #b7c0ca 100%);
+        html[data-theme^="metal"] .sweep-box { background-color: #191505; border-color: #5c4712; }
+        html[data-theme^="metal"] .header-container { border-bottom-color: var(--border-color); }
+        html[data-theme^="metal"] .header-title {
+            background: var(--metal-title);
             background-size: 260% 100%;
             -webkit-background-clip: text;
             background-clip: text;
@@ -917,6 +1079,149 @@
             0%   { background-position: 0% 0; }
             100% { background-position: 260% 0; }
         }
+
+        /* ==========================================================
+           ANIMATED SCENE THEMES
+           Both use #themeFx, a fixed, pointer-events:none overlay that
+           renderThemeFx() fills only for the theme that needs it and
+           empties otherwise -- so every other theme pays nothing for
+           these, not even idle DOM.
+
+           Everything animated here moves with transform and opacity
+           only, which the compositor can handle off the main thread.
+           Nothing animates width, top, or background-position on an
+           element that contains text.
+           ========================================================== */
+        #themeFx {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+            display: none;
+        }
+        html[data-fx] #themeFx { display: block; }
+
+        /* ---------- Cherry Blossom ---------- */
+        html[data-theme="cherry"] {
+            color-scheme: light;
+            --primary: #d4638a;
+            --primary-hover: #b84f74;
+            --bg-color: #fff5f7;
+            --card-bg: #fffafb;
+            --text-main: #46303a;
+            --text-muted: #927b86;
+            --border-color: #f2d7de;
+            --positive: #3f9a6b;
+            --negative: #d1465f;
+            --floating-bg: #46303a;
+            --surface-muted: #fdeef2;
+        }
+        html[data-theme="cherry"] body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(ellipse at 12% 0%, rgba(255, 205, 220, 0.75), transparent 55%),
+                radial-gradient(ellipse at 88% 8%, rgba(228, 216, 255, 0.55), transparent 50%),
+                linear-gradient(180deg, #fff7f9 0%, #fdeef3 45%, #f7eaf6 100%);
+            background-attachment: fixed;
+        }
+        html[data-theme="cherry"] .card { border-color: #f2d7de; box-shadow: 0 6px 18px rgba(180, 120, 145, 0.10); }
+        html[data-theme="cherry"] .summary-badge { background-color: #fce4ec; color: #b84f74; }
+        html[data-theme="cherry"] .card-header:hover,
+        html[data-theme="cherry"] .total-row { background-color: #fdeef2; }
+
+        /* A petal is two overlapping rounded lobes -- enough shape to read
+           as a blossom at this size without an image request. */
+        .petal {
+            position: absolute;
+            top: -8vh;
+            opacity: 0;
+            will-change: transform, opacity;
+            animation-name: petalFall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        /* Two nested transforms: the element falls and drifts, the inner
+           pseudo-element spins. Combining both on one node would make the
+           sway and the spin fight each other. */
+        .petal::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 100% 0 100% 0;
+            background: linear-gradient(135deg, #ffd3e2 0%, #ffaec9 55%, #f58ab0 100%);
+            box-shadow: 0 1px 2px rgba(190, 120, 150, 0.18);
+            animation: petalSpin var(--petal-spin, 3.2s) linear infinite;
+        }
+        @keyframes petalFall {
+            0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+            8%   { opacity: 0.9; }
+            25%  { transform: translate3d(26px, 30vh, 0); }
+            50%  { transform: translate3d(-18px, 55vh, 0); }
+            75%  { transform: translate3d(22px, 80vh, 0); }
+            92%  { opacity: 0.85; }
+            100% { transform: translate3d(-10px, 116vh, 0); opacity: 0; }
+        }
+        @keyframes petalSpin {
+            0%   { transform: rotate3d(1, 1, 0.2, 0deg); }
+            100% { transform: rotate3d(1, 1, 0.2, 360deg); }
+        }
+
+        /* ---------- Aurora ---------- */
+        /* The ribbons are painted by body::before at z-index -1 so they sit
+           behind all content -- large soft glows drifting over text would
+           wash it out. That needs the page colour on <html> and a
+           transparent body, or the body background would cover them. */
+        html[data-theme="aurora"] {
+            color-scheme: dark;
+            --primary: #6ee7d0;
+            --primary-hover: #a5f3e3;
+            --bg-color: #050b14;
+            --card-bg: #0d1725;
+            --text-main: #dbe9f0;
+            --text-muted: #8298ab;
+            --border-color: #22364b;
+            --positive: #4ade80;
+            --negative: #f87171;
+            --floating-bg: #02060c;
+            --surface-muted: #142233;
+            background-color: #050b14;
+        }
+        html[data-theme="aurora"] body { background-color: transparent; }
+        html[data-theme="aurora"] body::before {
+            content: "";
+            position: fixed;
+            inset: -20%;
+            z-index: -1;
+            background:
+                radial-gradient(closest-side at 28% 22%, rgba(56, 220, 180, 0.30), transparent 70%),
+                radial-gradient(closest-side at 68% 34%, rgba(96, 130, 255, 0.26), transparent 70%),
+                radial-gradient(closest-side at 48% 66%, rgba(170, 100, 235, 0.22), transparent 72%);
+            filter: blur(46px);
+            animation: auroraDrift 28s ease-in-out infinite alternate;
+            will-change: transform;
+        }
+        @keyframes auroraDrift {
+            0%   { transform: translate3d(-4%, -2%, 0) scale(1.05); }
+            50%  { transform: translate3d(5%, 3%, 0) scale(1.18); }
+            100% { transform: translate3d(-2%, 5%, 0) scale(1.08); }
+        }
+        /* A slow star drift in the overlay adds depth without touching the
+           readable layer. */
+        .aurora-star {
+            position: absolute;
+            border-radius: 50%;
+            background: #eaf6ff;
+            opacity: 0.5;
+            will-change: transform, opacity;
+            animation: starTwinkle 6s ease-in-out infinite;
+        }
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.14; transform: scale(0.85); }
+            50%      { opacity: 0.75; transform: scale(1.15); }
+        }
+        html[data-theme="aurora"] .card { border-color: #22364b; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+        html[data-theme="aurora"] .summary-badge { background-color: #123243; color: #6ee7d0; }
 
 
         /* This shared rule sits AFTER .modal-content and .disc-balance-banner
@@ -937,14 +1242,17 @@
             .goal-progress-fill::after { animation: none; display: none; }
             .savings-amount.bump { animation: none; }
             .disc-balance-banner { transition: none; }
-            html[data-theme="metal"] .card::after,
-            html[data-theme="metal"] .modal-content::after,
-            html[data-theme="metal"] .btn:hover::after,
-            html[data-theme="metal"] .savings-balance-card,
-            html[data-theme="metal"] .savings-goal-card,
-            html[data-theme="metal"] .goal-progress-fill,
-            html[data-theme="metal"] .header-title { animation: none; }
-            html[data-theme="metal"] .header-title { background: none; color: var(--text-main); }
+            html[data-theme^="metal"] .card::after,
+            html[data-theme^="metal"] .modal-content::after,
+            html[data-theme^="metal"] .btn:hover::after,
+            html[data-theme^="metal"] .savings-balance-card,
+            html[data-theme^="metal"] .savings-goal-card,
+            html[data-theme^="metal"] .goal-progress-fill,
+            html[data-theme^="metal"] .header-title { animation: none; }
+            html[data-theme^="metal"] .header-title { background: none; color: var(--text-main); }
+            .petal, .petal::before, .aurora-star,
+            html[data-theme="aurora"] body::before { animation: none; }
+            .petal { display: none; }
         }
 
         body, .card, .card-header,
@@ -1156,6 +1464,43 @@
             .cc-table tr.total-row td { width: auto; border: 0; }
         }
 
+        /* The header chips get their own full-width line on a phone so the
+           three of them sit together rather than crowding the title. */
+        /* The three chips' natural widths add up to more than a phone's
+           ~350px of usable line, so something has to give. The connection
+           state is the cheapest thing to compress: it's already a colour --
+           grey / green / amber / red -- so the dot alone carries it and the
+           words come off. That buys enough room for "Sync Settings" and the
+           theme name to both stay fully readable, which is the better trade
+           than truncating two labels to fit one status phrase.
+
+           The row cannot wrap, and every chip may shrink with an ellipsis as
+           a last resort, so it survives any label length or screen width. */
+        @media (max-width: 700px) {
+            .header-top { align-items: flex-start; }
+            .header-widgets { width: 100%; gap: 6px; flex-wrap: nowrap; }
+            .header-chip {
+                font-size: 0.74rem;
+                padding: 5px 10px;
+                min-height: 30px;
+                flex: 0 1 auto;
+                min-width: 0;
+                overflow: hidden;
+            }
+            /* Status badges become their indicator dot. Both keep the full
+               wording on their title attribute, in the Sync Settings dialog,
+               and on the desktop layout. */
+            #syncStatusBadge .chip-words,
+            #syncSaveBadgeHeader .chip-words { display: none; }
+            #syncStatusBadge, #syncSaveBadgeHeader { flex: 0 0 auto; padding: 5px 9px; }
+            #syncStatusBadge .chip-icon,
+            #syncSaveBadgeHeader .chip-icon { font-size: 1.05em; }
+            /* Sized to content like the others -- letting the picker grow was
+               what squeezed "Sync Settings" down to "Sy…". */
+            .theme-picker { padding: 0; flex: 0 1 auto; }
+            .theme-picker select { padding: 5px 22px 5px 10px; width: 100%; }
+        }
+
         /* Long card titles were truncating against the summary badge. Let
            them wrap onto a second line on the narrowest screens instead. */
         @media (max-width: 480px) {
@@ -1194,6 +1539,10 @@
     </style>
 </head>
 <body>
+
+    <!-- Animated-theme overlay. Populated by renderThemeFx() only for the
+         themes that use it, emptied for every other theme. -->
+    <div id="themeFx" aria-hidden="true"></div>
 
     <!-- Purchase & Budget Modal -->
     <div class="modal-overlay" id="purchaseModal">
@@ -1274,7 +1623,7 @@
 
                 <div class="bm-column">
                     <div class="balance-menu-section bm-review">
-                        <h4>📊 Weekly Review</h4>
+                        <h4 data-lbl-weekly="📊 Weekly Review" data-lbl-biweekly="📊 Pay Period Review">📊 Weekly Review</h4>
                         <div id="weeklyReviewRows"></div>
                     </div>
 
@@ -1387,29 +1736,49 @@
     <div class="modal-overlay" id="addPastLogModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 style="margin: 0;">➕ Add a Missing Week</h3>
+                <h3 style="margin: 0;" data-lbl-weekly="➕ Add a Missing Week" data-lbl-biweekly="➕ Add a Missing Pay Period">➕ Add a Missing Week</h3>
                 <button class="close-btn" onclick="closeModal('addPastLogModal')">&times;</button>
             </div>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Pick the week you forgot to log. It'll be added with all figures at $0 and dropped straight into edit mode below so you can fill it in -- this won't touch your current balances, it's just a record.</p>
             <div class="input-group">
-                <label>Week Start</label>
-                <input type="date" id="pastLogWeekStart">
+                <label data-lbl-weekly="Week Start" data-lbl-biweekly="Period Start">Week Start</label>
+                <input type="date" id="pastLogWeekStart" onchange="syncPastLogEnd()">
             </div>
             <div class="input-group">
-                <label>Week End</label>
+                <label data-lbl-weekly="Week End" data-lbl-biweekly="Period End">Week End</label>
                 <input type="date" id="pastLogWeekEnd">
             </div>
-            <button class="btn" onclick="addPastLogEntry()">➕ Add Week</button>
+            <button class="btn" onclick="addPastLogEntry()" data-lbl-weekly="➕ Add Week" data-lbl-biweekly="➕ Add Pay Period">➕ Add Week</button>
         </div>
     </div>
 
     <!-- First-Run Onboarding Modal -->
+    <!-- Rename Modal -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0;">✎ Whose tracker is this?</h3>
+                <button class="modal-close" onclick="closeModal('nameModal')">&times;</button>
+            </div>
+            <div class="input-group">
+                <label>Name</label>
+                <input type="text" id="nameInput" maxlength="40" placeholder="Your name" autocomplete="given-name">
+            </div>
+            <p class="period-setting-note" id="namePreview" style="display:block;"></p>
+            <button class="btn" onclick="saveOwnerName()">💾 Save</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="onboardModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 style="margin: 0;">👋 Welcome to your Budget Tracker</h3>
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0;">Let's start with your current savings balance so everything tracks accurately from here on out.</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0;">Two quick things and everything will track accurately from here on out.</p>
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="onboardNameInput" maxlength="40" placeholder="Your name">
+            </div>
             <div class="input-group">
                 <label>Current Savings Balance</label>
                 <div class="money-field">
@@ -1428,22 +1797,38 @@
                     <img src="logo.png" alt="Logo" onerror="this.remove()">
                 </div>
                 <div>
-                    <h1 class="header-title">Conor's Budget & Paycheck Tracker</h1>
+                    <div class="header-title-row">
+                        <h1 class="header-title" id="headerTitle">Conor's Budget &amp; Paycheck Tracker</h1>
+                        <button type="button" class="title-edit-btn" onclick="openNameModal()" title="Change the name" aria-label="Change the name">✎</button>
+                    </div>
                     <p class="header-subtitle">Plan your pay, debts, and savings all in one place.</p>
                 </div>
             </div>
             <div class="header-widgets" id="headerWidgets">
                 <div class="sync-widget" id="syncWidget">
-                    <span class="sync-badge" id="syncStatusBadge">⚪ Not Connected</span>
-                    <span class="sync-badge" id="syncSaveBadgeHeader" style="display:none;">💾 Saved</span>
-                    <button type="button" class="link-btn" onclick="openSyncSettingsModal()">⚙ Sync Settings</button>
+                    <span class="header-chip sync-badge" id="syncStatusBadge" data-header-chip="1"><span class="chip-icon">⚪</span><span class="chip-words">Not Connected</span></span>
+                    <span class="header-chip sync-badge" id="syncSaveBadgeHeader" data-header-chip="1" style="display:none;"><span class="chip-icon">💾</span><span class="chip-words">Saved</span></span>
+                    <button type="button" class="header-chip header-chip-btn" onclick="openSyncSettingsModal()" title="Sync Settings"><span class="chip-icon">⚙</span><span class="chip-words">Sync Settings</span></button>
                 </div>
-                <label class="theme-picker" title="Appearance">
-                    <span class="theme-picker-icon" id="themePickerIcon" aria-hidden="true">⚙️</span>
+                <label class="header-chip theme-picker" title="Appearance">
                     <select id="themeSelect" aria-label="Theme" onchange="setTheme(this.value)">
-                        <option value="metal">⚙️ Dark Metallic</option>
-                        <option value="dark">🌙 Dark</option>
-                        <option value="light">☀️ Light</option>
+                        <optgroup label="Metallic">
+                            <option value="metal">Dark Metallic</option>
+                            <option value="metal-red">Red Metallic</option>
+                            <option value="metal-blue">Blue Metallic</option>
+                            <option value="metal-gold">Gold Metallic</option>
+                            <option value="metal-emerald">Emerald Metallic</option>
+                            <option value="metal-purple">Purple Metallic</option>
+                            <option value="metal-copper">Copper Metallic</option>
+                        </optgroup>
+                        <optgroup label="Animated">
+                            <option value="cherry">Cherry Blossom</option>
+                            <option value="aurora">Aurora</option>
+                        </optgroup>
+                        <optgroup label="Classic">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </optgroup>
                     </select>
                 </label>
             </div>
@@ -1470,11 +1855,11 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Hours per Week</label>
+                        <label data-lbl-weekly="Hours per Week" data-lbl-biweekly="Hours per Pay Period">Hours per Week</label>
                         <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other'); saveState();">
                     </div>
                     <div class="input-group">
-                        <label>Gross Weekly Income</label>
+                        <label data-lbl-weekly="Gross Weekly Income" data-lbl-biweekly="Gross Income (Per Period)">Gross Weekly Income</label>
                         <input type="text" id="grossWeekly" readonly>
                     </div>
                     <div class="input-group">
@@ -1485,7 +1870,7 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Net Weekly Income</label>
+                        <label data-lbl-weekly="Net Weekly Income" data-lbl-biweekly="Net Income (Per Period)">Net Weekly Income</label>
                         <input type="text" id="netWeekly" readonly>
                     </div>
                 </div>
@@ -1539,7 +1924,7 @@
                 <div class="card-header" onclick="toggleCard('bills')">
                     <div class="card-header-left">
                         <span class="chevron">▾</span>
-                        <h2>Weekly Debts & Bills</h2>
+                        <h2 data-lbl-weekly="Weekly Debts &amp; Bills" data-lbl-biweekly="Debts &amp; Bills (Per Period)">Weekly Debts &amp; Bills</h2>
                     </div>
                     <span class="summary-badge negative-badge" id="summary-bills">$0.00</span>
                 </div>
@@ -1555,11 +1940,11 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Rent / Mortgage</td>
+                                <td><input type="text" class="bill-name-input" id="billLabel0" maxlength="34" value="Rent / Mortgage" onchange="renameBill(0, this.value)" aria-label="Bill category name"></td>
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Rent" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="0" data-name="Rent / Mortgage" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -1572,11 +1957,11 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Car Insurance</td>
+                                <td><input type="text" class="bill-name-input" id="billLabel1" maxlength="34" value="Car Insurance" onchange="renameBill(1, this.value)" aria-label="Bill category name"></td>
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="1" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -1589,11 +1974,11 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>Other Bills & Utilities</td>
+                                <td><input type="text" class="bill-name-input" id="billLabel2" maxlength="34" value="Other Bills &amp; Utilities" onchange="renameBill(2, this.value)" aria-label="Bill category name"></td>
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-name="Other Bills" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="2" data-name="Other Bills &amp; Utilities" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -1629,7 +2014,7 @@
             <div class="unsaved-week-banner" id="unsavedWeekBanner" style="display:none;">
                 <span class="uwb-text" id="unsavedWeekText"></span>
                 <span class="uwb-actions">
-                    <button class="btn btn-small" onclick="goToUnsavedWeek()">Go to that week</button>
+                    <button class="btn btn-small" onclick="goToUnsavedWeek()" data-lbl-weekly="Go to that week" data-lbl-biweekly="Go to that period">Go to that week</button>
                     <button class="uwb-dismiss" onclick="dismissUnsavedWeek()" aria-label="Dismiss">&times;</button>
                 </span>
             </div>
@@ -1673,15 +2058,32 @@
                 <div class="card-header" onclick="toggleCard('tracker')">
                     <div class="card-header-left">
                         <span class="chevron">▾</span>
-                        <h2>Current Week Tracker</h2>
+                        <h2 data-lbl-weekly="Current Week Tracker" data-lbl-biweekly="Current Pay Period Tracker">Current Week Tracker</h2>
                     </div>
                     <span class="summary-badge" id="summary-tracker">$0.00</span>
                 </div>
                 <div class="card-body" id="body-tracker">
                 <div class="card-body-inner">
 
+                <div class="period-setting">
+                    <label class="period-setting-row">
+                        <span>Pay Period</span>
+                        <select id="payPeriodSelect" onchange="changePayPeriod(this.value)">
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Every 2 Weeks</option>
+                        </select>
+                    </label>
+                    <label class="period-setting-row" id="payAnchorRow" style="display:none;">
+                        <span>A Payday</span>
+                        <input type="date" id="payAnchorInput" onchange="setPayAnchor(this.value)">
+                    </label>
+                    <p class="period-setting-note" id="payAnchorNote" style="display:none;">
+                        Pay periods run from one payday to the day before the next.
+                    </p>
+                </div>
+
                 <div class="week-selector">
-                    <button class="arrow-btn" onclick="shiftWeek(-1)" title="Previous week">◀</button>
+                    <button class="arrow-btn" onclick="shiftWeek(-1)" title="Previous period">◀</button>
                     <div class="week-display">
                         <div class="week-range-label" id="weekRangeLabel">–</div>
                         <div class="week-date-inputs">
@@ -1690,9 +2092,9 @@
                             <input type="date" id="weekEnd" onchange="handleDateChange()">
                         </div>
                     </div>
-                    <button class="arrow-btn" onclick="shiftWeek(1)" title="Next week">▶</button>
+                    <button class="arrow-btn" onclick="shiftWeek(1)" title="Next period">▶</button>
                 </div>
-                <button class="btn-today" style="width: 100%; margin-top: 6px;" onclick="jumpToThisWeek()">📍 Jump to This Week</button>
+                <button class="btn-today" style="width: 100%; margin-top: 6px;" onclick="jumpToThisWeek()" data-lbl-weekly="📍 Jump to This Week" data-lbl-biweekly="📍 Jump to This Pay Period">📍 Jump to This Week</button>
 
                 <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
 
@@ -1752,7 +2154,7 @@
                 </div>
 
                 <div class="sweep-box">
-                    <strong class="sweep-title">End of Week Balance Sweep</strong>
+                    <strong class="sweep-title" data-lbl-weekly="End of Week Balance Sweep" data-lbl-biweekly="End of Period Balance Sweep">End of Week Balance Sweep</strong>
 
                     <label class="sweep-option">
                         <input type="radio" name="sweepAction" value="rollover" checked onchange="toggleCustomSweep()">
@@ -1774,7 +2176,7 @@
                     </label>
                 </div>
 
-                <button class="btn" onclick="saveWeekEntry()">💾 Save Week to Log</button>
+                <button class="btn" onclick="saveWeekEntry()" data-lbl-weekly="💾 Save Week to Log" data-lbl-biweekly="💾 Save Pay Period to Log">💾 Save Week to Log</button>
                 </div>
                 </div>
             </div>
@@ -1784,9 +2186,9 @@
     <div class="log-section">
         <div class="card">
             <h2>
-                Saved Weekly Logs
+                <span data-lbl-weekly="Saved Weekly Logs" data-lbl-biweekly="Saved Pay Period Logs">Saved Weekly Logs</span>
                 <span style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button class="btn btn-small" id="addPastLogBtn" onclick="openAddPastLogModal()">➕ Add Missing Week</button>
+                    <button class="btn btn-small" id="addPastLogBtn" onclick="openAddPastLogModal()" data-lbl-weekly="➕ Add Missing Week" data-lbl-biweekly="➕ Add Missing Period">➕ Add Missing Week</button>
                     <button class="btn btn-small" id="editLogsBtn" onclick="toggleEditLogs()">✏️ Edit Numbers</button>
                 </span>
             </h2>
@@ -1848,6 +2250,147 @@
         // Draft Memory tracking
         let weeklyDrafts = {};
         let currentWeekKey = "";
+
+        // ---- Pay period -------------------------------------------------
+        // 'weekly' keeps the original Sunday-Saturday behaviour untouched.
+        // 'biweekly' tiles 14-day blocks outward from payAnchor, which is the
+        // payday the user nominates: a pay period runs from one payday to the
+        // day before the next. payAnchor is a plain 'YYYY-MM-DD' string.
+        // Whose tracker this is. Purely cosmetic -- it never keys any data --
+        // so a rename can never orphan a log or a draft.
+        const DEFAULT_OWNER_NAME = 'Conor';
+        let ownerName = DEFAULT_OWNER_NAME;
+
+        const DEFAULT_BILL_LABELS = ['Rent / Mortgage', 'Car Insurance', 'Other Bills & Utilities'];
+        let billLabels = DEFAULT_BILL_LABELS.slice();
+
+        let payPeriod = 'weekly';
+        let payAnchor = '';
+        const PERIOD_DAYS = { weekly: 7, biweekly: 14 };
+
+        function periodLength() { return PERIOD_DAYS[payPeriod] || 7; }
+        function isBiweekly() { return payPeriod === 'biweekly'; }
+
+        // Date inputs give 'YYYY-MM-DD'. Parsing that bare string is treated
+        // as UTC midnight, which lands on the previous day for anyone behind
+        // UTC -- the same class of bug getFormattedDate() already guards
+        // against. Always pin the local midnight.
+        function parseLocalDate(str) { return new Date(str + 'T00:00:00'); }
+        function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
+        function startOfDay(date) { const d = new Date(date); d.setHours(0, 0, 0, 0); return d; }
+
+        // The anchor only matters for biweekly. Default it to the Sunday of
+        // the current week so a fresh biweekly setup still lines up with the
+        // week boundaries the user was already seeing.
+        function effectiveAnchor() {
+            if (payAnchor) return parseLocalDate(payAnchor);
+            const d = startOfDay(new Date());
+            return addDays(d, -d.getDay());
+        }
+
+        // The single source of truth for "which period does this date fall
+        // in". Every navigation, key and nudge derives from this, so weekly
+        // and biweekly can never drift apart.
+        function getPeriodRangeFor(date) {
+            const day = startOfDay(date);
+            if (!isBiweekly()) {
+                const start = addDays(day, -day.getDay());
+                return { start, end: addDays(start, 6) };
+            }
+            const anchor = effectiveAnchor();
+            const MS_DAY = 86400000;
+            // Round rather than floor the day difference: DST transitions
+            // make some "days" 23 or 25 hours long, and a bare floor drops a
+            // period boundary twice a year.
+            const daysFromAnchor = Math.round((day - anchor) / MS_DAY);
+            const index = Math.floor(daysFromAnchor / 14);
+            const start = addDays(anchor, index * 14);
+            return { start, end: addDays(start, 13) };
+        }
+
+        // One noun for every message that used to hardcode "week".
+        // "Chris" -> "Chris'", everyone else -> "Name's". A blank name drops
+        // the possessive entirely rather than rendering "'s Budget Tracker".
+        function possessive(name) {
+            const n = String(name || '').trim();
+            if (!n) return '';
+            return /[sS]$/.test(n) ? `${n}'` : `${n}'s`;
+        }
+
+        function appTitle() {
+            const poss = possessive(ownerName);
+            return poss ? `${poss} Budget & Paycheck Tracker` : 'Budget & Paycheck Tracker';
+        }
+
+        function applyOwnerName() {
+            const el = document.getElementById('headerTitle');
+            if (el) el.innerText = appTitle();
+            document.title = appTitle();
+        }
+
+        function openNameModal() {
+            const input = document.getElementById('nameInput');
+            if (input) {
+                input.value = ownerName;
+                input.oninput = updateNamePreview;
+            }
+            updateNamePreview();
+            openModal('nameModal');
+            if (input) { input.focus(); input.select(); }
+        }
+
+        function updateNamePreview() {
+            const preview = document.getElementById('namePreview');
+            const input = document.getElementById('nameInput');
+            if (!preview) return;
+            const poss = possessive(input ? input.value : ownerName);
+            preview.innerText = poss
+                ? `Header will read: ${poss} Budget & Paycheck Tracker`
+                : 'Leave it blank for just "Budget & Paycheck Tracker".';
+        }
+
+        function saveOwnerName() {
+            const input = document.getElementById('nameInput');
+            ownerName = input ? input.value.trim().slice(0, 40) : ownerName;
+            applyOwnerName();
+            closeModal('nameModal');
+            saveState();
+        }
+
+        // Renaming a bill category updates the label AND the data-name the
+        // amount input carries, because that data-name is what gets written
+        // into each saved log's fixedExpenses. Existing logs keep whatever
+        // name they were saved with -- history isn't rewritten.
+        function renameBill(index, value) {
+            const clean = String(value || '').trim().slice(0, 34) || DEFAULT_BILL_LABELS[index];
+            billLabels[index] = clean;
+            applyBillLabels();
+            saveState();
+        }
+
+        function applyBillLabels() {
+            billLabels.forEach((label, i) => {
+                const nameEl = document.getElementById(`billLabel${i}`);
+                if (nameEl && document.activeElement !== nameEl) nameEl.value = label;
+                const amtEl = document.querySelector(`.exp-input-fixed[data-bill-index="${i}"]`);
+                if (amtEl) amtEl.dataset.name = label;
+            });
+        }
+
+        function periodNoun(cap) {
+            const n = isBiweekly() ? 'pay period' : 'week';
+            return cap ? n.charAt(0).toUpperCase() + n.slice(1) : n;
+        }
+
+        // How many days a saved range actually spans, inclusive.
+        function spanDays(startStr, endStr) {
+            return Math.round((parseLocalDate(endStr) - parseLocalDate(startStr)) / 86400000) + 1;
+        }
+
+        function periodKeyFor(date) {
+            const { start, end } = getPeriodRangeFor(date);
+            return `${getFormattedDate(start)}_${getFormattedDate(end)}`;
+        }
 
         // Animation / editing state
         let isFirstRender = true;
@@ -2012,28 +2555,86 @@
         // Each entry drives the <html data-theme> attribute, the picker's
         // icon, and the browser/PWA chrome colour. Order here is the order
         // shown in the dropdown.
+        // scheme drives the shared dark/light foundation (html[data-scheme]);
+        // fx names an optional animated overlay built by renderThemeFx().
         const THEMES = {
-            metal: { label: 'Dark Metallic', icon: '⚙️', chrome: '#050506' },
-            dark:  { label: 'Dark',          icon: '🌙', chrome: '#0b1220' },
-            light: { label: 'Light',         icon: '☀️', chrome: '#2563eb' }
+            'metal':         { label: 'Dark Metallic',  chrome: '#050506', scheme: 'dark'  },
+            'metal-red':     { label: 'Red Metallic',   chrome: '#050506', scheme: 'dark'  },
+            'metal-blue':    { label: 'Blue Metallic',  chrome: '#050506', scheme: 'dark'  },
+            'metal-gold':    { label: 'Gold Metallic',  chrome: '#050506', scheme: 'dark'  },
+            'metal-emerald': { label: 'Emerald Metallic', chrome: '#050506', scheme: 'dark' },
+            'metal-purple':  { label: 'Purple Metallic', chrome: '#050506', scheme: 'dark' },
+            'metal-copper':  { label: 'Copper Metallic', chrome: '#050506', scheme: 'dark' },
+            'cherry':        { label: 'Cherry Blossom', chrome: '#fdeef3', scheme: 'light', fx: 'cherry' },
+            'aurora':        { label: 'Aurora',         chrome: '#050b14', scheme: 'dark',  fx: 'aurora' },
+            'dark':          { label: 'Dark',           chrome: '#0b1220', scheme: 'dark'  },
+            'light':         { label: 'Light',          chrome: '#2563eb', scheme: 'light' }
         };
         const DEFAULT_THEME = 'light';
 
         function applyTheme(theme) {
             if (!THEMES[theme]) theme = DEFAULT_THEME;
-            document.documentElement.setAttribute('data-theme', theme);
+            const def = THEMES[theme];
+            const root = document.documentElement;
+            root.setAttribute('data-theme', theme);
+            root.setAttribute('data-scheme', def.scheme);
+            if (def.fx) root.setAttribute('data-fx', def.fx);
+            else root.removeAttribute('data-fx');
+            renderThemeFx(def.fx);
 
             // The picker lives in the header, which exists by the time this
             // script runs -- but guard anyway so applyTheme() is safe to call
             // from anywhere, including before a re-render.
             const select = document.getElementById('themeSelect');
             if (select && select.value !== theme) select.value = theme;
-            const icon = document.getElementById('themePickerIcon');
-            if (icon) icon.textContent = THEMES[theme].icon;
-
             const themeColorMeta = document.querySelector('meta[name="theme-color"]');
             if (themeColorMeta) themeColorMeta.setAttribute('content', THEMES[theme].chrome);
             return theme;
+        }
+
+        // Builds (or tears down) the animated overlay. Only the active theme's
+        // elements ever exist, so switching away from Cherry Blossom leaves
+        // nothing animating in the background. Under prefers-reduced-motion
+        // nothing is built at all -- the CSS also stops the animations, but
+        // not creating the nodes is cheaper and unambiguous.
+        function renderThemeFx(fx) {
+            const layer = document.getElementById('themeFx');
+            if (!layer) return;
+            layer.innerHTML = '';
+            if (!fx || prefersReducedMotion) return;
+
+            // Deterministic-ish spread rather than pure random: petals are
+            // distributed across evenly spaced lanes with a jitter, so they
+            // never clump into one column the way Math.random() alone does.
+            if (fx === 'cherry') {
+                const COUNT = 22;
+                let html = '';
+                for (let i = 0; i < COUNT; i++) {
+                    const lane = (i + 0.5) / COUNT * 100;
+                    const left = Math.max(0, Math.min(98, lane + (Math.random() * 8 - 4)));
+                    const size = 8 + Math.random() * 9;
+                    const dur = 9 + Math.random() * 8;
+                    const delay = -Math.random() * dur;
+                    const spin = 2.4 + Math.random() * 3.2;
+                    html += `<span class="petal" style="left:${left.toFixed(2)}%;width:${size.toFixed(1)}px;height:${(size * 0.82).toFixed(1)}px;`
+                          + `animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;`
+                          + `--petal-spin:${spin.toFixed(2)}s;"></span>`;
+                }
+                layer.innerHTML = html;
+                return;
+            }
+
+            if (fx === 'aurora') {
+                const COUNT = 40;
+                let html = '';
+                for (let i = 0; i < COUNT; i++) {
+                    const size = 1 + Math.random() * 1.8;
+                    html += `<span class="aurora-star" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 100).toFixed(2)}%;`
+                          + `width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`
+                          + `animation-duration:${(4 + Math.random() * 7).toFixed(2)}s;animation-delay:${(-Math.random() * 8).toFixed(2)}s;"></span>`;
+                }
+                layer.innerHTML = html;
+            }
         }
 
         function setTheme(theme) {
@@ -2151,7 +2752,7 @@
 
         function initSync() {
             if (!SYNC_ENABLED) return;
-            document.getElementById('syncWidget').style.display = 'flex';
+            document.getElementById('syncWidget').style.display = 'contents';
             const syncInput = document.getElementById('syncCodeInput');
             if (syncInput) syncInput.value = syncCode;
 
@@ -2185,7 +2786,7 @@
             const modalBadge = document.getElementById('syncStatusBadgeModal');
             if (headerBadge && modalBadge) {
                 modalBadge.innerText = headerBadge.innerText;
-                modalBadge.className = headerBadge.className;
+                modalBadge.className = headerBadge.className.replace('header-chip', '').trim();
             }
             refreshSaveStatusUI();
             openModal('syncSetupModal');
@@ -2391,6 +2992,10 @@
                 purchasesData: [],
                 plannedAllocations: { groceries: 0, fastfood: 0, dining: 0, gas: 0, coffee: 0, entertainment: 0, shopping: 0, subscriptions: 0, personalcare: 0, health: 0 },
                 weeklyDrafts: {},
+                ownerName: DEFAULT_OWNER_NAME,
+                billLabels: DEFAULT_BILL_LABELS.slice(),
+                payPeriod: 'weekly',
+                payAnchor: '',
                 creditCards: [],
                 ccBreakdowns: {},
                 ccCardMeta: {},
@@ -2463,6 +3068,17 @@
             }, 220);
         }
 
+        // Badge text always arrives as "<emoji> <words>". Wrapping the two
+        // halves lets the narrow-screen CSS hide just the words, so a badge
+        // can shrink to its icon instead of forcing the header row to wrap.
+        function chipMarkup(text) {
+            const str = String(text);
+            const i = str.indexOf(' ');
+            if (i === -1) return `<span class="chip-icon">${escapeHtml(str)}</span>`;
+            return `<span class="chip-icon">${escapeHtml(str.slice(0, i))}</span>` +
+                   `<span class="chip-words">${escapeHtml(str.slice(i + 1))}</span>`;
+        }
+
         function updateSyncStatus(status) {
             const targets = [document.getElementById('syncStatusBadge'), document.getElementById('syncStatusBadgeModal')].filter(Boolean);
             if (targets.length === 0) return;
@@ -2479,7 +3095,18 @@
                 text = '🟡 Connecting…'; cls = 'sync-badge connecting';
                 syncConnectTimeout = setTimeout(() => updateSyncStatus('disconnected'), 6000);
             }
-            targets.forEach(el => { el.innerText = text; el.className = cls; });
+            // These badges also carry `header-chip`, which supplies the
+            // shared height, border and padding that keep the header row's
+            // three controls the same size. Assigning className outright
+            // wiped it the first time a status arrived, so the status badge
+            // silently reverted to its own intrinsic size and stopped
+            // matching (and lining up with) the other two. Re-apply it for
+            // any target that is part of the header row.
+            targets.forEach(el => {
+                el.innerHTML = chipMarkup(text);
+                el.className = (el.dataset.headerChip ? 'header-chip ' : '') + cls;
+                el.title = text;
+            });
         }
 
         function setSaveStatus(status) {
@@ -2509,9 +3136,11 @@
 
             if (badge) { badge.innerText = text; badge.className = cls; }
             if (headerBadge) {
+                // Same header-chip preservation as updateSyncStatus() above.
                 headerBadge.style.display = connected ? 'inline-flex' : 'none';
-                headerBadge.innerText = text;
-                headerBadge.className = cls;
+                headerBadge.innerHTML = chipMarkup(text);
+                headerBadge.className = 'header-chip ' + cls;
+                headerBadge.title = text;
             }
 
             if (textEl) {
@@ -3315,15 +3944,21 @@
             const today = new Date();
             const thisYear = today.getFullYear();
             const endOfThisYear = new Date(thisYear, 11, 31, 23, 59, 59, 999);
-            const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-            const weeksLeftThisYear = Math.max(0, Math.round((endOfThisYear - today) / msPerWeek));
+            const msPerDay = 24 * 60 * 60 * 1000;
+            // currentNetIncome is income for ONE pay period, so the multiplier
+            // has to be periods remaining -- counting weeks under a biweekly
+            // setup would have doubled both of these figures.
+            const daysLeft = Math.max(0, Math.round((endOfThisYear - today) / msPerDay));
+            const periodsLeftThisYear = Math.floor(daysLeft / periodLength());
+            const periodsPerYear = isBiweekly() ? 26 : 52;
 
-            const remainingIncomeThisYear = currentNetIncome * weeksLeftThisYear;
-            const nextYearForecast = currentNetIncome * 52;
+            const remainingIncomeThisYear = currentNetIncome * periodsLeftThisYear;
+            const nextYearForecast = currentNetIncome * periodsPerYear;
 
             const labelCurrent = document.getElementById('goalProjLabelCurrent');
             const labelNext = document.getElementById('goalProjLabelNext');
-            if (labelCurrent) labelCurrent.innerText = `Remaining Income (After Tax) · ${weeksLeftThisYear} wk${weeksLeftThisYear === 1 ? '' : 's'} left in ${thisYear}`;
+            const unit = isBiweekly() ? 'pay period' : 'wk';
+            if (labelCurrent) labelCurrent.innerText = `Remaining Income (After Tax) · ${periodsLeftThisYear} ${unit}${periodsLeftThisYear === 1 ? '' : 's'} left in ${thisYear}`;
             if (labelNext) labelNext.innerText = `${thisYear + 1} Forecast (After Tax) · full year`;
 
             document.getElementById('goalProjCurrent').innerText = formatCurrency(remainingIncomeThisYear);
@@ -3418,22 +4053,92 @@
         }
 
         function setCurrentWeekKeyOnly(startDate) {
-            const start = new Date(startDate);
-            const day = start.getDay();
-            const diff = start.getDate() - day;
-            const sunday = new Date(start.setDate(diff));
-
-            const saturday = new Date(sunday);
-            saturday.setDate(sunday.getDate() + 6);
-
-            const startStr = getFormattedDate(sunday);
-            const endStr = getFormattedDate(saturday);
+            const { start, end } = getPeriodRangeFor(new Date(startDate));
+            const startStr = getFormattedDate(start);
+            const endStr = getFormattedDate(end);
 
             document.getElementById('weekStart').value = startStr;
             document.getElementById('weekEnd').value = endStr;
             document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(startStr, endStr);
 
             currentWeekKey = `${startStr}_${endStr}`;
+        }
+
+        // Every string that changes wording between modes carries
+        // data-lbl-weekly / data-lbl-biweekly, so this is the only place that
+        // knows how the UI reads -- no scattered innerText assignments.
+        function applyPeriodUI() {
+            const key = isBiweekly() ? 'lblBiweekly' : 'lblWeekly';
+            document.querySelectorAll('[data-lbl-weekly]').forEach(el => {
+                const text = el.dataset[key];
+                if (text) el.innerText = text;
+            });
+
+            const sel = document.getElementById('payPeriodSelect');
+            if (sel && sel.value !== payPeriod) sel.value = payPeriod;
+
+            const anchorRow = document.getElementById('payAnchorRow');
+            const anchorNote = document.getElementById('payAnchorNote');
+            const anchorInput = document.getElementById('payAnchorInput');
+            if (anchorRow) anchorRow.style.display = isBiweekly() ? 'flex' : 'none';
+            if (anchorNote) anchorNote.style.display = isBiweekly() ? 'block' : 'none';
+            if (anchorInput && document.activeElement !== anchorInput) {
+                anchorInput.value = payAnchor || getFormattedDate(effectiveAnchor());
+            }
+        }
+
+        // The payday the user nominates becomes the first day of a pay
+        // period. Snap the view to whichever period today now falls in, so
+        // the change is visible immediately rather than on the next reload.
+        function setPayAnchor(value) {
+            if (!value) return;
+            payAnchor = value;
+            applyPeriodUI();
+            setWeekDates(new Date());
+            checkUnsavedWeek();
+            saveState();
+        }
+
+        function changePayPeriod(next) {
+            if (next !== 'weekly' && next !== 'biweekly') return;
+            if (next === payPeriod) return;
+
+            const apply = () => {
+                const from = payPeriod;
+                payPeriod = next;
+
+                // Hours are entered PER PERIOD, so the same figure means a
+                // different paycheck in each mode. Scale it so switching
+                // doesn't silently halve or double the user's income.
+                const hoursEl = document.getElementById('hoursPerWeek');
+                if (hoursEl) {
+                    const hrs = parseFloat(hoursEl.value);
+                    if (Number.isFinite(hrs) && hrs > 0) {
+                        hoursEl.value = String(next === 'biweekly' ? hrs * 2 : hrs / 2);
+                    }
+                }
+
+                // A biweekly setup with no payday on file gets one derived
+                // from the current week, so it is never left un-anchored.
+                if (next === 'biweekly' && !payAnchor) payAnchor = getFormattedDate(effectiveAnchor());
+
+                applyPeriodUI();
+                setWeekDates(new Date());
+                calculateAll('other');
+                checkUnsavedWeek();
+                saveState();
+                if (from !== next) renderLogsTable();
+            };
+
+            // Only worth a dialog once there's history to be affected by it.
+            if (logsData.length === 0) { apply(); return; }
+            showConfirmModal(
+                next === 'biweekly'
+                    ? 'Switch to a two-week pay period? Your saved logs stay exactly as they are — they were weekly and will keep reading that way. New entries will cover two weeks, and your hours will be doubled to match a full pay period.'
+                    : 'Switch back to a weekly pay period? Your saved logs stay exactly as they are. New entries will cover one week, and your hours will be halved to match.',
+                (confirmed) => { if (confirmed) apply(); else applyPeriodUI(); },
+                'Change Pay Period?'
+            );
         }
 
         function setWeekDates(startDate) {
@@ -3445,11 +4150,12 @@
             setWeekDates(new Date());
         }
 
-        function shiftWeek(weeks) {
+        // Steps by one PERIOD, not a fixed seven days -- under biweekly the
+        // arrows move a fortnight.
+        function shiftWeek(periods) {
             const currentStart = document.getElementById('weekStart').value;
-            const date = currentStart ? new Date(currentStart + 'T00:00:00') : new Date();
-            date.setDate(date.getDate() + (weeks * 7));
-            setWeekDates(date);
+            const date = currentStart ? parseLocalDate(currentStart) : new Date();
+            setWeekDates(addDays(date, periods * periodLength()));
         }
 
         function handleDateChange() {
@@ -3577,10 +4283,10 @@
         let pendingUnsavedWeek = null;
 
         function getPreviousWeekRange() {
-            const start = new Date();
-            start.setDate(start.getDate() - start.getDay() - 7);
-            const end = new Date(start);
-            end.setDate(start.getDate() + 6);
+            // One full period before the one we're currently in, whatever a
+            // period happens to be.
+            const current = getPeriodRangeFor(new Date());
+            const { start, end } = getPeriodRangeFor(addDays(current.start, -1));
             return { start: getFormattedDate(start), end: getFormattedDate(end) };
         }
 
@@ -3646,7 +4352,7 @@
             const weekStart = document.getElementById('weekStart').value;
             const weekEnd = document.getElementById('weekEnd').value;
             if (!weekStart || !weekEnd) {
-                showConfirmModal('Pick a valid week (both a start and an end date) before saving.', null, 'Missing Week Dates');
+                showConfirmModal(`Pick a valid ${periodNoun()} (both a start and an end date) before saving.`, null, `Missing ${periodNoun(true)} Dates`);
                 return;
             }
 
@@ -3668,7 +4374,7 @@
                         logsData.splice(existingIdx, 1);
                         commitWeekEntry();
                     },
-                    'Week Already Saved'
+                    `${periodNoun(true)} Already Saved`
                 );
                 return;
             }
@@ -3757,7 +4463,12 @@
                 plannedAllocations: { ...plannedAllocations },
                 paycheck,
                 sweepAction,
-                sweepAmount: addedToSavings - currentSavings
+                sweepAmount: addedToSavings - currentSavings,
+                // Stamp the shape of the period so history stays readable
+                // after the user switches modes. Entries saved before this
+                // existed are treated as weekly, which is what they were.
+                periodType: payPeriod,
+                periodDays: periodLength()
             };
 
             logsData.unshift(entry);
@@ -3926,6 +4637,11 @@
         }
 
         function completeOnboarding() {
+            const nameEl = document.getElementById('onboardNameInput');
+            if (nameEl && nameEl.value.trim()) {
+                ownerName = nameEl.value.trim().slice(0, 40);
+                applyOwnerName();
+            }
             const val = parseFloat(document.getElementById('onboardSavingsInput').value) || 0;
             globalSavingsBalance = val;
             localStorage.setItem('onboardingComplete', 'true');
@@ -3936,12 +4652,39 @@
             if (SYNC_ENABLED && !syncCode) setTimeout(() => openModal('syncSetupModal'), 260);
         }
 
+        // Prefill the most recent period that ISN'T already logged. Under
+        // biweekly especially, hand-typing dates is easy to get wrong by a
+        // day or two -- and a range that misses the real pay-period grid
+        // creates a log the unsaved nudge and replace-detection can never
+        // match, because both compare the exact weekKey.
         function openAddPastLogModal() {
             const startInput = document.getElementById('pastLogWeekStart');
             const endInput = document.getElementById('pastLogWeekEnd');
-            if (startInput) startInput.value = '';
-            if (endInput) endInput.value = '';
+
+            let cursor = getPeriodRangeFor(new Date()).start;
+            let start = '', end = '';
+            for (let i = 0; i < 26; i++) {
+                cursor = getPeriodRangeFor(addDays(cursor, -1)).start;
+                const r = getPeriodRangeFor(cursor);
+                const k = `${getFormattedDate(r.start)}_${getFormattedDate(r.end)}`;
+                if (!logsData.some(l => l.weekKey === k)) {
+                    start = getFormattedDate(r.start);
+                    end = getFormattedDate(r.end);
+                    break;
+                }
+            }
+            if (startInput) startInput.value = start;
+            if (endInput) endInput.value = end;
             openModal('addPastLogModal');
+        }
+
+        // Changing the start snaps the end to a full period, so the range
+        // stays on the grid without the user counting days.
+        function syncPastLogEnd() {
+            const startInput = document.getElementById('pastLogWeekStart');
+            const endInput = document.getElementById('pastLogWeekEnd');
+            if (!startInput || !endInput || !startInput.value) return;
+            endInput.value = getFormattedDate(addDays(parseLocalDate(startInput.value), periodLength() - 1));
         }
 
         function sortLogsByWeekDesc() {
@@ -3956,16 +4699,17 @@
             const startVal = document.getElementById('pastLogWeekStart').value;
             const endVal = document.getElementById('pastLogWeekEnd').value;
             if (!startVal || !endVal) {
-                showConfirmModal('Pick both a start and an end date for the week you want to add.', null, 'Missing Dates');
+                showConfirmModal(`Pick both a start and an end date for the ${periodNoun()} you want to add.`, null, 'Missing Dates');
                 return;
             }
             if (endVal < startVal) {
-                showConfirmModal('The end of the week has to fall on or after the start.', null, 'Check the Dates');
+                showConfirmModal(`The end of the ${periodNoun()} has to fall on or after the start.`, null, 'Check the Dates');
                 return;
             }
 
             const weekKey = `${startVal}_${endVal}`;
             const rangeLabel = formatDateRangeLabel(startVal, endVal);
+            const entryDays = spanDays(startVal, endVal);
 
             const createEntry = () => {
                 const entry = {
@@ -3985,7 +4729,13 @@
                     plannedAllocations: {},
                     paycheck: { hourlyRate: '', hoursPerWeek: '', taxRate: '' },
                     sweepAction: 'rollover',
-                    sweepAmount: 0
+                    sweepAmount: 0,
+                    // Stamp what the chosen dates ACTUALLY span. Using the
+                    // current mode would mislabel a genuine 7-day gap added
+                    // while in biweekly (and vice versa), and the Details
+                    // panel reads this field verbatim.
+                    periodType: entryDays === 14 ? 'biweekly' : 'weekly',
+                    periodDays: entryDays
                 };
                 logsData.push(entry);
                 sortLogsByWeekDesc();
@@ -4040,7 +4790,7 @@
                         <td colspan="8" class="log-empty-cell">
                             <div class="log-empty-state">
                                 <span class="emoji">📊</span>
-                                <div>No saved weekly logs yet. Use "Save Week to Log" above to save your first week!</div>
+                                <div>No saved logs yet. Use "${isBiweekly() ? 'Save Pay Period to Log' : 'Save Week to Log'}" above to save your first ${periodNoun()}!</div>
                             </div>
                         </td>
                     </tr>
@@ -4157,6 +4907,16 @@
                 `;
             }
 
+            // Once a user has switched modes their history is mixed, so each
+            // entry states which shape it was saved under. Entries predating
+            // this field were weekly.
+            const entryDays = safeNum(log.periodDays) || (log.periodType === 'biweekly' ? 14 : 7);
+            html += `
+                <div class="log-detail-section">
+                    <div class="log-detail-row"><span>Period Length</span><span>${entryDays === 14 ? 'Two weeks (pay period)' : 'One week'}</span></div>
+                </div>
+            `;
+
             if (log.sweepAction && log.sweepAction !== 'rollover' && log.sweepAmount) {
                 const sweepLabel = log.sweepAction === 'sweep_all' ? 'Swept all leftover to savings' : 'Custom sweep to savings';
                 html += `
@@ -4224,7 +4984,7 @@
             // balances -- the same reversal the "replace this week" path in
             // saveWeekEntry() already does, so the two behave consistently.
             showConfirmModal(
-                `Delete the log for ${log.rangeLabel || 'this week'}? ${formatCurrency(saved)} will be removed from your Savings Balance and ${formatCurrency(disc)} from your Spendable Balance.`,
+                `Delete the log for ${log.rangeLabel || `this ${periodNoun()}`}? ${formatCurrency(saved)} will be removed from your Savings Balance and ${formatCurrency(disc)} from your Spendable Balance.`,
                 (confirmed) => {
                     if (!confirmed) return;
                     globalSavingsBalance -= saved;
@@ -4436,6 +5196,10 @@
                 creditCards,
                 ccBreakdowns,
                 ccCardMeta,
+                ownerName,
+                billLabels,
+                payPeriod,
+                payAnchor,
                 hourlyRate: document.getElementById('hourlyRate')?.value,
                 hoursPerWeek: document.getElementById('hoursPerWeek')?.value,
                 taxRate: document.getElementById('taxRate')?.value
@@ -4538,6 +5302,30 @@
             if (Array.isArray(state.creditCards)) creditCards = state.creditCards;
             if (state.ccBreakdowns) ccBreakdowns = state.ccBreakdowns;
             if (state.ccCardMeta) ccCardMeta = state.ccCardMeta;
+            // Anything saved before pay periods existed is weekly by
+            // definition -- that's the only behaviour it ever had.
+            if (typeof state.ownerName === 'string') ownerName = state.ownerName;
+            if (Array.isArray(state.billLabels)) {
+                // Merge rather than replace: a shorter or malformed array
+                // from an older save must not blank out a row's label.
+                billLabels = DEFAULT_BILL_LABELS.map((d, i) =>
+                    (typeof state.billLabels[i] === 'string' && state.billLabels[i].trim()) ? state.billLabels[i] : d);
+            }
+            applyOwnerName();
+            applyBillLabels();
+
+            const shapeBefore = `${payPeriod}|${payAnchor}`;
+            if (state.payPeriod === 'weekly' || state.payPeriod === 'biweekly') payPeriod = state.payPeriod;
+            if (typeof state.payAnchor === 'string') payAnchor = state.payAnchor;
+            applyPeriodUI();
+            // On first load currentWeekKey was derived before the saved
+            // settings were known, so a biweekly user would briefly be looking
+            // at a weekly range. Re-derive -- but ONLY when the shape actually
+            // changed, or an incoming sync update would yank the user off
+            // whatever period they had navigated to.
+            if (shapeBefore !== `${payPeriod}|${payAnchor}`) {
+                setCurrentWeekKeyOnly(new Date());
+            }
 
             // Every other input the sync touches (misc rows, card payments,
             // fixed bills, the savings field) already skips the field you're
@@ -4577,6 +5365,9 @@
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
             initCardCollapseState();
+            applyOwnerName();
+            applyBillLabels();
+            applyPeriodUI();
 
             // Establish which week it is (currentWeekKey) WITHOUT rendering or
             // saving anything yet -- loadCurrentWeekDraft() must not run
