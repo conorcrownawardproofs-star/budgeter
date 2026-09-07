@@ -436,7 +436,14 @@
         .edit-mode td.editable { background-color: #fef3c7; border: 1px dashed #d97706; cursor: text; }
         .budget-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
 
-        .cc-breakdown-row td { padding: 12px 10px; background-color: #f8fafc; border-bottom: 2px solid var(--border-color); }
+        /* The padding, background and divider used to sit on this <td>, which
+           is OUTSIDE the collapsible .cc-panel-wrap. So even with Details
+           closed every card still rendered a ~26px empty banded strip under
+           it -- the stack of blank bars between the cards. Moving all three
+           onto a padding div INSIDE the animated area means a collapsed
+           panel takes up no height at all. */
+        .cc-breakdown-row td { padding: 0; background-color: transparent; border-bottom: 0; }
+        .cc-panel-pad { padding: 12px 10px; background-color: #f8fafc; border-bottom: 2px solid var(--border-color); }
         .cc-item-list { margin-bottom: 10px; }
         .cc-item { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem; }
         .cc-item-empty { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
@@ -533,6 +540,7 @@
             font: inherit; font-weight: 600; font-size: 0.98rem; color: var(--text-main);
             background: transparent; border: 1px solid transparent; border-radius: 4px;
             padding: 4px 6px; margin: -4px -6px;
+            text-overflow: ellipsis;
         }
         .cc-name-input::placeholder { color: var(--text-muted); font-weight: 400; }
         .cc-name-input:hover { background-color: var(--surface-muted); }
@@ -658,7 +666,7 @@
         html[data-theme="dark"] .total-row,
         html[data-theme="dark"] .log-details,
         html[data-theme="dark"] #logTable tbody tr:not(.log-details):not(.total-row):hover,
-        html[data-theme="dark"] .cc-breakdown-row td { background-color: #172033; }
+        html[data-theme="dark"] .cc-panel-pad { background-color: #172033; }
 
         html[data-theme="dark"] #logTable tbody tr.log-row-even:not(.total-row) { background-color: #17223a; }
 
@@ -872,6 +880,94 @@
                 text-align: center;
                 white-space: nowrap;
             }
+        }
+
+        /* --- Credit Card Debt Tracker: card layout on narrow screens ------
+           The tracker is a fixed-layout 62/38 table. On a phone that leaves
+           the account column roughly 200px wide, and since the card name is
+           an <input> its text doesn't wrap -- long names like "American
+           Express Gold" or "BoFA Customized Cash Rewards" were simply cut
+           off at the column edge with no way to read them. The payment
+           column was squeezed too, pushing the -100/-10/-1 quick buttons
+           into a sideways scroll.
+
+           Below 600px each card row becomes a stacked block: the name gets
+           the full width of the container, and the payment field with its
+           quick bar sits underneath with an inline label. The desktop table
+           is untouched. */
+        @media (max-width: 600px) {
+            #card-cc .table-container { overflow-x: visible; }
+            .cc-table { table-layout: auto; border-collapse: separate; border-spacing: 0; }
+            .cc-table colgroup, .cc-table thead { display: none; }
+            .cc-table, .cc-table tbody, .cc-table tr, .cc-table td { display: block; width: 100%; }
+
+            #ccTableBody > tr:not(.cc-breakdown-row) {
+                border: 1px solid var(--border-color);
+                border-radius: 10px;
+                background-color: var(--surface-muted);
+                padding: 10px 12px;
+                margin-bottom: 10px;
+            }
+            #ccTableBody > tr:not(.cc-breakdown-row) > td {
+                padding: 0;
+                border: 0;
+                overflow: visible;
+            }
+            /* The payment cell keeps its own inline text-align: right, which
+               outranks a stylesheet rule -- so lay it out with flex instead
+               and let the label sit opposite the field. */
+            #ccTableBody > tr:not(.cc-breakdown-row) > td + td {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid var(--border-color);
+            }
+            #ccTableBody > tr:not(.cc-breakdown-row) > td + td::before {
+                content: "Payment ($)";
+                display: block;
+                text-align: left;
+                font-weight: 600;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                margin-bottom: 6px;
+            }
+            #ccTableBody > tr:not(.cc-breakdown-row) > td + td .money-field { width: 100%; }
+            #ccTableBody > tr:not(.cc-breakdown-row) > td + td .money-input { width: 100%; }
+
+            /* Full row width means all six increments fit -- no sideways
+               scroll hiding the negative ones off the left edge. */
+            .cc-quick-bar { overflow-x: visible; justify-content: space-between; gap: 4px; }
+            .cc-quick-bar .iq-btn { flex: 1 1 auto; }
+
+            /* The breakdown panel is a continuation of the card above it, so
+               the card carries no bottom margin and the gap between cards
+               lives on the panel row -- which is now zero-height when the
+               Details toggle is closed. */
+            #ccTableBody > tr:not(.cc-breakdown-row) { margin-bottom: 0; }
+            #ccTableBody > tr.cc-breakdown-row { margin: 0 0 10px; }
+            .cc-panel-pad { padding: 12px; }
+
+            /* "+ Add Credit Card" and the totals line keep their own shapes. */
+            .cc-table tr.add-misc-row td { padding: 0 0 10px; border: 0; }
+            .cc-table tr.total-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+            }
+            .cc-table tr.total-row td { width: auto; border: 0; }
+        }
+
+        /* Long card titles were truncating against the summary badge. Let
+           them wrap onto a second line on the narrowest screens instead. */
+        @media (max-width: 480px) {
+            .card-header-left h2 {
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                line-height: 1.25;
+            }
+            .card-header { align-items: flex-start; }
+            .summary-badge { margin-top: 2px; }
         }
 
         @media (max-width: 480px) {
@@ -2462,6 +2558,7 @@
                         <td colspan="2">
                             <div class="cc-panel-wrap" id="panelWrap-${card.id}">
                             <div class="cc-panel-inner">
+                            <div class="cc-panel-pad">
                             <div id="list-${card.id}" class="cc-item-list"></div>
                             <div class="cc-add-form">
                                 <input type="text" id="ccDesc-${card.id}" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-${card.id}').focus();} if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
@@ -2471,6 +2568,7 @@
                                 </div>
                                 <button class="btn-action btn-small" id="ccSubmitBtn-${card.id}" onclick="addCCItem('${card.id}')">+ Add</button>
                                 <button class="link-btn" id="ccCancelBtn-${card.id}" style="display:none;" onclick="cancelCCEdit('${card.id}')">Cancel</button>
+                            </div>
                             </div>
                             </div>
                             </div>
