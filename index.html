@@ -859,9 +859,15 @@
                 flex-wrap: nowrap;
                 gap: 8px;
             }
+            /* flex-basis: 0 forced both buttons to exactly half the row, which
+               clipped the longer "Add Missing Week" label against its right
+               edge. Basing them on their own content and sharing only the
+               leftover space keeps both labels inside their padding. */
             .log-section .card h2 > span > .btn {
-                flex: 1 1 0;
+                flex: 1 1 auto;
                 min-width: 0;
+                padding-left: 8px;
+                padding-right: 8px;
                 justify-content: center;
                 text-align: center;
                 white-space: nowrap;
@@ -2881,8 +2887,12 @@
             const finalDiscretionary = remainingBeforeSavings - currentSavings;
             document.getElementById('weeklyBudgetRemaining').innerText = formatCurrency(finalDiscretionary);
 
+            // "Keep in Spendable Balance" refers to the running Discretionary
+            // Balance (the banner / modal figure), not this week's leftover.
+            // It was showing finalDiscretionary, which is the number already
+            // displayed directly above it as "Final Discretionary Balance".
             const sweepRolloverDisplay = document.getElementById('sweepRolloverDisplay');
-            if (sweepRolloverDisplay) sweepRolloverDisplay.innerText = formatCurrency(finalDiscretionary);
+            if (sweepRolloverDisplay) sweepRolloverDisplay.innerText = formatCurrency(globalDiscretionaryBalance);
 
             document.getElementById('summary-tracker').innerText = formatCurrency(finalDiscretionary);
 
@@ -3232,7 +3242,8 @@
             document.getElementById('unsavedWeekBanner').style.display = 'none';
         }
 
-        function toggleCustomSweep() {            const customWrap = document.getElementById('customSweepWrap');
+        function toggleCustomSweep() {
+            const customWrap = document.getElementById('customSweepWrap');
             const selected = document.querySelector('input[name="sweepAction"]:checked')?.value;
             if (customWrap) {
                 customWrap.style.display = (selected === 'sweep_custom') ? 'inline-flex' : 'none';
@@ -3596,10 +3607,19 @@
 
             const existingIdx = logsData.findIndex(l => l.weekKey === weekKey);
             if (existingIdx !== -1) {
-                showConfirmModal(`A log already exists for ${rangeLabel}. Replace it with a new blank entry?`, (confirmed) => {
+                showConfirmModal(`A log already exists for ${rangeLabel}. Replace it with a new blank entry? Its recorded amounts will be backed out of your balances first, so nothing gets left double-counted.`, (confirmed) => {
                     if (!confirmed) return;
+                    // This path used to drop the old row without reversing its
+                    // effect on the running balances -- unlike deleteLogEntry()
+                    // and the replace path in saveWeekEntry(), both of which do.
+                    // Overwriting a week with a blank entry therefore left the
+                    // old savings and spendable amounts baked in permanently.
+                    const prev = logsData[existingIdx];
+                    globalSavingsBalance -= safeNum(prev.savedThisWeek);
+                    globalDiscretionaryBalance -= safeNum(prev.discretionaryAdded);
                     logsData.splice(existingIdx, 1);
                     createEntry();
+                    updateDisplays();
                 }, 'Replace Existing Log?');
             } else {
                 createEntry();
