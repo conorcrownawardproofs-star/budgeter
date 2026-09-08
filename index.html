@@ -1111,6 +1111,56 @@
         html[data-fx] #themeFx { display: block; }
         html[data-fx] body { background-color: transparent; background-image: none; }
 
+        /* Animated wallpapers put moving detail directly behind the header,
+           which is the one region that is pure text and controls. Give it a
+           frosted scrim so the title, chips and subtitle always sit on a
+           calm, contrasting surface rather than on drifting petals or a
+           scrolling neon grid.
+
+           The scrim is scheme-aware: a dark wash on the dark scenes, and a
+           softer smoked panel on the light ones (Cherry Blossom, Beach)
+           where the text is dark and a heavy dark fill would invert it. */
+        /* Full-bleed banner rather than a floating card. Body's horizontal
+           padding is a constant 20px at every breakpoint (only padding-TOP
+           changes), so exact negative margins beat calc(50% - 50vw) here --
+           no 100vw scrollbar overflow to work around.
+
+           The top inset moves onto the banner: body's padding-top is zeroed
+           for these themes so the scrim reaches the very top of the screen,
+           and the banner itself carries the safe-area allowance. */
+        html[data-fx] body { padding-top: 0; }
+        html[data-fx] .header-container {
+            max-width: none;
+            margin: 0 -20px 24px -20px;
+            border-radius: 0;
+            border: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding: max(20px, calc(env(safe-area-inset-top) + 10px)) 20px 16px 20px;
+            backdrop-filter: blur(9px) saturate(115%);
+            -webkit-backdrop-filter: blur(9px) saturate(115%);
+        }
+        /* Keep the banner's CONTENT aligned with the dashboard below it,
+           even though the surface itself runs edge to edge. */
+        html[data-fx] .header-top { max-width: 1200px; margin: 0 auto; }
+        html[data-fx][data-scheme="dark"] .header-container {
+            background-color: rgba(0, 0, 0, 0.55);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
+        }
+        html[data-fx][data-scheme="light"] .header-container {
+            background-color: rgba(58, 42, 48, 0.16);
+            box-shadow: 0 4px 14px rgba(90, 70, 80, 0.14);
+        }
+        /* The chips sit ON the scrim, so they need their own contrast rather
+           than the page-level card colour they'd otherwise inherit. */
+        html[data-fx][data-scheme="dark"] .header-chip { background-color: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.16); }
+        html[data-fx][data-scheme="light"] .header-chip { background-color: rgba(255, 255, 255, 0.72); border-color: rgba(255, 255, 255, 0.85); }
+        @media (max-width: 700px) {
+            html[data-fx] .header-container {
+                margin: 0 -20px 16px -20px;
+                padding: max(14px, calc(env(safe-area-inset-top) + 8px)) 20px 12px 20px;
+            }
+        }
+
         /* ---------- Cherry Blossom ---------- */
         html[data-theme="cherry"] {
             color-scheme: light;
@@ -1477,6 +1527,168 @@
         html[data-theme="neon"] .summary-badge { background-color: #21143c; color: #29e0ff; }
         html[data-theme="neon"] .header-title { text-shadow: 0 0 14px rgba(41, 224, 255, 0.45); }
 
+        /* ---------- Rainfall ---------- */
+        html[data-theme="rain"] {
+            color-scheme: dark;
+            --primary: #8fb8d8;
+            --primary-hover: #b8d4ea;
+            --bg-color: #0b1116;
+            --card-bg: #141d25;
+            --text-main: #dde6ec;
+            --text-muted: #8397a5;
+            --border-color: #26343f;
+            --positive: #5fd39a;
+            --negative: #ef7a80;
+            --floating-bg: #050809;
+            --surface-muted: #1b2731;
+            background-color: #0b1116;
+            background-image:
+                radial-gradient(ellipse at 50% -10%, rgba(120, 155, 185, 0.18), transparent 58%),
+                linear-gradient(180deg, #16212a 0%, #0f1820 48%, #0b1116 100%);
+            background-attachment: fixed;
+        }
+        /* A drop is a thin vertical streak. It falls straight and fast, so it
+           reuses nothing from the petal path -- no sway, no spin. */
+        .raindrop {
+            position: absolute;
+            top: -12vh;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(180, 215, 240, 0) 0%, rgba(185, 220, 245, 0.7) 60%, rgba(215, 240, 255, 0.9) 100%);
+            opacity: 0;
+            will-change: transform, opacity;
+            animation-name: rainFall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        @keyframes rainFall {
+            0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+            8%   { opacity: 0.75; }
+            88%  { opacity: 0.6; }
+            100% { transform: translate3d(-4vw, 122vh, 0); opacity: 0; }
+        }
+        html[data-theme="rain"] .card { border-color: #26343f; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
+        html[data-theme="rain"] .summary-badge { background-color: #1d3040; color: #8fb8d8; }
+
+        /* ---------- Snowfall ---------- */
+        html[data-theme="snow"] {
+            color-scheme: dark;
+            --primary: #a9cdea;
+            --primary-hover: #cfe4f5;
+            --bg-color: #0a1018;
+            --card-bg: #151f2b;
+            --text-main: #e6eef6;
+            --text-muted: #93a6b8;
+            --border-color: #28374a;
+            --positive: #6ee7a8;
+            --negative: #f4707a;
+            --floating-bg: #05080d;
+            --surface-muted: #1c2939;
+            background-color: #0a1018;
+            background-image:
+                radial-gradient(ellipse at 50% 100%, rgba(190, 215, 240, 0.16), transparent 55%),
+                linear-gradient(180deg, #16243a 0%, #101a28 50%, #0a1018 100%);
+            background-attachment: fixed;
+        }
+        .snowflake {
+            position: absolute;
+            top: -8vh;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #dceaf7 60%, rgba(200, 225, 245, 0.5) 100%);
+            box-shadow: 0 0 5px rgba(220, 240, 255, 0.6);
+            opacity: 0;
+            will-change: transform, opacity;
+            animation-name: petalFall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        html[data-theme="snow"] .card { border-color: #28374a; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4); }
+        html[data-theme="snow"] .summary-badge { background-color: #1f3348; color: #a9cdea; }
+
+        /* ---------- Sunset ---------- */
+        html[data-theme="sunset"] {
+            color-scheme: dark;
+            --primary: #ffab6b;
+            --primary-hover: #ffc79b;
+            --bg-color: #150a12;
+            --card-bg: #241320;
+            --text-main: #fbe6df;
+            --text-muted: #b8909a;
+            --border-color: #43222f;
+            --positive: #6ee7a8;
+            --negative: #ff6b7f;
+            --floating-bg: #0a0408;
+            --surface-muted: #2e1a27;
+            background-color: #150a12;
+            background-image:
+                radial-gradient(circle at 50% 96%, rgba(255, 170, 80, 0.55), transparent 46%),
+                linear-gradient(180deg, #2b1440 0%, #5b1f45 32%, #8f3141 58%, #40182c 82%, #150a12 100%);
+            background-attachment: fixed;
+        }
+        /* A slow horizontal haze drifting across the sky band. */
+        html[data-theme="sunset"] #themeFx::before {
+            content: "";
+            position: absolute;
+            left: -50%; right: -50%; top: 6%;
+            height: 42vh;
+            background: repeating-linear-gradient(3deg,
+                rgba(255, 200, 150, 0.10) 0 7px,
+                transparent 7px 46px);
+            animation: sunsetHaze 26s linear infinite;
+        }
+        @keyframes sunsetHaze {
+            from { transform: translate3d(-60px, 0, 0); }
+            to   { transform: translate3d(60px, 0, 0); }
+        }
+        .ember {
+            position: absolute;
+            border-radius: 50%;
+            background: #ffcb8a;
+            box-shadow: 0 0 7px 2px rgba(255, 170, 90, 0.75);
+            opacity: 0.4;
+            will-change: transform, opacity;
+            animation: starTwinkle 5s ease-in-out infinite;
+        }
+        html[data-theme="sunset"] .card { border-color: #43222f; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+        html[data-theme="sunset"] .summary-badge { background-color: #46202e; color: #ffab6b; }
+
+        /* ---------- Lavender (static) ---------- */
+        html[data-theme="lavender"] {
+            color-scheme: light;
+            --primary: #7c5cc4;
+            --primary-hover: #6446a8;
+            --bg-color: #f7f4fd;
+            --card-bg: #fdfbff;
+            --text-main: #372f4a;
+            --text-muted: #7d7291;
+            --border-color: #e3dbf2;
+            --positive: #3f9a6b;
+            --negative: #d1465f;
+            --floating-bg: #372f4a;
+            --surface-muted: #f1ecfb;
+        }
+        html[data-theme="lavender"] .card { border-color: #e3dbf2; box-shadow: 0 6px 16px rgba(120, 95, 175, 0.09); }
+        html[data-theme="lavender"] .summary-badge { background-color: #ece5fa; color: #6446a8; }
+        html[data-theme="lavender"] .card-header:hover,
+        html[data-theme="lavender"] .total-row { background-color: #f1ecfb; }
+
+        /* ---------- Slate (static) ---------- */
+        html[data-theme="slate"] {
+            color-scheme: dark;
+            --primary: #93a4b8;
+            --primary-hover: #b8c6d6;
+            --bg-color: #16181c;
+            --card-bg: #1f2228;
+            --text-main: #e3e6ea;
+            --text-muted: #939aa5;
+            --border-color: #333841;
+            --positive: #5fd39a;
+            --negative: #ef7a80;
+            --floating-bg: #0d0e11;
+            --surface-muted: #282c34;
+        }
+        html[data-theme="slate"] .card { border-color: #333841; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+        html[data-theme="slate"] .summary-badge { background-color: #2c323b; color: #b8c6d6; }
+
 
         /* This shared rule sits AFTER .modal-content and .disc-balance-banner
            in the stylesheet and sets the whole `transition` shorthand, which
@@ -1505,9 +1717,10 @@
             html[data-theme^="metal"] .header-title { animation: none; }
             html[data-theme^="metal"] .header-title { background: none; color: var(--text-main); }
             .petal, .petal::before, .leaf, .leaf::before, .bubble,
+            .raindrop, .snowflake, .ember,
             .aurora-star, .sparkle, .neon-mote,
             html[data-theme="aurora"] #themeFx::before { animation: none; }
-            .petal, .leaf, .bubble { display: none; }
+            .petal, .leaf, .bubble, .raindrop, .snowflake { display: none; }
         }
 
         body, .card, .card-header,
@@ -2084,8 +2297,13 @@
                             <option value="beach">Beach</option>
                             <option value="aurora">Aurora</option>
                             <option value="neon">Neon Night</option>
+                            <option value="rain">Rainfall</option>
+                            <option value="snow">Snowfall</option>
+                            <option value="sunset">Sunset</option>
                         </optgroup>
                         <optgroup label="Classic">
+                            <option value="slate">Slate</option>
+                            <option value="lavender">Lavender</option>
                             <option value="dark">Dark</option>
                             <option value="light">Light</option>
                         </optgroup>
@@ -2832,6 +3050,11 @@
             'beach':         { label: 'Beach',               chrome: '#bfe9f2', scheme: 'light', fx: 'beach' },
             'aurora':        { label: 'Aurora',              chrome: '#050b14', scheme: 'dark',  fx: 'aurora' },
             'neon':          { label: 'Neon Night',          chrome: '#05030c', scheme: 'dark',  fx: 'neon' },
+            'rain':          { label: 'Rainfall',            chrome: '#0b1116', scheme: 'dark',  fx: 'rain' },
+            'snow':          { label: 'Snowfall',            chrome: '#0a1018', scheme: 'dark',  fx: 'snow' },
+            'sunset':        { label: 'Sunset',              chrome: '#150a12', scheme: 'dark',  fx: 'sunset' },
+            'lavender':      { label: 'Lavender',            chrome: '#7c5cc4', scheme: 'light' },
+            'slate':         { label: 'Slate',               chrome: '#16181c', scheme: 'dark'  },
             'dark':          { label: 'Dark',           chrome: '#0b1220', scheme: 'dark'  },
             'light':         { label: 'Light',          chrome: '#2563eb', scheme: 'light' }
         };
@@ -2871,7 +3094,10 @@
             ocean:  { cls: 'bubble',      motion: 'rise',    count: 20 },
             aurora: { cls: 'aurora-star', motion: 'twinkle', count: 40 },
             beach:  { cls: 'sparkle',     motion: 'twinkle', count: 26 },
-            neon:   { cls: 'neon-mote',   motion: 'twinkle', count: 30 }
+            neon:   { cls: 'neon-mote',   motion: 'twinkle', count: 30 },
+            rain:   { cls: 'raindrop',    motion: 'streak',  count: 34 },
+            snow:   { cls: 'snowflake',   motion: 'fall',    count: 26 },
+            sunset: { cls: 'ember',       motion: 'twinkle', count: 22 }
         };
 
         function renderThemeFx(fx) {
@@ -2900,10 +3126,13 @@
                 for (let i = 0; i < spec.count; i++) {
                     const lane = (i + 0.5) / spec.count * 100;
                     const left = Math.max(0, Math.min(98, lane + rand(-4, 4)));
-                    const size = rising ? rand(5, 15) : rand(8, 17);
-                    const dur = rising ? rand(11, 20) : rand(9, 17);
+                    const streak = spec.motion === 'streak';
+                    // Rain is thin and tall and falls much faster; petals,
+                    // leaves and snow are broad and drift.
+                    const size = streak ? rand(1, 2) : (rising ? rand(5, 15) : rand(8, 17));
+                    const dur = streak ? rand(0.7, 1.5) : (rising ? rand(11, 20) : rand(9, 17));
                     const delay = -rand(0, dur);
-                    const ratio = rising ? 1 : 0.82;
+                    const ratio = streak ? rand(9, 18) : (rising ? 1 : 0.82);
                     html += `<span class="${spec.cls}" style="left:${left.toFixed(2)}%;`
                           + `width:${size.toFixed(1)}px;height:${(size * ratio).toFixed(1)}px;`
                           + `animation-duration:${dur.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;`
