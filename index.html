@@ -133,6 +133,103 @@
         }
         .bill-name-input:hover { border-color: var(--border-color); }
         .bill-name-input:focus { border-color: var(--primary); background-color: var(--card-bg); outline: none; }
+        .modal-wide { max-width: 720px; width: 100%; }
+        .theme-chip-swatch {
+            width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto;
+            border: 1px solid rgba(128, 128, 128, 0.45);
+        }
+        .theme-group-label {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-muted); margin: 16px 0 8px;
+        }
+        .theme-group-label:first-child { margin-top: 0; }
+        .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px; }
+        .theme-swatch {
+            display: flex; flex-direction: column; gap: 8px; cursor: pointer; text-align: left;
+            padding: 8px; border-radius: 10px; border: 2px solid var(--border-color);
+            background-color: var(--card-bg); font: inherit; color: var(--text-main);
+        }
+        .theme-swatch:hover { border-color: var(--primary); }
+        .theme-swatch.active { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.16); }
+        .theme-swatch-preview { height: 42px; border-radius: 6px; display: flex; overflow: hidden; border: 1px solid rgba(128,128,128,0.25); }
+        .theme-swatch-preview i { display: block; height: 100%; }
+        .theme-swatch-name { font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .theme-swatch-name .tick { color: var(--primary); }
+        .theme-anim-tag { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; }
+        @media (max-width: 480px) { .theme-grid { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); } }
+        .chart-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+        .chart-tab {
+            font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            padding: 6px 12px; border-radius: 999px; min-height: 32px;
+            border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-muted);
+        }
+        .chart-tab:hover { border-color: var(--primary); }
+        .chart-tab.active { background-color: var(--primary); border-color: var(--primary); color: #fff; }
+        .chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+        .chart-empty { color: var(--text-muted); font-size: 0.88rem; padding: 26px 4px; text-align: center; }
+        .chart-caption { font-size: 0.78rem; color: var(--text-muted); margin: 10px 2px 0; line-height: 1.4; }
+        .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; }
+        .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .chart-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+        /* Small, unobtrusive entry points -- they sit in existing headers
+           rather than taking layout of their own. */
+        .chart-btn {
+            background: none; border: 1px solid var(--border-color); border-radius: 999px;
+            cursor: pointer; font-size: 0.72rem; line-height: 1; padding: 5px 9px;
+            color: var(--text-muted); flex: 0 0 auto;
+        }
+        .chart-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .history-filter { display: flex; gap: 6px; margin-bottom: 8px; }
+        .history-filter input, .history-filter select {
+            font: inherit; font-size: 0.82rem; padding: 6px 9px; min-height: 34px;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--card-bg); color: var(--text-main); min-width: 0;
+        }
+        .history-filter input { flex: 1 1 auto; }
+        .history-filter select { flex: 0 1 auto; max-width: 44%; }
+        .history-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; min-height: 1em; }
+        #undoToast {
+            position: fixed;
+            left: 50%;
+            bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+            transform: translateX(-50%);
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            max-width: min(460px, calc(100vw - 24px));
+            padding: 10px 12px 10px 16px;
+            border-radius: 999px;
+            background-color: #1e2430;
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        #undoToastText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .undo-btn {
+            flex: 0 0 auto; background: none; border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #7dd3fc; font: inherit; font-weight: 700; cursor: pointer;
+            padding: 4px 12px; border-radius: 999px;
+        }
+        .undo-btn:hover { background-color: rgba(125, 211, 252, 0.14); }
+        .undo-dismiss {
+            flex: 0 0 auto; background: none; border: none; color: #94a3b8;
+            font-size: 1.15rem; line-height: 1; cursor: pointer; padding: 0 2px;
+        }
+        /* A hairline countdown showing how long undo stays available. */
+        #undoToast::after {
+            content: "";
+            position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px;
+            border-radius: 2px; background-color: rgba(125, 211, 252, 0.55);
+            transform-origin: left center; transform: scaleX(0);
+        }
+        #undoToast.showing::after { animation: undoCountdown 8s linear forwards; }
+        @keyframes undoCountdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+        @media (prefers-reduced-motion: reduce) {
+            #undoToast.showing::after { animation: none; transform: scaleX(1); }
+        }
         .period-setting { border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; background-color: var(--surface-muted); }
         .period-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.85rem; font-weight: 600; }
         .period-setting-row + .period-setting-row { margin-top: 8px; }
@@ -2076,7 +2173,15 @@
                     </div>
 
                     <div class="balance-menu-section bm-history">
-                        <h4>🧾 History</h4>
+                        <h4>🧾 History <button class="chart-btn" onclick="openChartsModal('categories')" title="Spending by category">📈</button></h4>
+                        <div class="history-filter">
+                            <input type="search" id="historySearch" placeholder="Search transactions…"
+                                   oninput="setHistoryFilter()" aria-label="Search transactions">
+                            <select id="historyCategoryFilter" onchange="setHistoryFilter()" aria-label="Filter by category">
+                                <option value="">All categories</option>
+                            </select>
+                        </div>
+                        <div class="history-meta" id="historyMeta"></div>
                         <div id="historyList"></div>
                     </div>
                 </div>
@@ -2221,6 +2326,46 @@
     </div>
 
     <!-- First-Run Onboarding Modal -->
+    <!-- Theme picker. A native <select> stopped scaling past ~10 entries;
+         a swatch grid shows what you're actually choosing. The <select>
+         above is kept, hidden, as the accessible/programmatic control and
+         so existing behaviour and tests keep a single source of truth. -->
+    <div class="modal-overlay" id="themeModal">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <h3 style="margin: 0;">🎨 Theme</h3>
+                <button class="modal-close" onclick="closeModal('themeModal')">&times;</button>
+            </div>
+            <div id="themeGrid"></div>
+        </div>
+    </div>
+
+    <!-- Charts. Rendered as inline SVG from logsData / purchasesData -- no
+         chart library, so it stays a single offline-capable file. -->
+    <div class="modal-overlay" id="chartsModal">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <h3 style="margin: 0;">📈 Trends</h3>
+                <button class="modal-close" onclick="closeModal('chartsModal')">&times;</button>
+            </div>
+            <div class="chart-tabs" id="chartTabs">
+                <button type="button" class="chart-tab" data-chart="savings" onclick="showChart('savings')">Savings</button>
+                <button type="button" class="chart-tab" data-chart="spendable" onclick="showChart('spendable')">Spendable</button>
+                <button type="button" class="chart-tab" data-chart="breakdown" onclick="showChart('breakdown')">Where It Goes</button>
+                <button type="button" class="chart-tab" data-chart="categories" onclick="showChart('categories')">Categories</button>
+            </div>
+            <div id="chartBody"></div>
+        </div>
+    </div>
+
+    <!-- Undo toast. Sits above the modal layer so a delete confirmed from
+         inside a dialog still surfaces its undo. -->
+    <div id="undoToast" role="status" aria-live="polite">
+        <span id="undoToastText"></span>
+        <button type="button" class="undo-btn" onclick="performUndo()">Undo</button>
+        <button type="button" class="undo-dismiss" onclick="dismissUndo()" aria-label="Dismiss">&times;</button>
+    </div>
+
     <!-- Rename Modal -->
     <div class="modal-overlay" id="nameModal">
         <div class="modal-content">
@@ -2278,7 +2423,15 @@
                     <span class="header-chip sync-badge" id="syncSaveBadgeHeader" data-header-chip="1" style="display:none;"><span class="chip-icon">💾</span><span class="chip-words">Saved</span></span>
                     <button type="button" class="header-chip header-chip-btn" onclick="openSyncSettingsModal()" title="Sync Settings"><span class="chip-icon">⚙</span><span class="chip-words">Sync Settings</span></button>
                 </div>
-                <label class="header-chip theme-picker" title="Appearance">
+                <button type="button" class="header-chip header-chip-btn theme-picker-btn" id="themePickerBtn"
+                        onclick="openThemeModal()" title="Appearance" aria-label="Theme">
+                    <span class="theme-chip-swatch" id="themeChipSwatch" aria-hidden="true"></span>
+                    <span class="chip-words" id="themeChipLabel">Theme</span>
+                </button>
+                <!-- Not a chip any more, just the hidden canonical control the
+                     grid and applyTheme() read from. Keeping .header-chip on it
+                     would have it counted as a fourth visible chip. -->
+                <label class="theme-select-host" hidden style="display:none;">
                     <select id="themeSelect" aria-label="Theme" onchange="setTheme(this.value)">
                         <optgroup label="Metallic">
                             <option value="metal">Dark Metallic</option>
@@ -2666,6 +2819,7 @@
             <h2>
                 <span data-lbl-weekly="Saved Weekly Logs" data-lbl-biweekly="Saved Pay Period Logs">Saved Weekly Logs</span>
                 <span style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="chart-btn" onclick="openChartsModal('savings')" title="View trends">📈 Trends</button>
                     <button class="btn btn-small" id="addPastLogBtn" onclick="openAddPastLogModal()" data-lbl-weekly="➕ Add Missing Week" data-lbl-biweekly="➕ Add Missing Period">➕ Add Missing Week</button>
                     <button class="btn btn-small" id="editLogsBtn" onclick="toggleEditLogs()">✏️ Edit Numbers</button>
                 </span>
@@ -3036,29 +3190,78 @@
         // scheme drives the shared dark/light foundation (html[data-scheme]);
         // fx names an optional animated overlay built by renderThemeFx().
         const THEMES = {
-            'metal':         { label: 'Dark Metallic',  chrome: '#050506', scheme: 'dark'  },
-            'metal-red':     { label: 'Red Metallic',   chrome: '#050506', scheme: 'dark'  },
-            'metal-blue':    { label: 'Blue Metallic',  chrome: '#050506', scheme: 'dark'  },
-            'metal-gold':    { label: 'Gold Metallic',  chrome: '#050506', scheme: 'dark'  },
-            'metal-emerald': { label: 'Emerald Metallic', chrome: '#050506', scheme: 'dark' },
-            'metal-purple':  { label: 'Purple Metallic', chrome: '#050506', scheme: 'dark' },
-            'metal-copper':  { label: 'Copper Metallic', chrome: '#050506', scheme: 'dark' },
-            'cherry':        { label: 'Cherry Blossom',      chrome: '#fdeef3', scheme: 'light', fx: 'cherry' },
-            'cherry-dark':   { label: 'Cherry Blossom Dark', chrome: '#14090f', scheme: 'dark',  fx: 'cherry' },
-            'ocean':         { label: 'Ocean',               chrome: '#02131f', scheme: 'dark',  fx: 'ocean' },
-            'forest':        { label: 'Forest',              chrome: '#0a1410', scheme: 'dark',  fx: 'forest' },
-            'beach':         { label: 'Beach',               chrome: '#bfe9f2', scheme: 'light', fx: 'beach' },
-            'aurora':        { label: 'Aurora',              chrome: '#050b14', scheme: 'dark',  fx: 'aurora' },
-            'neon':          { label: 'Neon Night',          chrome: '#05030c', scheme: 'dark',  fx: 'neon' },
-            'rain':          { label: 'Rainfall',            chrome: '#0b1116', scheme: 'dark',  fx: 'rain' },
-            'snow':          { label: 'Snowfall',            chrome: '#0a1018', scheme: 'dark',  fx: 'snow' },
-            'sunset':        { label: 'Sunset',              chrome: '#150a12', scheme: 'dark',  fx: 'sunset' },
-            'lavender':      { label: 'Lavender',            chrome: '#7c5cc4', scheme: 'light' },
-            'slate':         { label: 'Slate',               chrome: '#16181c', scheme: 'dark'  },
-            'dark':          { label: 'Dark',           chrome: '#0b1220', scheme: 'dark'  },
-            'light':         { label: 'Light',          chrome: '#2563eb', scheme: 'light' }
+            'metal':         { label: 'Dark Metallic',  chrome: '#050506', scheme: 'dark'  , swatch: ['#1c1e23', '#3a4048', '#9fb3c8']},
+            'metal-red':     { label: 'Red Metallic',   chrome: '#050506', scheme: 'dark'  , swatch: ['#241a1c', '#5a3036', '#e8909a']},
+            'metal-blue':    { label: 'Blue Metallic',  chrome: '#050506', scheme: 'dark'  , swatch: ['#181d26', '#2f4160', '#86b4e8']},
+            'metal-gold':    { label: 'Gold Metallic',  chrome: '#050506', scheme: 'dark'  , swatch: ['#241f14', '#5a4a26', '#e8c882']},
+            'metal-emerald': { label: 'Emerald Metallic', chrome: '#050506', scheme: 'dark' , swatch: ['#14231c', '#275240', '#86d8ae']},
+            'metal-purple':  { label: 'Purple Metallic', chrome: '#050506', scheme: 'dark' , swatch: ['#201826', '#4a3160', '#c39fe8']},
+            'metal-copper':  { label: 'Copper Metallic', chrome: '#050506', scheme: 'dark' , swatch: ['#241a14', '#5e3a24', '#e8a882']},
+            'cherry':        { label: 'Cherry Blossom',      chrome: '#fdeef3', scheme: 'light', fx: 'cherry' , swatch: ['#fdeef3', '#ffaec9', '#d4638a']},
+            'cherry-dark':   { label: 'Cherry Blossom Dark', chrome: '#14090f', scheme: 'dark',  fx: 'cherry' , swatch: ['#1a0c13', '#78284b', '#f0a0bd']},
+            'ocean':         { label: 'Ocean',               chrome: '#02131f', scheme: 'dark',  fx: 'ocean' , swatch: ['#052237', '#0a3350', '#5dd6e8']},
+            'forest':        { label: 'Forest',              chrome: '#0a1410', scheme: 'dark',  fx: 'forest' , swatch: ['#0f1d15', '#2c5a34', '#8fd18a']},
+            'beach':         { label: 'Beach',               chrome: '#bfe9f2', scheme: 'light', fx: 'beach' , swatch: ['#bfe9f2', '#f6e6c5', '#0d8ba1']},
+            'aurora':        { label: 'Aurora',              chrome: '#050b14', scheme: 'dark',  fx: 'aurora' , swatch: ['#050b14', '#2b6e8f', '#6ee7d0']},
+            'neon':          { label: 'Neon Night',          chrome: '#05030c', scheme: 'dark',  fx: 'neon' , swatch: ['#07040f', '#ff2d9f', '#29e0ff']},
+            'rain':          { label: 'Rainfall',            chrome: '#0b1116', scheme: 'dark',  fx: 'rain' , swatch: ['#0f1820', '#26343f', '#8fb8d8']},
+            'snow':          { label: 'Snowfall',            chrome: '#0a1018', scheme: 'dark',  fx: 'snow' , swatch: ['#101a28', '#28374a', '#a9cdea']},
+            'sunset':        { label: 'Sunset',              chrome: '#150a12', scheme: 'dark',  fx: 'sunset' , swatch: ['#5b1f45', '#8f3141', '#ffab6b']},
+            'lavender':      { label: 'Lavender',            chrome: '#7c5cc4', scheme: 'light' , swatch: ['#f7f4fd', '#d8cbf2', '#7c5cc4']},
+            'slate':         { label: 'Slate',               chrome: '#16181c', scheme: 'dark'  , swatch: ['#1f2228', '#333841', '#93a4b8']},
+            'dark':          { label: 'Dark',           chrome: '#0b1220', scheme: 'dark'  , swatch: ['#0b1220', '#1e293b', '#60a5fa']},
+            'light':         { label: 'Light',          chrome: '#2563eb', scheme: 'light' , swatch: ['#f8fafc', '#e2e8f0', '#2563eb']}
         };
         const DEFAULT_THEME = 'light';
+
+        // The dropdown's optgroup order is the grid's order, read straight
+        // from the DOM so the two can never drift apart.
+        function themeGroups() {
+            const sel = document.getElementById('themeSelect');
+            if (!sel) return [{ label: '', keys: Object.keys(THEMES) }];
+            return [...sel.querySelectorAll('optgroup')].map(g => ({
+                label: g.label,
+                keys: [...g.querySelectorAll('option')].map(o => o.value).filter(k => THEMES[k])
+            }));
+        }
+
+        function openThemeModal() {
+            const grid = document.getElementById('themeGrid');
+            if (grid) {
+                grid.innerHTML = themeGroups().map(g => `
+                    <div class="theme-group-label">${escapeHtml(g.label)}</div>
+                    <div class="theme-grid">
+                        ${g.keys.map(k => {
+                            const def = THEMES[k];
+                            const sw = def.swatch || ['#888', '#aaa', '#ccc'];
+                            const active = (document.documentElement.getAttribute('data-theme') === k);
+                            return `<button type="button" class="theme-swatch${active ? ' active' : ''}" data-theme-key="${k}"
+                                        onclick="pickTheme('${k}')" ${active ? 'aria-current="true"' : ''}>
+                                <span class="theme-swatch-preview">
+                                    <i style="background:${sw[0]};width:46%"></i>
+                                    <i style="background:${sw[1]};width:32%"></i>
+                                    <i style="background:${sw[2]};width:22%"></i>
+                                </span>
+                                <span class="theme-swatch-name">${active ? '<span class="tick">✓</span>' : ''}${escapeHtml(def.label)}</span>
+                                ${def.fx ? '<span class="theme-anim-tag">Animated</span>' : ''}
+                            </button>`;
+                        }).join('')}
+                    </div>`).join('');
+            }
+            openModal('themeModal');
+        }
+
+        // Apply immediately so the choice can be seen against the real UI,
+        // and leave the sheet open for comparing options.
+        function pickTheme(key) {
+            setTheme(key);
+            document.querySelectorAll('.theme-swatch').forEach(b => {
+                const on = b.dataset.themeKey === key;
+                b.classList.toggle('active', on);
+                const name = b.querySelector('.theme-swatch-name');
+                if (name) name.innerHTML = (on ? '<span class="tick">✓</span>' : '') + escapeHtml(THEMES[b.dataset.themeKey].label);
+            });
+        }
 
         function applyTheme(theme) {
             if (!THEMES[theme]) theme = DEFAULT_THEME;
@@ -3075,6 +3278,14 @@
             // from anywhere, including before a re-render.
             const select = document.getElementById('themeSelect');
             if (select && select.value !== theme) select.value = theme;
+
+            const chipLabel = document.getElementById('themeChipLabel');
+            if (chipLabel) chipLabel.innerText = def.label;
+            const chipSwatch = document.getElementById('themeChipSwatch');
+            if (chipSwatch) {
+                const sw = def.swatch || ['#888', '#aaa', '#ccc'];
+                chipSwatch.style.background = `linear-gradient(135deg, ${sw[0]} 0 40%, ${sw[1]} 40% 70%, ${sw[2]} 70% 100%)`;
+            }
             const themeColorMeta = document.querySelector('meta[name="theme-color"]');
             if (themeColorMeta) themeColorMeta.setAttribute('content', THEMES[theme].chrome);
             return theme;
@@ -4042,6 +4253,9 @@
                 // we're KEEPING before renderCreditCards() below rebuilds
                 // the table and resets every Payment field to "0.00".
                 saveCurrentWeekDraft();
+                // Snapshot AFTER that capture, so undo restores the on-screen
+                // payments rather than a stale draft.
+                offerUndo(`Deleted card "${card.name}"`);
 
                 creditCards = creditCards.filter(c => c.id !== id);
                 delete ccBreakdowns[id];
@@ -4162,6 +4376,10 @@
 
         function deleteCCItem(ccId, idx) {
             if (!ccBreakdowns[ccId]) return;
+            const removed = ccBreakdowns[ccId][idx];
+            if (!removed) return;
+            saveCurrentWeekDraft();
+            offerUndo(`Deleted "${removed.desc || 'charge'}"`);
             ccBreakdowns[ccId].splice(idx, 1);
             if (ccEditIndex[ccId] === idx) {
                 cancelCCEdit(ccId);
@@ -5029,15 +5247,270 @@
             saveState();
         }
 
+        // ---- Charts -----------------------------------------------------
+        // Hand-rolled inline SVG. A chart library would be the obvious move,
+        // but this app is one offline-capable file with no build step and no
+        // CDN at runtime, so the ~120 lines below buy more than they cost.
+        let activeChart = 'savings';
+        const CHART_W = 640, CHART_H = 260;
+        const CHART_PAD = { t: 14, r: 14, b: 34, l: 56 };
+
+        function openChartsModal(which) {
+            openModal('chartsModal');
+            showChart(which || activeChart);
+        }
+
+        function showChart(which) {
+            activeChart = which;
+            document.querySelectorAll('.chart-tab').forEach(b =>
+                b.classList.toggle('active', b.dataset.chart === which));
+            const body = document.getElementById('chartBody');
+            if (!body) return;
+            const builders = {
+                savings: chartSavings,
+                spendable: chartSpendable,
+                breakdown: chartBreakdown,
+                categories: chartCategories
+            };
+            body.innerHTML = (builders[which] || chartSavings)();
+        }
+
+        // Logs are stored newest-first; charts read oldest-first so time runs
+        // left to right. Cap the window so a long history stays legible.
+        function chartLogs(limit) {
+            return logsData.slice(0, limit || 14).slice().reverse();
+        }
+
+        function shortLabel(log) {
+            const start = (log.weekKey || '').split('_')[0];
+            if (!start) return '';
+            const d = parseLocalDate(start);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+        }
+
+        function niceMax(v) {
+            if (v <= 0) return 100;
+            const mag = Math.pow(10, Math.floor(Math.log10(v)));
+            return Math.ceil(v / mag) * mag;
+        }
+
+        function axisFrame(maxV, minV) {
+            const lo = Math.min(0, minV || 0);
+            const hi = niceMax(maxV);
+            const inner = CHART_H - CHART_PAD.t - CHART_PAD.b;
+            let g = '';
+            for (let i = 0; i <= 4; i++) {
+                const val = lo + (hi - lo) * (i / 4);
+                const y = CHART_PAD.t + inner - inner * (i / 4);
+                g += `<line x1="${CHART_PAD.l}" y1="${y.toFixed(1)}" x2="${CHART_W - CHART_PAD.r}" y2="${y.toFixed(1)}" stroke="currentColor" stroke-opacity="0.14"/>`
+                   + `<text x="${CHART_PAD.l - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="currentColor" fill-opacity="0.6">${formatCompact(val)}</text>`;
+            }
+            return { grid: g, lo, hi, inner };
+        }
+
+        function formatCompact(v) {
+            const a = Math.abs(v);
+            if (a >= 1000) return `${v < 0 ? '-' : ''}$${(a / 1000).toFixed(a >= 10000 ? 0 : 1)}k`;
+            return `${v < 0 ? '-' : ''}$${Math.round(a)}`;
+        }
+
+        function xLabels(items) {
+            const inner = CHART_W - CHART_PAD.l - CHART_PAD.r;
+            const step = items.length > 1 ? inner / (items.length - 1) : 0;
+            // Thin the labels out so they never collide on a phone.
+            const every = Math.ceil(items.length / 7);
+            return items.map((it, i) => (i % every === 0 || i === items.length - 1)
+                ? `<text x="${(CHART_PAD.l + step * i).toFixed(1)}" y="${CHART_H - 12}" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.55">${it.label}</text>`
+                : '').join('');
+        }
+
+        function svgWrap(inner) {
+            return `<svg class="chart-svg" viewBox="0 0 ${CHART_W} ${CHART_H}" role="img" preserveAspectRatio="xMidYMid meet" style="color: var(--text-main);">${inner}</svg>`;
+        }
+
+        function chartEmpty(msg) { return `<div class="chart-empty">${msg}</div>`; }
+
+        function chartSavings() {
+            const logs = chartLogs();
+            if (logs.length < 2) return chartEmpty(`Save at least two ${periodNoun()}s to see your savings trend.`);
+            const pts = logs.map(l => ({ v: safeNum(l.savingsBalanceAfter), label: shortLabel(l) }));
+            const { grid, lo, hi, inner } = axisFrame(Math.max(...pts.map(p => p.v)), Math.min(...pts.map(p => p.v)));
+            const w = CHART_W - CHART_PAD.l - CHART_PAD.r;
+            const step = w / (pts.length - 1);
+            const y = v => CHART_PAD.t + inner - (inner * (v - lo) / (hi - lo || 1));
+            const coords = pts.map((p, i) => `${(CHART_PAD.l + step * i).toFixed(1)},${y(p.v).toFixed(1)}`);
+            const area = `M${CHART_PAD.l},${CHART_PAD.t + inner} L${coords.join(' L')} L${(CHART_PAD.l + step * (pts.length - 1)).toFixed(1)},${CHART_PAD.t + inner} Z`;
+            const dots = pts.map((p, i) => `<circle cx="${(CHART_PAD.l + step * i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="3" fill="var(--positive)"><title>${p.label}: ${formatCurrency(p.v)}</title></circle>`).join('');
+            const first = pts[0].v, last = pts[pts.length - 1].v, delta = last - first;
+            return svgWrap(`${grid}<path d="${area}" fill="var(--positive)" fill-opacity="0.13"/>`
+                + `<polyline points="${coords.join(' ')}" fill="none" stroke="var(--positive)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`
+                + `${dots}${xLabels(pts)}`)
+                + `<p class="chart-caption">Savings balance after each ${periodNoun()} · ${delta >= 0 ? 'up' : 'down'} ${formatCurrency(Math.abs(delta))} across the last ${pts.length}.</p>`;
+        }
+
+        function chartSpendable() {
+            const logs = chartLogs();
+            if (!logs.length) return chartEmpty(`Save a ${periodNoun()} to see how much you had left over.`);
+            const pts = logs.map(l => ({ v: safeNum(l.discretionaryAdded), label: shortLabel(l) }));
+            const maxV = Math.max(...pts.map(p => p.v), 0);
+            const minV = Math.min(...pts.map(p => p.v), 0);
+            const { grid, lo, hi, inner } = axisFrame(maxV, minV);
+            const w = CHART_W - CHART_PAD.l - CHART_PAD.r;
+            const slot = w / pts.length;
+            const bw = Math.max(4, Math.min(38, slot * 0.62));
+            const y = v => CHART_PAD.t + inner - (inner * (v - lo) / (hi - lo || 1));
+            const zero = y(0);
+            const bars = pts.map((p, i) => {
+                const cx = CHART_PAD.l + slot * i + slot / 2;
+                const top = Math.min(y(p.v), zero), h = Math.max(1, Math.abs(y(p.v) - zero));
+                return `<rect x="${(cx - bw / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${p.v < 0 ? 'var(--negative)' : 'var(--primary)'}"><title>${p.label}: ${formatCurrency(p.v)}</title></rect>`;
+            }).join('');
+            const labels = pts.map((p, i) => `<text x="${(CHART_PAD.l + slot * i + slot / 2).toFixed(1)}" y="${CHART_H - 12}" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.55">${(i % Math.ceil(pts.length / 7) === 0 || i === pts.length - 1) ? p.label : ''}</text>`).join('');
+            const avg = pts.reduce((a, p) => a + p.v, 0) / pts.length;
+            return svgWrap(`${grid}${bars}<line x1="${CHART_PAD.l}" y1="${zero.toFixed(1)}" x2="${CHART_W - CHART_PAD.r}" y2="${zero.toFixed(1)}" stroke="currentColor" stroke-opacity="0.35"/>${labels}`)
+                + `<p class="chart-caption">Left over each ${periodNoun()} · averaging ${formatCurrency(avg)}.</p>`;
+        }
+
+        function chartBreakdown() {
+            const logs = chartLogs(10);
+            if (!logs.length) return chartEmpty(`Save a ${periodNoun()} to see where your money goes.`);
+            const parts = [
+                { key: 'debtPaid', color: 'var(--negative)', label: 'Debt' },
+                { key: 'billsPaid', color: '#f59e0b', label: 'Bills' },
+                { key: 'savedThisWeek', color: 'var(--positive)', label: 'Saved' },
+                { key: 'discretionaryAdded', color: 'var(--primary)', label: 'Spendable' }
+            ];
+            const rows = logs.map(l => ({
+                label: shortLabel(l),
+                vals: parts.map(p => Math.max(0, safeNum(l[p.key])))
+            }));
+            const { grid, lo, hi, inner } = axisFrame(Math.max(...rows.map(r => r.vals.reduce((a, b) => a + b, 0))), 0);
+            const w = CHART_W - CHART_PAD.l - CHART_PAD.r;
+            const slot = w / rows.length;
+            const bw = Math.max(6, Math.min(44, slot * 0.62));
+            const scale = v => inner * v / (hi - lo || 1);
+            const bars = rows.map((r, i) => {
+                const cx = CHART_PAD.l + slot * i + slot / 2;
+                let acc = 0;
+                return r.vals.map((v, j) => {
+                    const h = scale(v);
+                    acc += h;
+                    return h < 0.6 ? '' : `<rect x="${(cx - bw / 2).toFixed(1)}" y="${(CHART_PAD.t + inner - acc).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${parts[j].color}"><title>${r.label} ${parts[j].label}: ${formatCurrency(v)}</title></rect>`;
+                }).join('');
+            }).join('');
+            const labels = rows.map((r, i) => `<text x="${(CHART_PAD.l + slot * i + slot / 2).toFixed(1)}" y="${CHART_H - 12}" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.55">${r.label}</text>`).join('');
+            return svgWrap(`${grid}${bars}${labels}`)
+                + `<div class="chart-legend">${parts.map(p => `<span><i style="background:${p.color}"></i>${p.label}</span>`).join('')}</div>`;
+        }
+
+        function chartCategories() {
+            const spend = {};
+            purchasesData.forEach(p => {
+                const amt = safeNum(p.amount);
+                if (amt >= 0) return; // money in isn't spending
+                const cat = p.category || 'Uncategorized';
+                spend[cat] = (spend[cat] || 0) + Math.abs(amt);
+            });
+            const rows = Object.entries(spend).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            if (!rows.length) return chartEmpty('Log a few transactions to see your spending by category.');
+            const max = Math.max(...rows.map(r => r[1]));
+            const total = rows.reduce((a, r) => a + r[1], 0);
+            const barH = 26, gap = 8;
+            const h = rows.length * (barH + gap) + 10;
+            const labelW = 128;
+            const inner = CHART_W - labelW - 70;
+            const bars = rows.map(([cat, v], i) => {
+                const y = i * (barH + gap) + 4;
+                const w = Math.max(2, inner * v / max);
+                return `<text x="${labelW - 10}" y="${y + barH / 2 + 4}" text-anchor="end" font-size="12" fill="currentColor" fill-opacity="0.8">${escapeHtml(cat.length > 16 ? cat.slice(0, 15) + '…' : cat)}</text>`
+                     + `<rect x="${labelW}" y="${y}" width="${w.toFixed(1)}" height="${barH}" rx="4" fill="var(--primary)" fill-opacity="0.85"><title>${escapeHtml(cat)}: ${formatCurrency(v)}</title></rect>`
+                     + `<text x="${(labelW + w + 8).toFixed(1)}" y="${y + barH / 2 + 4}" font-size="11" fill="currentColor" fill-opacity="0.65">${formatCurrency(v)}</text>`;
+            }).join('');
+            return `<svg class="chart-svg" viewBox="0 0 ${CHART_W} ${h}" role="img" preserveAspectRatio="xMidYMid meet" style="color: var(--text-main);">${bars}</svg>`
+                 + `<p class="chart-caption">Top ${rows.length} spending categories · ${formatCurrency(total)} total.</p>`;
+        }
+
+        // Filter state lives outside the data so it survives re-renders and
+        // never reaches storage or the sync payload.
+        let historyFilter = { text: '', category: '' };
+
+        function setHistoryFilter() {
+            const textEl = document.getElementById('historySearch');
+            const catEl = document.getElementById('historyCategoryFilter');
+            historyFilter.text = textEl ? textEl.value.trim().toLowerCase() : '';
+            historyFilter.category = catEl ? catEl.value : '';
+            renderHistoryList();
+        }
+
+        function clearHistoryFilter() {
+            const textEl = document.getElementById('historySearch');
+            const catEl = document.getElementById('historyCategoryFilter');
+            if (textEl) textEl.value = '';
+            if (catEl) catEl.value = '';
+            setHistoryFilter();
+        }
+
+        function historyMatches(p) {
+            if (historyFilter.category && (p.category || '') !== historyFilter.category) return false;
+            if (!historyFilter.text) return true;
+            const hay = `${p.name || ''} ${p.category || ''} ${formatCurrency(p.amount)}`.toLowerCase();
+            return hay.includes(historyFilter.text);
+        }
+
+        // Keep the category dropdown in step with the categories actually
+        // present, without clobbering a selection the user has made.
+        function refreshHistoryCategories() {
+            const sel = document.getElementById('historyCategoryFilter');
+            if (!sel) return;
+            const cats = [...new Set(purchasesData.map(p => p.category).filter(Boolean))].sort();
+            const current = sel.value;
+            sel.innerHTML = '<option value="">All categories</option>'
+                + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+            // If the filtered-on category no longer exists, fall back to All
+            // rather than leaving the list mysteriously empty.
+            sel.value = cats.includes(current) ? current : '';
+            if (sel.value !== current) historyFilter.category = sel.value;
+        }
+
         function renderHistoryList() {
             const container = document.getElementById('historyList');
             if (!container) return;
+            refreshHistoryCategories();
+
+            const meta = document.getElementById('historyMeta');
             if (purchasesData.length === 0) {
                 container.innerHTML = '<div class="history-empty">No transactions recorded yet.</div>';
+                if (meta) meta.innerText = '';
                 return;
             }
 
-            container.innerHTML = purchasesData.map((p, idx) => `
+            // Keep each row's ORIGINAL index alongside it -- deletePurchase()
+            // falls back to positional matching for legacy rows without an
+            // id, and a filtered index would delete the wrong transaction.
+            const rows = purchasesData
+                .map((p, idx) => ({ p, idx }))
+                .filter(({ p }) => historyMatches(p));
+
+            if (meta) {
+                const active = historyFilter.text || historyFilter.category;
+                // Both branches write innerHTML: mixing innerText and
+                // innerHTML on the same element leaves whichever one you
+                // wrote last as the only accurate reading of it.
+                if (!active) {
+                    meta.innerHTML = `${purchasesData.length} transaction${purchasesData.length === 1 ? '' : 's'}`;
+                } else {
+                    const total = rows.reduce((sum, { p }) => sum + safeNum(p.amount), 0);
+                    meta.innerHTML = `${rows.length} of ${purchasesData.length} · ${formatCurrency(total)}`
+                        + ` <button class="link-btn" onclick="clearHistoryFilter()">Clear</button>`;
+                }
+            }
+
+            if (rows.length === 0) {
+                container.innerHTML = '<div class="history-empty">No transactions match that search.</div>';
+                return;
+            }
+
+            container.innerHTML = rows.map(({ p, idx }) => `
                 <div class="cc-item" style="margin-bottom: 6px;">
                     <div>
                         <strong>${escapeHtml(p.name || p.category || 'Transaction')}</strong>
@@ -5068,11 +5541,57 @@
         // which would remove whatever transaction happens to sit at that
         // index now. Prefer the stable id, fall back to the index for older
         // entries saved before ids existed.
+        // ---- Undo -------------------------------------------------------
+        // Rather than write a bespoke inverse for each delete (each of which
+        // touches balances, logs, drafts and card metadata differently), take
+        // a full state snapshot before the delete and restore it wholesale.
+        // Deletes are rare, the snapshot lives for eight seconds, and there
+        // is exactly one code path to get wrong instead of five.
+        let undoSnapshot = null;
+        let undoTimer = null;
+        const UNDO_WINDOW_MS = 8000;
+
+        function offerUndo(label) {
+            undoSnapshot = { label, state: JSON.parse(JSON.stringify(getStateObject())) };
+            clearTimeout(undoTimer);
+            undoTimer = setTimeout(dismissUndo, UNDO_WINDOW_MS);
+
+            const toast = document.getElementById('undoToast');
+            const text = document.getElementById('undoToastText');
+            if (text) text.innerText = label;
+            if (toast) {
+                toast.style.display = 'flex';
+                // Restart the countdown bar even if a toast is already up.
+                toast.classList.remove('showing');
+                void toast.offsetWidth;
+                toast.classList.add('showing');
+            }
+        }
+
+        function dismissUndo() {
+            clearTimeout(undoTimer);
+            undoTimer = null;
+            undoSnapshot = null;
+            const toast = document.getElementById('undoToast');
+            if (toast) { toast.style.display = 'none'; toast.classList.remove('showing'); }
+        }
+
+        function performUndo() {
+            if (!undoSnapshot) return;
+            const state = undoSnapshot.state;
+            dismissUndo();
+            applyStateObject(state);
+            // applyStateObject is also the sync-inbound path, so it
+            // deliberately doesn't persist. An undo is a local edit and must.
+            saveState();
+        }
+
         function deletePurchase(id, idx) {
             let target = -1;
             if (id) target = purchasesData.findIndex(p => p.id === id);
             if (target === -1 && purchasesData[idx] && !purchasesData[idx].id) target = idx;
             if (target === -1 || !purchasesData[target]) return;
+            offerUndo(`Deleted "${purchasesData[target].name || purchasesData[target].category || 'transaction'}"`);
             globalDiscretionaryBalance -= safeNum(purchasesData[target].amount);
             purchasesData.splice(target, 1);
             updateDisplays();
@@ -5492,6 +6011,7 @@
                 `Delete the log for ${log.rangeLabel || `this ${periodNoun()}`}? ${formatCurrency(saved)} will be removed from your Savings Balance and ${formatCurrency(disc)} from your Spendable Balance.`,
                 (confirmed) => {
                     if (!confirmed) return;
+                    offerUndo(`Deleted the log for ${log.rangeLabel || 'that ' + periodNoun()}`);
                     globalSavingsBalance -= saved;
                     globalDiscretionaryBalance -= disc;
                     logsData.splice(idx, 1);
