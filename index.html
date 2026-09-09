@@ -525,9 +525,26 @@
         .edit-icon-btn:hover { text-decoration: underline; }
 
         .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.45); z-index: 1001; justify-content: center; align-items: center;
-            padding: 20px; box-sizing: border-box;
+            display: none; position: fixed; top: 0; left: 0; width: 100%;
+            /* 100dvh tracks the iPhone URL bar as it slides in and out. The
+               plain 100% above it is the fallback for anything that doesn't
+               know dvh; both are needed. */
+            height: 100%; height: 100dvh;
+            background: rgba(15, 23, 42, 0.45); z-index: 1001; justify-content: center;
+            /* NOT align-items: center. A dialog taller than the viewport
+               centred in a flex container overflows equally in BOTH
+               directions, and the part above the container is unreachable --
+               you cannot scroll up to it. That's what pinned the top of the
+               Discretionary Balance menu under the Safari header. flex-start
+               plus `margin: auto` on the content below keeps short dialogs
+               centred while letting tall ones scroll from the top. */
+            align-items: flex-start;
+            overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+            /* viewport-fit=cover means the notch and home indicator are ours
+               to account for. body does this for the page; the overlay is
+               fixed to the viewport, so it has to do it for itself. */
+            padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+            box-sizing: border-box;
             opacity: 0;
             -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px);
             transition: opacity 0.26s ease, -webkit-backdrop-filter 0.32s ease, backdrop-filter 0.32s ease;
@@ -543,7 +560,10 @@
         #confirmModal { z-index: 1002; }
         .modal-content {
             background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px;
-            box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35); max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+            /* Centres a short dialog inside the flex-start overlay, and is
+               simply ignored once the dialog is taller than the space. */
+            margin: auto;
+            box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35); max-height: none; overflow-x: hidden;
             transform: scale(0.94) translateY(16px);
             opacity: 0;
             /* Decelerating curve -- fast off the mark, settling gently -- so
@@ -553,7 +573,7 @@
                         background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
         }
         .modal-overlay.open .modal-content { transform: scale(1) translateY(0); opacity: 1; }
-        .modal-content-wide { max-width: 1280px; width: 94%; max-height: 94vh; }
+        .modal-content-wide { max-width: 1280px; width: 94%; }
 
         /* The balance menu is three tall columns; bringing them in together
            reads as one heavy slab landing. A short stagger lets the eye go
@@ -602,6 +622,26 @@
         .balance-menu-section .budget-row { font-size: 0.79rem; margin-bottom: 3px; }
 
         @media (max-width: 900px) { .balance-menu-grid { flex-direction: column; } }
+
+        /* Phone layout for every dialog. The wide balance menu was the worst
+           offender -- 94% width plus 25px of padding plus a 14px column gap
+           left the inner rows with less room than their content needed, so
+           the right-hand edge (amounts, the planned-spend inputs) was being
+           clipped by overflow-x: hidden. Give the dialog the full width it
+           can have, trim the padding, and let the rows that pair a label
+           with a control wrap instead of squeezing. */
+        @media (max-width: 700px) {
+            .modal-overlay { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+            .modal-content, .modal-content-wide { width: 100%; max-width: none; padding: 18px 16px; border-radius: 14px; }
+            .modal-header { margin-bottom: 14px; }
+            .balance-menu-grid { gap: 12px; }
+            .bm-column { gap: 12px; }
+            .balance-menu-section { padding: 12px; }
+            .balance-menu-section .liminal-row { flex-wrap: wrap; row-gap: 4px; }
+            .balance-menu-section .liminal-planned { flex: 1 1 auto; }
+            .balance-menu-section .liminal-planned input { width: 100%; min-width: 72px; }
+            .balance-menu-section #historyList { max-height: 260px; }
+        }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
 
@@ -4056,6 +4096,51 @@
             // that period -- commitWeekEntry() has always stamped the three
             // figures onto the log entry, so old history can be recovered
             // exactly rather than back-filled with today's numbers.
+            ensureDraftShape(key);
+        }
+
+        // initDraft() only ever filled in defaults for a draft it CREATED.
+        // A draft that already existed but was written by an older version
+        // of the app can be missing keys entirely -- and every consumer of a
+        // draft guards with `if (draft.ccBreakdowns)` / `if (draft.cards &&
+        // length > 0)` / `if (draft.expenses && length > 0)`. A missing key
+        // therefore didn't mean "nothing for this period", it meant "leave
+        // whatever is already in the global/DOM alone" -- and what's already
+        // there is the PREVIOUS period's data, because getStateObject()
+        // persists the live globals alongside the drafts.
+        //
+        // Concretely, on an old save: the period's card payments looked
+        // right ($0.00) until you opened a card's Details panel, at which
+        // point renderCCBreakdown() listed last period's charges and wrote
+        // their total straight into the Payment field -- and toggleCC()'s
+        // saveCurrentWeekDraft() then made it permanent. Same class of leak
+        // for bills and misc rows. Normalise every draft to the full shape
+        // so a missing key can never mean "inherit".
+        function ensureDraftShape(key) {
+            const draft = weeklyDrafts[key];
+            if (!draft) return;
+
+            if (!Array.isArray(draft.cards)) {
+                draft.cards = creditCards.map(c => ({ id: c.id, name: c.name, payment: "0.00" }));
+            }
+            if (!draft.ccBreakdowns || typeof draft.ccBreakdowns !== 'object') {
+                draft.ccBreakdowns = {};
+            }
+            // Any card with no entry gets an explicit empty list rather than
+            // being absent -- absent is what let the old global show through.
+            creditCards.forEach(c => {
+                if (!Array.isArray(draft.ccBreakdowns[c.id])) draft.ccBreakdowns[c.id] = [];
+            });
+
+            if (!Array.isArray(draft.expenses) || draft.expenses.length === 0) {
+                draft.expenses = ["0.00", "0.00", "0.00"];
+            }
+            if (!Array.isArray(draft.miscExpenses)) {
+                draft.miscExpenses = [{ note: "", amt: "0.00" }];
+            }
+            if (draft.savingsThisWeek === undefined) draft.savingsThisWeek = "";
+            if (typeof draft.savingsManual !== 'boolean') draft.savingsManual = false;
+
             ensureDraftPaycheck(key);
         }
 
@@ -4079,7 +4164,7 @@
         // paycheck figures, so an un-migrated draft for a short week would be
         // swept away and rebuilt from the standard hours.
         function migrateDraftPaychecks() {
-            Object.keys(weeklyDrafts).forEach(ensureDraftPaycheck);
+            Object.keys(weeklyDrafts).forEach(ensureDraftShape);
         }
 
         function saveCurrentWeekDraft() {
@@ -5064,27 +5149,30 @@
                 });
             }
 
-            if (draft.ccBreakdowns) {
-                ccBreakdowns = JSON.parse(JSON.stringify(draft.ccBreakdowns));
-            }
+            // Unconditional: ensureDraftShape() guarantees the key exists, and
+            // skipping the assignment is precisely what used to leave the
+            // previous period's charges sitting in the global.
+            ccBreakdowns = JSON.parse(JSON.stringify(draft.ccBreakdowns || {}));
 
             renderCreditCards();
 
-            if (draft.cards && Array.isArray(draft.cards)) {
-                draft.cards.forEach(dc => {
-                    const input = document.getElementById(`debt-${dc.id}`);
-                    if (input && document.activeElement !== input) input.value = parseFloat(dc.payment || 0).toFixed(2);
-                });
-            }
+            // Every card gets written, not just the ones the draft happens to
+            // list: a card added after this draft was written had no entry
+            // here, so its Payment field kept whatever the last period left
+            // in it.
+            creditCards.forEach(c => {
+                const input = document.getElementById(`debt-${c.id}`);
+                if (!input || document.activeElement === input) return;
+                const dc = (draft.cards || []).find(x => x.id === c.id);
+                input.value = parseFloat((dc && dc.payment) || 0).toFixed(2);
+            });
 
             const fixedExpInputs = document.querySelectorAll('.exp-input-fixed');
-            if (draft.expenses && draft.expenses.length > 0) {
-                fixedExpInputs.forEach((input, i) => {
-                    if (draft.expenses[i] !== undefined && document.activeElement !== input) {
-                        input.value = parseFloat(draft.expenses[i] || 0).toFixed(2);
-                    }
-                });
-            }
+            fixedExpInputs.forEach((input, i) => {
+                if (document.activeElement === input) return;
+                const v = (draft.expenses || [])[i];
+                input.value = parseFloat(v || 0).toFixed(2);
+            });
 
             const miscTbody = document.getElementById('miscExpRows');
             if (miscTbody) {
