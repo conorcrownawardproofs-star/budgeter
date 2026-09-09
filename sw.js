@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-tracker-v28';
+const CACHE_NAME = 'budget-tracker-v29';
 
 // './' and './index.html' are the same document. Keeping both here means a
 // cold offline launch works whether the browser asks for the directory or the
