@@ -338,6 +338,12 @@
         .link-btn { background: none; border: none; color: var(--primary); font-size: 0.75rem; font-weight: 600; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
         .link-btn:hover { background-color: #eff6ff; text-decoration: underline; }
 
+        /* .input-group is a wrapping flex row, so the hint has to claim a
+           full line of its own -- otherwise it tries to squeeze in beside
+           the label and the number field on wide screens. */
+        .hours-hint { flex: 0 0 100%; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 2px; font-size: 0.74rem; line-height: 1.35; color: #c2410c; }
+        .hours-hint .hours-hint-text { flex: 1 1 auto; min-width: 0; }
+        .hours-hint .link-btn { flex: 0 0 auto; padding: 0; font-size: 0.74rem; }
         .mode-tag { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 4px; }
         .mode-tag.auto { background-color: #eff6ff; color: var(--primary); }
         .mode-tag.manual { background-color: #fff7ed; color: #c2410c; }
@@ -2482,12 +2488,16 @@
                         <label>Hourly Rate</label>
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="calculateAll('other'); saveState();">
+                            <input type="number" inputmode="decimal" id="hourlyRate" class="money-input" value="25.00" step="0.01" oninput="onPaycheckInput('hourlyRate');">
                         </div>
                     </div>
                     <div class="input-group">
                         <label data-lbl-weekly="Hours per Week" data-lbl-biweekly="Hours per Pay Period">Hours per Week</label>
-                        <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="calculateAll('other'); saveState();">
+                        <input type="number" inputmode="decimal" id="hoursPerWeek" value="40" step="0.5" oninput="onPaycheckInput('hoursPerWeek');">
+                        <div class="hours-hint" id="hoursStandardHint" style="display:none;">
+                            <span class="hours-hint-text"></span>
+                            <button type="button" class="link-btn" id="setStandardHoursBtn" onclick="setStandardHours()">Set as standard</button>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label data-lbl-weekly="Gross Weekly Income" data-lbl-biweekly="Gross Income (Per Period)">Gross Weekly Income</label>
@@ -2496,7 +2506,7 @@
                     <div class="input-group">
                         <label>Estimated Tax Rate</label>
                         <div class="percent-field">
-                            <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="calculateAll('other'); saveState();">
+                            <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="onPaycheckInput('taxRate');">
                             <span class="percent-symbol">%</span>
                         </div>
                     </div>
@@ -2882,6 +2892,23 @@
         // Draft Memory tracking
         let weeklyDrafts = {};
         let currentWeekKey = "";
+
+        // ---- Paycheck: standing settings vs. what you actually worked ----
+        // Hourly rate, hours and tax rate used to live in the DOM only and
+        // were saved as three flat top-level keys -- one global set shared by
+        // every period. So a short week (38.4 hrs) overwrote the 40-hour week
+        // before it, and paging back showed whatever was typed last rather
+        // than what that period actually paid. They're now stored per period
+        // in the draft, exactly like card payments and bills.
+        //
+        // defaultPaycheck is the standing setup a BRAND NEW period starts
+        // from. Rate and tax are standing settings, so editing either updates
+        // this too. Hours are a record of a specific period, so editing them
+        // only touches that period's draft -- a 38.4-hour week never drags
+        // the next one down with it. "Set as standard" is how the default
+        // hours change.
+        const PAYCHECK_FIELDS = ['hourlyRate', 'hoursPerWeek', 'taxRate'];
+        let defaultPaycheck = { hourlyRate: '25.00', hoursPerWeek: '40', taxRate: '19.25' };
 
         // ---- Pay period -------------------------------------------------
         // 'weekly' keeps the original Sunday-Saturday behaviour untouched.
@@ -3715,6 +3742,7 @@
                 creditCards: [],
                 ccBreakdowns: {},
                 ccCardMeta: {},
+                defaultPaycheck: { hourlyRate: '25.00', hoursPerWeek: '40', taxRate: '19.25' },
                 hourlyRate: '25.00',
                 hoursPerWeek: '40',
                 taxRate: '19.25'
@@ -4018,9 +4046,40 @@
                     expenses: ["0.00", "0.00", "0.00"],
                     miscExpenses: [{ note: "", amt: "0.00" }],
                     savingsThisWeek: "",
-                    savingsManual: false
+                    savingsManual: false,
+                    paycheck: { ...defaultPaycheck }
                 };
             }
+
+            // Drafts written before paycheck values were period-scoped have
+            // no .paycheck at all. Prefer whatever was actually logged for
+            // that period -- commitWeekEntry() has always stamped the three
+            // figures onto the log entry, so old history can be recovered
+            // exactly rather than back-filled with today's numbers.
+            ensureDraftPaycheck(key);
+        }
+
+        function ensureDraftPaycheck(key) {
+            const draft = weeklyDrafts[key];
+            if (!draft) return;
+            if (draft.paycheck && typeof draft.paycheck === 'object') return;
+            const logged = logsData.find(l => l.weekKey === key && l.paycheck);
+            draft.paycheck = { ...defaultPaycheck };
+            if (logged) {
+                PAYCHECK_FIELDS.forEach(f => {
+                    const v = logged.paycheck[f];
+                    if (v !== undefined && v !== null && v !== '') draft.paycheck[f] = String(v);
+                });
+            }
+        }
+
+        // Run once as soon as saved state lands, BEFORE anything prunes:
+        // isDraftEmpty() has no way to tell a genuinely blank pre-upgrade
+        // draft from one whose only real content was its (then still global)
+        // paycheck figures, so an un-migrated draft for a short week would be
+        // swept away and rebuilt from the standard hours.
+        function migrateDraftPaychecks() {
+            Object.keys(weeklyDrafts).forEach(ensureDraftPaycheck);
         }
 
         function saveCurrentWeekDraft() {
@@ -4054,6 +4113,12 @@
             const savingsInput = document.getElementById('savingsThisWeek');
             if (savingsInput) draft.savingsThisWeek = savingsInput.value;
             draft.savingsManual = isSavingsManual;
+
+            if (!draft.paycheck) draft.paycheck = { ...defaultPaycheck };
+            PAYCHECK_FIELDS.forEach(f => {
+                const el = document.getElementById(f);
+                if (el) draft.paycheck[f] = el.value;
+            });
 
             saveState();
         }
@@ -4566,6 +4631,45 @@
             }
         }
 
+        // Every paycheck field now writes to the period's draft. Rate and tax
+        // additionally update the standing default, since they describe your
+        // job rather than one particular period.
+        function onPaycheckInput(field) {
+            if (field === 'hourlyRate' || field === 'taxRate') {
+                const el = document.getElementById(field);
+                if (el) defaultPaycheck[field] = el.value;
+            }
+            calculateAll('other');
+            updateHoursStandardHint();
+            saveCurrentWeekDraft();
+        }
+
+        // Makes it obvious at a glance that this period isn't a normal one,
+        // and gives a one-tap way to say "actually, this IS my normal now".
+        function updateHoursStandardHint() {
+            const hint = document.getElementById('hoursStandardHint');
+            const btn = document.getElementById('setStandardHoursBtn');
+            if (!hint || !btn) return;
+            const el = document.getElementById('hoursPerWeek');
+            const current = parseFloat(el?.value);
+            const std = parseFloat(defaultPaycheck.hoursPerWeek);
+            const differs = Number.isFinite(current) && Number.isFinite(std) && Math.abs(current - std) > 0.001;
+            hint.style.display = differs ? 'flex' : 'none';
+            if (differs) {
+                hint.querySelector('.hours-hint-text').innerText =
+                    `${current} vs. your standard ${std} — saved to this ${periodNoun()} only.`;
+            }
+        }
+
+        function setStandardHours() {
+            const el = document.getElementById('hoursPerWeek');
+            const v = parseFloat(el?.value);
+            if (!Number.isFinite(v) || v <= 0) return;
+            defaultPaycheck.hoursPerWeek = String(v);
+            updateHoursStandardHint();
+            saveCurrentWeekDraft();
+        }
+
         function calculateAll(source) {
             const hourly = parseFloat(document.getElementById('hourlyRate').value) || 0;
             const hours = parseFloat(document.getElementById('hoursPerWeek').value) || 0;
@@ -4833,21 +4937,34 @@
                 // Hours are entered PER PERIOD, so the same figure means a
                 // different paycheck in each mode. Scale it so switching
                 // doesn't silently halve or double the user's income.
+                const scale = h => String(next === 'biweekly' ? h * 2 : h / 2);
                 const hoursEl = document.getElementById('hoursPerWeek');
                 if (hoursEl) {
                     const hrs = parseFloat(hoursEl.value);
-                    if (Number.isFinite(hrs) && hrs > 0) {
-                        hoursEl.value = String(next === 'biweekly' ? hrs * 2 : hrs / 2);
-                    }
+                    if (Number.isFinite(hrs) && hrs > 0) hoursEl.value = scale(hrs);
                 }
+                // The standing default is per period too, so it has to be
+                // scaled alongside the field -- otherwise every new biweekly
+                // period would seed itself with a single week's hours.
+                const stdHrs = parseFloat(defaultPaycheck.hoursPerWeek);
+                if (Number.isFinite(stdHrs) && stdHrs > 0) defaultPaycheck.hoursPerWeek = scale(stdHrs);
+                // Existing drafts are left exactly as they are: each one is
+                // keyed to a period of the OLD shape and still describes what
+                // was worked in that span. They become reachable again if the
+                // user switches back, and they read correctly when they do.
 
                 // A biweekly setup with no payday on file gets one derived
                 // from the current week, so it is never left un-anchored.
                 if (next === 'biweekly' && !payAnchor) payAnchor = getFormattedDate(effectiveAnchor());
 
                 applyPeriodUI();
+                // Stash the scaled figure: setWeekDates() below loads the new
+                // period's draft, which for a first visit is seeded from
+                // defaultPaycheck (already scaled above), and for a
+                // previously-visited period holds that period's own hours.
                 setWeekDates(new Date());
                 calculateAll('other');
+                updateHoursStandardHint();
                 checkUnsavedWeek();
                 saveState();
                 if (from !== next) renderLogsTable();
@@ -4864,7 +4981,29 @@
             );
         }
 
+        // Changing period while a money field still has the caret in it was a
+        // desktop-only data leak. Clicking a button does NOT move focus in
+        // Safari or Firefox, so the field you were last typing in is still
+        // document.activeElement when the arrow fires. Every restore in
+        // loadCurrentWeekDraft() deliberately skips the focused field (so an
+        // incoming sync update can't overwrite you mid-keystroke), which
+        // meant the OLD period's bills, misc rows, savings and hours stayed
+        // on screen under the NEW period's dates -- and the next
+        // saveCurrentWeekDraft(), which reads straight from the DOM, wrote
+        // them into the new period for real. On a phone the tap blurs the
+        // input first, which is why this never showed up there.
+        //
+        // Card payments were already immune (renderCreditCards() rebuilds
+        // those rows outright), but everything else was exposed.
+        function blurFocusedDataField() {
+            const el = document.activeElement;
+            if (!el || el === document.body) return;
+            if (el.id === 'weekStart' || el.id === 'weekEnd') return; // mid-change; leave it alone
+            if (el.tagName === 'INPUT' && typeof el.blur === 'function') el.blur();
+        }
+
         function setWeekDates(startDate) {
+            blurFocusedDataField();
             setCurrentWeekKeyOnly(startDate);
             loadCurrentWeekDraft();
         }
@@ -4900,6 +5039,7 @@
             if (s && e) {
                 document.getElementById('weekRangeLabel').innerText = formatDateRangeLabel(s, e);
                 currentWeekKey = `${s}_${e}`;
+                blurFocusedDataField();
                 loadCurrentWeekDraft();
             }
         }
@@ -4994,6 +5134,16 @@
             if (savingsInput && draft.savingsThisWeek !== "" && draft.savingsThisWeek !== undefined && document.activeElement !== savingsInput) {
                 savingsInput.value = parseFloat(draft.savingsThisWeek || 0).toFixed(2);
             }
+
+            // Same focus rule as every other synced field: never overwrite
+            // the box the user is currently typing in.
+            PAYCHECK_FIELDS.forEach(f => {
+                const el = document.getElementById(f);
+                if (!el || document.activeElement === el) return;
+                const v = draft.paycheck ? draft.paycheck[f] : undefined;
+                if (v !== undefined && v !== null && v !== '') el.value = v;
+            });
+            updateHoursStandardHint();
 
             updateDisplays();
         }
@@ -6225,9 +6375,15 @@
                 billLabels,
                 payPeriod,
                 payAnchor,
-                hourlyRate: document.getElementById('hourlyRate')?.value,
-                hoursPerWeek: document.getElementById('hoursPerWeek')?.value,
-                taxRate: document.getElementById('taxRate')?.value
+                defaultPaycheck,
+                // The three flat keys stay in the payload for one more
+                // release so an older copy of the app still open on another
+                // device (or a stale cached PWA) keeps reading a sane
+                // paycheck instead of falling back to $25/40hrs. They mirror
+                // the standing default, not whatever period is on screen.
+                hourlyRate: defaultPaycheck.hourlyRate,
+                hoursPerWeek: defaultPaycheck.hoursPerWeek,
+                taxRate: defaultPaycheck.taxRate
             };
         }
 
@@ -6247,6 +6403,18 @@
             if (Array.isArray(draft.miscExpenses) && draft.miscExpenses.some(m => (m.note || '').trim() !== '' || !zero(m.amt))) return false;
             if (draft.savingsManual) return false;
             if (draft.savingsThisWeek !== '' && draft.savingsThisWeek !== undefined && !zero(draft.savingsThisWeek)) return false;
+            // A paycheck block matching the standing default is just the
+            // seed initDraft() puts in every new draft -- it is not something
+            // the user entered, so it must not keep an otherwise-blank week
+            // alive in storage and the sync payload. A period where the hours
+            // (or rate, or tax) actually differ IS real data worth keeping:
+            // that's the whole point of the short-week fix.
+            if (draft.paycheck && PAYCHECK_FIELDS.some(f => {
+                const a = parseFloat(draft.paycheck[f]);
+                const b = parseFloat(defaultPaycheck[f]);
+                if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
+                return Math.abs(a - b) > 0.001;
+            })) return false;
             return true;
         }
 
@@ -6357,15 +6525,22 @@
             // currently typing in. These three didn't, so an incoming update
             // from your other device would replace your hourly rate or hours
             // mid-keystroke -- the digits you'd typed simply vanished.
-            const setIfNotFocused = (id, value) => {
-                if (value === undefined || value === null || value === '') return;
-                const el = document.getElementById(id);
-                if (el && document.activeElement !== el) el.value = value;
-            };
-            setIfNotFocused('hourlyRate', state.hourlyRate);
-            setIfNotFocused('hoursPerWeek', state.hoursPerWeek);
-            setIfNotFocused('taxRate', state.taxRate);
+            // Rebuild the standing default from whichever shape the save
+            // uses: the new nested object, or -- for a save written before
+            // paycheck values were period-scoped -- the three flat keys,
+            // which were exactly this user's last-used figures.
+            PAYCHECK_FIELDS.forEach(f => {
+                const v = (state.defaultPaycheck && state.defaultPaycheck[f] !== undefined && state.defaultPaycheck[f] !== '')
+                    ? state.defaultPaycheck[f]
+                    : state[f];
+                if (v !== undefined && v !== null && v !== '') defaultPaycheck[f] = String(v);
+            });
 
+            migrateDraftPaychecks();
+
+            // loadCurrentWeekDraft() writes the three fields from this
+            // period's draft (skipping any field being typed in), so there's
+            // nothing to set directly here any more.
             loadCurrentWeekDraft();
             renderLogsTable();
             updateDisplays();
