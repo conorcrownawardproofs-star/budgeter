@@ -2147,6 +2147,87 @@
             .input-group select { min-height: 44px; }
             #logTable th, #logTable td { padding: 8px 6px; font-size: 0.82rem; }
         }
+
+        /* ==========================================================
+           MOBILE INPUT PASS
+           iOS zooms the whole page in whenever you focus an input
+           whose text is smaller than 16px, then leaves you scrolled
+           somewhere else when the keyboard closes. Every field you
+           actually type into gets 16px on a phone; the tiny decorative
+           chips (the Network label) are left alone because they're
+           rarely edited and 16px would break their layout.
+           ========================================================== */
+        @media (max-width: 700px) {
+            .cc-add-form input[type="text"],
+            .cc-add-form .money-field input,
+            .cc-name-input,
+            td input[type="number"],
+            td input[type="text"],
+            .input-group input[type="text"],
+            .input-group input[type="number"],
+            .input-with-controls input[type="number"],
+            .misc-note-input,
+            .liminal-planned input,
+            .modal-content input[type="text"],
+            .modal-content input[type="number"],
+            .modal-content input[type="date"],
+            .modal-content select,
+            .history-filter input,
+            .history-filter select,
+            .week-date-inputs input[type="date"] { font-size: 16px !important; }
+
+            /* The add-a-charge row was three controls fighting over one
+               line: description, amount and the button all shrank to
+               nothing, and on a narrow phone the description box ended
+               up too small to read what you'd typed. Give the
+               description the full width and put the amount, Add and
+               Cancel underneath it. */
+            .cc-add-form {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                gap: 8px;
+                align-items: center;
+                padding: 10px;
+            }
+            .cc-add-form input[type="text"] { grid-column: 1 / -1; width: 100%; min-width: 0; }
+            .cc-add-form .money-field { grid-column: 1; width: 100%; }
+            .cc-add-form .money-field input { width: 100%; }
+            .cc-add-form .btn-action { min-height: 42px; padding: 8px 16px; }
+            .cc-add-form .link-btn { min-height: 42px; padding: 0 8px; }
+
+            /* Touch targets. 0.6rem text in a 2px box is a desktop
+               control that happened to be shown on a phone. */
+            .cc-quick-bar .iq-btn { min-height: 30px; padding: 4px 9px; font-size: 0.7rem; }
+            .cc-item { padding: 9px 10px; font-size: 0.9rem; }
+            .cc-item .link-btn { min-height: 34px; padding: 6px 8px; }
+            .cc-item-text { padding: 4px; }
+            .cc-detail-toggle { min-height: 34px; }
+        }
+
+        /* A charge row that was just added or edited gets a moment of
+           colour, so a fast entry streak still reads as "that landed". */
+        .cc-item.cc-item-flash { animation: flashUpdate 0.7s ease; }
+
+        /* Shown in place of the sync chip while a remote update is being
+           held back because you're mid-edit. */
+        .sync-badge.holding { background-color: #e0e7ff; color: #4338ca; }
+        html[data-scheme="dark"] .sync-badge.holding { background-color: #1e1b4b; color: #a5b4fc; }
+
+        /* Mobile tap feel: kill the grey flash iOS paints over every
+           tappable element and give buttons a real pressed state instead. */
+        button, .card-header, .disc-balance-banner, .cc-item-text, .theme-swatch {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active, .btn-small:active, .btn-action:active, .chart-tab:active,
+        .header-chip-btn:active, .details-toggle-btn:active, .cc-detail-toggle:active {
+            transform: scale(0.97);
+        }
+        .btn, .btn-small, .btn-action, .chart-tab, .details-toggle-btn, .cc-detail-toggle {
+            transition: transform 0.12s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+        }
+        /* Keep a field the browser just scrolled to clear of the header. */
+        input, select, textarea { scroll-margin-block: 80px; }
+
     </style>
 </head>
 <body>
@@ -2625,7 +2706,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="0" data-name="Rent / Mortgage" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="0" data-name="Rent / Mortgage" value="0.00" step="0.01" oninput="scheduleDraftSave('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -2642,7 +2723,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="1" data-name="Car Insurance" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="1" data-name="Car Insurance" value="0.00" step="0.01" oninput="scheduleDraftSave('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -2659,7 +2740,7 @@
                                 <td style="text-align: right;">
                                     <div class="money-field">
                                         <span class="currency-symbol">$</span>
-                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="2" data-name="Other Bills &amp; Utilities" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                        <input type="number" inputmode="decimal" class="exp-input exp-input-fixed money-input" data-bill-index="2" data-name="Other Bills &amp; Utilities" value="0.00" step="0.01" oninput="scheduleDraftSave('other')">
                                     </div>
                                     <div class="inline-quick-bar">
                                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -2807,7 +2888,7 @@
                     <div class="input-with-controls">
                         <div class="money-field">
                             <span class="currency-symbol">$</span>
-                            <input type="number" inputmode="decimal" id="savingsThisWeek" class="money-input" step="0.01" oninput="calculateAll('savings'); saveCurrentWeekDraft();">
+                            <input type="number" inputmode="decimal" id="savingsThisWeek" class="money-input" step="0.01" oninput="scheduleDraftSave('savings')">
                         </div>
                         <div class="inline-quick-bar">
                             <button class="iq-btn neg" onclick="adjustSpecificField('savingsThisWeek', -100, 'savings')">-100</button>
@@ -3499,8 +3580,11 @@
         document.addEventListener('focusout', (e) => {
             if (e.target.classList.contains('money-input')) {
                 if (e.target.value !== "") {
-                    e.target.value = parseFloat(e.target.value).toFixed(2);
-                } else {
+                    const n = parseFloat(e.target.value);
+                    e.target.value = Number.isFinite(n) ? n.toFixed(2) : "0.00";
+                } else if (e.target.dataset.allowEmpty !== '1') {
+                    // The add-a-charge amount opts out: stamping 0.00 into a
+                    // box you only tapped past makes an empty form look filled.
                     e.target.value = "0.00";
                 }
             }
@@ -3521,6 +3605,70 @@
         let isApplyingRemoteState = false;
         let syncSaveStatus = 'idle'; // 'idle' | 'saved' | 'unsaved' | 'saving' | 'error'
         let lastSyncSavedAt = null;
+
+        // =====================================================================
+        // EDIT GUARD
+        // ---------------------------------------------------------------------
+        // Every re-render in this app rebuilds real <input> elements, so a
+        // remote snapshot that lands while you're typing doesn't just refresh
+        // the screen -- it destroys the box under your cursor. That is the
+        // "the field cleared itself" bug: a half-typed charge description on a
+        // credit card, wiped by a sync update from the other device (or by
+        // this device's own state coming back to it on resume).
+        //
+        // The rule is simple and absolute: while a field is focused, or within
+        // a moment of the last keystroke, nothing re-renders. The incoming
+        // snapshot is held and applied the instant you stop. Your own edits
+        // are never held back -- they keep pushing out as normal.
+        // =====================================================================
+        let editGuardField = null;
+        let lastEditActivity = 0;
+        let deferredRemoteState = null;
+        let editGuardTimer = null;
+        const EDIT_IDLE_MS = 1400;
+
+        function isEditableField(el) {
+            if (!el) return false;
+            const tag = el.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable === true;
+        }
+
+        function isUserEditing() {
+            if (editGuardField && document.contains(editGuardField)) return true;
+            return (Date.now() - lastEditActivity) < EDIT_IDLE_MS;
+        }
+
+        let holdingBadgeShown = false;
+        function noteEditActivity() {
+            lastEditActivity = Date.now();
+            if (deferredRemoteState) {
+                // Paint the badge once per hold, not once per keystroke.
+                if (!holdingBadgeShown) { holdingBadgeShown = true; updateSyncStatus('holding'); }
+                scheduleDeferredApply();
+            } else {
+                holdingBadgeShown = false;
+            }
+        }
+
+        function scheduleDeferredApply() {
+            clearTimeout(editGuardTimer);
+            editGuardTimer = setTimeout(() => {
+                if (!deferredRemoteState) return;
+                if (isUserEditing()) { scheduleDeferredApply(); return; }
+                const pending = deferredRemoteState;
+                deferredRemoteState = null;
+                applyRemoteState(pending, true);
+            }, EDIT_IDLE_MS + 150);
+        }
+
+        document.addEventListener('focusin', (e) => {
+            if (isEditableField(e.target)) { editGuardField = e.target; noteEditActivity(); }
+        });
+        document.addEventListener('focusout', (e) => {
+            if (e.target === editGuardField) { editGuardField = null; noteEditActivity(); }
+        });
+        document.addEventListener('input', noteEditActivity, true);
+        document.addEventListener('keydown', noteEditActivity, true);
 
         function loadSupabaseScript(callback) {
             const existing = document.getElementById('supabase-js-lib');
@@ -3614,8 +3762,10 @@
                     .maybeSingle();
 
                 if (!error && data) {
+                    // applyRemoteState() sets the badge itself -- including
+                    // leaving it on "Update paused" when it had to hold the
+                    // snapshot back because a field was live.
                     applyRemoteState(data.data);
-                    updateSyncStatus('live');
                 } else if (error) {
                     console.error('Sync fetch failed', error);
                     updateSyncStatus('error');
@@ -3642,10 +3792,23 @@
         function resyncOnResume() {
             if (!supabaseClient || !syncCode) return;
             if (document.visibilityState !== 'visible') return;
+            // Pulling here re-renders the whole app. Not while a field is live.
+            if (isUserEditing()) { scheduleDeferredResume(); return; }
             const now = Date.now();
             if (now - lastResumeSync < 10000) return;
             lastResumeSync = now;
             startSync();
+        }
+
+        // If the resume pull was skipped because a field was live, come back
+        // for it rather than leaving the device sitting on stale data.
+        let deferredResumeTimer = null;
+        function scheduleDeferredResume() {
+            clearTimeout(deferredResumeTimer);
+            deferredResumeTimer = setTimeout(() => {
+                if (isUserEditing()) { scheduleDeferredResume(); return; }
+                resyncOnResume();
+            }, EDIT_IDLE_MS + 150);
         }
 
         document.addEventListener('visibilitychange', resyncOnResume);
@@ -3662,7 +3825,6 @@
                         (payload) => {
                             if (payload.new && payload.new.data && payload.new.client_id !== myClientId) {
                                 applyRemoteState(payload.new.data);
-                                updateSyncStatus('live');
                             }
                         }
                     )
@@ -3693,10 +3855,50 @@
             }
         }
 
-        function applyRemoteState(remoteData) {
+        // lastAppliedStateHash is also updated after a successful push, so
+        // the snapshot this device just sent doesn't come straight back on
+        // the next resume and trigger a pointless full re-render.
+        let lastAppliedStateHash = null;
+
+        function stateHash(obj) {
+            try { return JSON.stringify(obj); } catch (e) { return null; }
+        }
+
+        function applyRemoteState(remoteData, fromDeferred) {
+            if (!remoteData) return;
+
+            const hash = stateHash(remoteData);
+            // Identical to what's already on screen: re-rendering would
+            // change nothing except to throw away whatever is half-typed.
+            if (hash && hash === lastAppliedStateHash) {
+                deferredRemoteState = null;
+                // Clear the "paused" badge too -- there's nothing left waiting.
+                if (syncCode) updateSyncStatus('live');
+                setSaveStatus('saved');
+                return;
+            }
+
+            if (!fromDeferred && isUserEditing()) {
+                deferredRemoteState = remoteData;
+                holdingBadgeShown = true;
+                updateSyncStatus('holding');
+                scheduleDeferredApply();
+                return;
+            }
+
+            deferredRemoteState = null;
+            holdingBadgeShown = false;
+            lastAppliedStateHash = hash;
             isApplyingRemoteState = true;
-            applyStateObject(remoteData);
-            isApplyingRemoteState = false;
+            try {
+                applyStateObject(remoteData);
+            } finally {
+                // Without the finally, one thrown error in a render left this
+                // stuck true -- and every later edit silently stopped syncing
+                // for the rest of the session.
+                isApplyingRemoteState = false;
+            }
+            updateSyncStatus('live');
             setSaveStatus('saved');
         }
 
@@ -3729,6 +3931,7 @@
                 } else {
                     syncRetryAttempt = 0;
                     clearTimeout(syncRetryTimer);
+                    lastAppliedStateHash = stateHash(payload);
                     updateSyncStatus('live');
                     setSaveStatus('saved');
                 }
@@ -3873,6 +4076,10 @@
                 text = '🟢 Synced'; cls = 'sync-badge live';
             } else if (status === 'error') {
                 text = '🔴 Sync error'; cls = 'sync-badge error';
+            } else if (status === 'holding') {
+                // Deliberately reassuring rather than alarming: the update is
+                // queued, not lost, and it lands the moment you stop typing.
+                text = '✍️ Update paused'; cls = 'sync-badge holding';
             } else if (status === 'disconnected') {
                 text = '⚪ Not Connected'; cls = 'sync-badge disconnected';
             } else {
@@ -4211,37 +4418,141 @@
         // ==========================================
         // DYNAMIC CREDIT CARD MANAGEMENT
         // ==========================================
+        // ==========================================================
+        // COALESCED DRAFT SAVES
+        // ----------------------------------------------------------
+        // Every keystroke in every money field used to run the whole
+        // persistence path: prune drafts, walk the DOM, stringify the entire
+        // state, write localStorage, queue a sync push. On a phone with a
+        // year of history that is a visible stutter between pressing a key
+        // and the character showing up -- and the more you'd tracked, the
+        // worse it got. The visible arithmetic still runs on every keystroke;
+        // only the expensive half is coalesced to the end of a typing burst.
+        let draftSaveTimer = null;
+
+        function scheduleDraftSave(source) {
+            calculateAll(source || 'other');
+            clearTimeout(draftSaveTimer);
+            draftSaveTimer = setTimeout(() => {
+                draftSaveTimer = null;
+                saveCurrentWeekDraft();
+            }, 250);
+        }
+
+        // Anything that needs the draft to be current right now -- changing
+        // weeks, saving a week, closing the app -- calls this first.
+        function flushDraftSave() {
+            if (draftSaveTimer === null) return;
+            clearTimeout(draftSaveTimer);
+            draftSaveTimer = null;
+            saveCurrentWeekDraft();
+        }
+
+        // ==========================================================
+        // RENDERING THE CARD TABLE
+        // ----------------------------------------------------------
+        // This used to be one unconditional `tbody.innerHTML = ...`, which
+        // replaces every <input> in the table with a brand-new element. Any
+        // render the user didn't ask for -- an incoming sync update, a
+        // recalculation, opening a panel -- therefore threw away whatever was
+        // half-typed in an add-charge row. Only the single focused field was
+        // ever put back, so the classic failure was: type a description, tap
+        // the amount box, and watch the description disappear.
+        //
+        // Two rules now:
+        //   1. If the set of cards hasn't changed (almost always), nothing is
+        //      rebuilt at all -- the existing rows are patched in place.
+        //   2. If a rebuild really is needed (a card added or deleted), EVERY
+        //      in-progress value in the table is captured first and restored
+        //      afterwards, not just the focused one.
+        // ==========================================================
+        let lastCCSignature = null;
+
+        function ccSignature() {
+            return creditCards.map(c => c.id).join('|');
+        }
+
+        function ccRowsIntact() {
+            return creditCards.every(c => document.getElementById(`cardRow-${c.id}`));
+        }
+
+        function captureCCInputs() {
+            const snap = { fields: {}, focusId: null, selStart: null, selEnd: null };
+            document.querySelectorAll('#ccTableBody input').forEach(el => {
+                if (el.id) snap.fields[el.id] = el.value;
+            });
+            const active = document.activeElement;
+            if (active && active.id && Object.prototype.hasOwnProperty.call(snap.fields, active.id)) {
+                snap.focusId = active.id;
+                snap.selStart = active.selectionStart;
+                snap.selEnd = active.selectionEnd;
+            }
+            return snap;
+        }
+
+        function restoreCCInputs(snap) {
+            Object.keys(snap.fields).forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== snap.fields[id]) el.value = snap.fields[id];
+            });
+            if (snap.focusId) {
+                const el = document.getElementById(snap.focusId);
+                if (el) {
+                    el.focus({ preventScroll: true });
+                    try { el.setSelectionRange(snap.selStart, snap.selEnd); } catch (e) { /* number inputs refuse this */ }
+                }
+            }
+        }
+
+        function syncCCEditButtons(ccId) {
+            const editing = ccEditIndex[ccId] !== null && ccEditIndex[ccId] !== undefined;
+            const submitBtn = document.getElementById(`ccSubmitBtn-${ccId}`);
+            const cancelBtn = document.getElementById(`ccCancelBtn-${ccId}`);
+            if (submitBtn) submitBtn.innerText = editing ? '💾 Save' : '+ Add';
+            if (cancelBtn) cancelBtn.style.display = editing ? 'inline-block' : 'none';
+        }
+
+        // In-place refresh. Nothing is replaced, so nothing being typed into
+        // can be lost -- and any field that currently has focus is skipped
+        // outright.
+        function patchCreditCards() {
+            creditCards.forEach(card => {
+                const meta = ccCardMeta[card.id] || {};
+                const nameEl = document.getElementById(`ccNameInput-${card.id}`);
+                if (nameEl && document.activeElement !== nameEl && nameEl.value !== card.name) {
+                    nameEl.value = card.name;
+                }
+                const netEl = document.getElementById(`ccNetworkInput-${card.id}`);
+                const netVal = meta.network || '';
+                if (netEl && document.activeElement !== netEl && netEl.value !== netVal) {
+                    netEl.value = netVal;
+                }
+                const swatch = document.getElementById(`ccColorBtn-${card.id}`);
+                if (swatch) {
+                    swatch.style.backgroundColor = meta.color || '';
+                    swatch.classList.toggle('is-empty', !meta.color);
+                }
+                const debtEl = document.getElementById(`debt-${card.id}`);
+                if (debtEl) debtEl.dataset.name = card.name;
+
+                const wrap = document.getElementById(`panelWrap-${card.id}`);
+                if (wrap && wrap.classList.contains('expanded')) renderCCBreakdown(card.id);
+                syncCCEditButtons(card.id);
+            });
+        }
+
         function renderCreditCards() {
             const tbody = document.getElementById('ccTableBody');
             if (!tbody) return;
 
-            // A rebuild here can be triggered by things the user didn't
-            // initiate themselves (an incoming sync update from another
-            // device, for instance). Without this, that would silently wipe
-            // whatever the user was actively typing -- a card name, a
-            // network label, or worse, an in-progress "add a charge"
-            // description/amount that hadn't been submitted yet -- and would
-            // collapse any open card-details panel back to empty. Capture
-            // it all here and restore it after rebuilding.
-            const active = document.activeElement;
-            let restoreFocus = null;
-            if (active && active.id && /^(ccNameInput-|ccNetworkInput-|ccDesc-|ccAmt-)/.test(active.id)) {
-                restoreFocus = {
-                    id: active.id,
-                    value: active.value,
-                    selStart: active.selectionStart,
-                    selEnd: active.selectionEnd
-                };
-            }
-            const expandedIds = creditCards
-                .filter(card => document.getElementById(`panelWrap-${card.id}`)?.classList.contains('expanded'))
-                .map(card => card.id);
+            const sig = ccSignature();
 
             // With the presets gone, an empty tracker is now a normal state
             // rather than an impossible one -- say so instead of rendering a
             // bare table with a lone header and nothing under it.
             if (creditCards.length === 0) {
-                tbody.innerHTML = `
+                if (lastCCSignature !== '' || !tbody.querySelector('.cc-empty-row')) {
+                    tbody.innerHTML = `
                     <tr class="cc-empty-row">
                         <td colspan="2">
                             <div class="cc-empty-state">
@@ -4251,8 +4562,21 @@
                         </td>
                     </tr>
                 `;
+                    lastCCSignature = '';
+                }
                 return;
             }
+
+            // ---- fast path: same cards, rows already on screen -----------
+            if (sig === lastCCSignature && ccRowsIntact()) {
+                patchCreditCards();
+                return;
+            }
+
+            const snap = captureCCInputs();
+            const expandedIds = creditCards
+                .filter(card => document.getElementById(`panelWrap-${card.id}`)?.classList.contains('expanded'))
+                .map(card => card.id);
 
             tbody.innerHTML = creditCards.map(card => {
                 const meta = ccCardMeta[card.id] || { color: '' };
@@ -4277,7 +4601,7 @@
                         <td style="text-align: right;">
                             <div class="money-field">
                                 <span class="currency-symbol">$</span>
-                                <input type="number" inputmode="decimal" class="debt-input money-input" data-id="${card.id}" data-name="${escapeHtml(card.name)}" id="debt-${card.id}" value="0.00" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                                <input type="number" inputmode="decimal" class="debt-input money-input" data-id="${card.id}" data-name="${escapeHtml(card.name)}" id="debt-${card.id}" value="0.00" step="0.01" oninput="scheduleDraftSave('other')">
                             </div>
                             <div class="inline-quick-bar cc-quick-bar">
                                 <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -4296,10 +4620,10 @@
                             <div class="cc-panel-pad">
                             <div id="list-${card.id}" class="cc-item-list"></div>
                             <div class="cc-add-form">
-                                <input type="text" id="ccDesc-${card.id}" placeholder="Description (e.g., Groceries)" onkeydown="if(event.key==='Enter'){document.getElementById('ccAmt-${card.id}').focus();} if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
+                                <input type="text" id="ccDesc-${card.id}" class="cc-desc-input" placeholder="Description (e.g., Groceries)" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="next" onkeydown="if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
                                 <div class="money-field">
                                     <span class="currency-symbol">$</span>
-                                    <input type="number" inputmode="decimal" id="ccAmt-${card.id}" class="money-input" placeholder="0.00" step="0.01" onkeydown="if(event.key==='Enter'){addCCItem('${card.id}');} if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
+                                    <input type="number" inputmode="decimal" id="ccAmt-${card.id}" class="money-input" data-allow-empty="1" placeholder="0.00" step="0.01" enterkeyhint="done" onkeydown="if(event.key==='Escape'){cancelCCEdit('${card.id}');}">
                                 </div>
                                 <button class="btn-action btn-small" id="ccSubmitBtn-${card.id}" onclick="addCCItem('${card.id}')">+ Add</button>
                                 <button class="link-btn" id="ccCancelBtn-${card.id}" style="display:none;" onclick="cancelCCEdit('${card.id}')">Cancel</button>
@@ -4312,29 +4636,18 @@
                 `;
             }).join('');
 
+            lastCCSignature = sig;
+
             expandedIds.forEach(id => {
                 const wrap = document.getElementById(`panelWrap-${id}`);
                 const toggleBtn = document.getElementById(`ccToggleBtn-${id}`);
                 if (wrap) wrap.classList.add('expanded');
                 if (toggleBtn) toggleBtn.classList.add('expanded');
                 renderCCBreakdown(id);
-
-                if (ccEditIndex[id] !== null && ccEditIndex[id] !== undefined) {
-                    const submitBtn = document.getElementById(`ccSubmitBtn-${id}`);
-                    const cancelBtn = document.getElementById(`ccCancelBtn-${id}`);
-                    if (submitBtn) submitBtn.innerText = '💾 Save';
-                    if (cancelBtn) cancelBtn.style.display = 'inline-block';
-                }
+                syncCCEditButtons(id);
             });
 
-            if (restoreFocus) {
-                const el = document.getElementById(restoreFocus.id);
-                if (el) {
-                    el.value = restoreFocus.value;
-                    el.focus();
-                    try { el.setSelectionRange(restoreFocus.selStart, restoreFocus.selEnd); } catch (e) { /* not all input types support this */ }
-                }
-            }
+            restoreCCInputs(snap);
         }
 
         // renderCreditCards() rebuilds every card row from scratch with each
@@ -4450,6 +4763,15 @@
             // on load, where writing to the draft is unsafe.)
             calculateAll('other');
             saveCurrentWeekDraft();
+
+            // On a phone the panel opens below the fold as often as not, so
+            // the tap appears to do nothing at all.
+            if (wrap.classList.contains('expanded') && window.innerWidth <= 700) {
+                setTimeout(() => {
+                    const row = document.getElementById(`breakdown-${ccId}`);
+                    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 320);
+            }
         }
 
         function renderCCBreakdown(ccId) {
@@ -4473,7 +4795,10 @@
             if (items.length > 0) {
                 const totalAmt = items.reduce((sum, i) => sum + (parseFloat(i.amt) || 0), 0);
                 const debtInput = document.getElementById(`debt-${ccId}`);
-                if (debtInput) {
+                // Same rule as everywhere else: the box under the cursor is
+                // the user's, not ours. Rewriting it mid-keystroke is exactly
+                // how a typed payment used to vanish.
+                if (debtInput && document.activeElement !== debtInput) {
                     debtInput.value = totalAmt.toFixed(2);
                 }
             }
@@ -4483,44 +4808,81 @@
             const descEl = document.getElementById(`ccDesc-${ccId}`);
             const amtEl = document.getElementById(`ccAmt-${ccId}`);
             if (!descEl || !amtEl) return;
-            const desc = descEl.value.trim() || 'Item';
-            const amt = parseFloat(amtEl.value) || 0;
+
+            const rawDesc = descEl.value.trim();
+            const rawAmt = String(amtEl.value).trim();
+
+            // Tapping Add on two empty boxes used to file a $0.00 charge
+            // called "Item" -- which read as the app inventing a row by
+            // itself. Do nothing instead, and say so.
+            if (!rawDesc && rawAmt === '') {
+                shakeEl(descEl);
+                descEl.focus();
+                return;
+            }
+
+            const desc = rawDesc || 'Charge';
+            const amt = parseFloat(rawAmt) || 0;
 
             if (!ccBreakdowns[ccId]) ccBreakdowns[ccId] = [];
 
+            let landedIdx;
             if (ccEditIndex[ccId] !== null && ccEditIndex[ccId] !== undefined) {
-                ccBreakdowns[ccId][ccEditIndex[ccId]] = { desc, amt };
+                landedIdx = ccEditIndex[ccId];
+                ccBreakdowns[ccId][landedIdx] = { desc, amt };
                 ccEditIndex[ccId] = null;
-                document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '+ Add';
-                document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'none';
             } else {
                 ccBreakdowns[ccId].push({ desc, amt });
+                landedIdx = ccBreakdowns[ccId].length - 1;
             }
+            syncCCEditButtons(ccId);
 
             descEl.value = '';
             amtEl.value = '';
             renderCCBreakdown(ccId);
             calculateAll('other');
             saveCurrentWeekDraft();
+
+            // A brief highlight on the row that just landed -- during a fast
+            // entry streak the list otherwise just silently grows.
+            const listEl = document.getElementById(`list-${ccId}`);
+            const row = listEl && listEl.children[landedIdx];
+            if (row) {
+                row.classList.add('cc-item-flash');
+                setTimeout(() => row.classList.remove('cc-item-flash'), 750);
+            }
+
+            // Put the cursor back where the next charge goes. On a phone this
+            // is the difference between the keyboard staying put and the whole
+            // layout jumping after every line you add.
+            descEl.focus({ preventScroll: true });
         }
 
         function editCCItem(ccId, idx) {
             const items = ccBreakdowns[ccId] || [];
             if (!items[idx]) return;
+            const descEl = document.getElementById(`ccDesc-${ccId}`);
+            const amtEl = document.getElementById(`ccAmt-${ccId}`);
+            // The panel can be collapsed (or mid-rebuild) when this fires from
+            // a stale handler; every one of these lookups used to be assumed
+            // to succeed and threw if it didn't.
+            if (!descEl || !amtEl) return;
             ccEditIndex[ccId] = idx;
-            document.getElementById(`ccDesc-${ccId}`).value = items[idx].desc;
-            document.getElementById(`ccAmt-${ccId}`).value = items[idx].amt;
-            document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '💾 Save';
-            document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'inline-block';
+            descEl.value = items[idx].desc;
+            amtEl.value = items[idx].amt;
+            syncCCEditButtons(ccId);
             renderCCBreakdown(ccId);
+            descEl.focus({ preventScroll: true });
+            try { descEl.setSelectionRange(descEl.value.length, descEl.value.length); } catch (e) {}
         }
 
         function cancelCCEdit(ccId) {
             ccEditIndex[ccId] = null;
-            document.getElementById(`ccDesc-${ccId}`).value = '';
-            document.getElementById(`ccAmt-${ccId}`).value = '';
-            document.getElementById(`ccSubmitBtn-${ccId}`).innerText = '+ Add';
-            document.getElementById(`ccCancelBtn-${ccId}`).style.display = 'none';
+            const descEl = document.getElementById(`ccDesc-${ccId}`);
+            const amtEl = document.getElementById(`ccAmt-${ccId}`);
+            if (descEl) descEl.value = '';
+            if (amtEl) amtEl.value = '';
+            syncCCEditButtons(ccId);
             renderCCBreakdown(ccId);
         }
 
@@ -4555,6 +4917,16 @@
             calculateAll('other');
             saveCurrentWeekDraft();
         }
+
+        // position:fixed pins the popover to the viewport, so once the page
+        // scrolls underneath it, it's pointing at nothing. On a phone that's
+        // every time the keyboard opens.
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.cc-color-popover.open').forEach(p => p.classList.remove('open'));
+        }, { passive: true });
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('.cc-color-popover.open').forEach(p => p.classList.remove('open'));
+        });
 
         function toggleColorPicker(ccId) {
             const popover = document.getElementById(`ccColorPopover-${ccId}`);
@@ -4810,7 +5182,13 @@
                 currentSavings = parseFloat(savingsInput.value) || 0;
             } else {
                 currentSavings = Math.max(0, remainingBeforeSavings * 0.6);
-                if (savingsInput) savingsInput.value = currentSavings.toFixed(2);
+                // In auto mode this field is written on every recalculation --
+                // including recalculations triggered from somewhere else on
+                // the page. If the cursor happens to be sitting in it, that
+                // rewrite lands mid-keystroke and eats what was typed.
+                if (savingsInput && document.activeElement !== savingsInput) {
+                    savingsInput.value = currentSavings.toFixed(2);
+                }
             }
 
             const finalDiscretionary = remainingBeforeSavings - currentSavings;
@@ -4885,13 +5263,13 @@
             tr.className = 'misc-exp-row';
             tr.innerHTML = `
                 <td>
-                    <input type="text" class="misc-note-input" placeholder="Category Name" value="${escapeHtml(note)}" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                    <input type="text" class="misc-note-input" placeholder="Category Name" value="${escapeHtml(note)}" oninput="scheduleDraftSave('other')">
                     <button class="btn-action misc-remove-btn" onclick="removeMiscExpenseRow(this)">✕</button>
                 </td>
                 <td style="text-align: right;">
                     <div class="money-field">
                         <span class="currency-symbol">$</span>
-                        <input type="number" inputmode="decimal" class="exp-input exp-input-misc money-input" value="${parseFloat(amt || 0).toFixed(2)}" step="0.01" oninput="calculateAll('other'); saveCurrentWeekDraft();">
+                        <input type="number" inputmode="decimal" class="exp-input exp-input-misc money-input" value="${parseFloat(amt || 0).toFixed(2)}" step="0.01" oninput="scheduleDraftSave('other')">
                     </div>
                     <div class="inline-quick-bar">
                         <button class="iq-btn neg" onclick="adjustTableCell(this, -100)">-100</button>
@@ -5085,6 +5463,9 @@
             if (!el || el === document.body) return;
             if (el.id === 'weekStart' || el.id === 'weekEnd') return; // mid-change; leave it alone
             if (el.tagName === 'INPUT' && typeof el.blur === 'function') el.blur();
+            // Changing weeks is the one moment a coalesced draft write must
+            // not still be in flight -- it would land against the NEW week.
+            flushDraftSave();
         }
 
         function setWeekDates(startDate) {
@@ -5310,6 +5691,7 @@
         }
 
         function saveWeekEntry() {
+            flushDraftSave();
             const weekStart = document.getElementById('weekStart').value;
             const weekEnd = document.getElementById('weekEnd').value;
             if (!weekStart || !weekEnd) {
@@ -6384,11 +6766,27 @@
                 ENTER_ACTIONS[el.id]();
                 return;
             }
-            // Itemized charge rows: Enter from either field adds the item.
-            const ccMatch = el.id.match(/^cc(?:Desc|Amt)-(.+)$/);
-            if (ccMatch) {
+            // Itemized charge rows. Enter in the description moves to the
+            // amount; Enter in the amount files the charge.
+            //
+            // This used to fire ALONGSIDE an inline onkeydown on the same two
+            // inputs, so pressing Enter (or iOS's blue Go key) after typing a
+            // description did both things at once: it moved focus AND
+            // immediately filed the charge with a blank amount, clearing both
+            // boxes. From the outside that is indistinguishable from the app
+            // wiping what you typed. The inline handlers are gone; this is the
+            // only place Enter is handled now.
+            const ccDescMatch = el.id.match(/^ccDesc-(.+)$/);
+            if (ccDescMatch) {
                 e.preventDefault();
-                addCCItem(ccMatch[1]);
+                const amtEl = document.getElementById(`ccAmt-${ccDescMatch[1]}`);
+                if (amtEl) amtEl.focus({ preventScroll: true });
+                return;
+            }
+            const ccAmtMatch = el.id.match(/^ccAmt-(.+)$/);
+            if (ccAmtMatch) {
+                e.preventDefault();
+                addCCItem(ccAmtMatch[1]);
             }
         });
 
@@ -6554,10 +6952,19 @@
 
         // Never let a coalesced write be the thing that's lost when the app
         // is backgrounded, closed or killed by iOS.
-        window.addEventListener('pagehide', flushLocalSave);
-        window.addEventListener('beforeunload', flushLocalSave);
+        // Order matters: the draft has to be folded into the in-memory
+        // state BEFORE that state is written to disk, or the last few
+        // keystrokes before the app was backgrounded are the ones that get
+        // dropped.
+        function flushAllSaves() {
+            flushDraftSave();
+            flushLocalSave();
+        }
+
+        window.addEventListener('pagehide', flushAllSaves);
+        window.addEventListener('beforeunload', flushAllSaves);
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') flushLocalSave();
+            if (document.visibilityState === 'hidden') flushAllSaves();
         });
 
         function saveState() {
