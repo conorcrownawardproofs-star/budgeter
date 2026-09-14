@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-tracker-v29';
+const CACHE_NAME = 'budget-tracker-v30';
 
 // './' and './index.html' are the same document. Keeping both here means a
 // cold offline launch works whether the browser asks for the directory or the
@@ -37,7 +37,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys()
+    // Navigation preload lets the browser start fetching the document in
+    // parallel with booting this worker, instead of after it. On a cold
+    // launch of the installed app that's the difference between a visible
+    // blank frame and none.
+    (self.registration.navigationPreload
+      ? self.registration.navigationPreload.enable().catch(() => {})
+      : Promise.resolve()
+    ).then(() => caches.keys())
       // Delete every cache bucket that isn't the current version -- this is
       // what purges any stale Supabase GET responses the old buggy version
       // of this file may have cached under the old bucket name.
@@ -79,7 +86,9 @@ self.addEventListener('fetch', (event) => {
   // offline or the request fails.
   if (isDocumentRequest(event.request, url)) {
     event.respondWith(
-      fetch(event.request)
+      // Use the preloaded response when the browser already started one.
+      Promise.resolve(event.preloadResponse)
+        .then((preloaded) => preloaded || fetch(event.request))
         .then((response) => {
           if (response && response.ok) {
             const clone = response.clone();
