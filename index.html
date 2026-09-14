@@ -2228,6 +2228,92 @@
         /* Keep a field the browser just scrolled to clear of the header. */
         input, select, textarea { scroll-margin-block: 80px; }
 
+
+        /* ==========================================================
+           PAYROLL DEDUCTIONS
+           A deduction is a name, a figure, and two switches: whether the
+           figure is a dollar amount or a percentage of gross, and whether
+           it comes out before tax or after. Both switches are buttons
+           rather than selects -- they're binary, and a select on a phone
+           is a full-screen picker for a two-way choice.
+           ========================================================== */
+        .deductions-block {
+            border: 1px solid var(--border-color); border-radius: 8px;
+            background-color: var(--surface-muted); padding: 12px; margin: 4px 0 14px;
+        }
+        .deductions-head {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; margin-bottom: 8px;
+        }
+        .deductions-title { font-weight: 700; font-size: 0.9rem; }
+        .deductions-total {
+            font-weight: 800; font-variant-numeric: tabular-nums; color: var(--negative);
+            font-size: 0.95rem;
+        }
+        .deduction-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 104px auto auto auto;
+            gap: 6px; align-items: center;
+            padding: 6px 0; border-bottom: 1px dashed var(--border-color);
+        }
+        .deduction-row:last-child { border-bottom: none; }
+        .deduction-name {
+            width: 100%; min-width: 0; font: inherit; font-size: 0.88rem; font-weight: 600;
+            background: transparent; border: 1px solid transparent; border-radius: 4px;
+            padding: 5px 6px; color: var(--text-main); text-overflow: ellipsis;
+        }
+        .deduction-name:hover { background-color: var(--card-bg); border-color: var(--border-color); }
+        .deduction-name:focus { outline: none; background-color: var(--card-bg); border-color: var(--primary); }
+        .deduction-amt { width: 100%; }
+        .deduction-amt input {
+            width: 100%; padding: 6px 8px; font-size: 0.88rem; text-align: right;
+            border: 1px solid var(--border-color); border-radius: 4px;
+            background-color: var(--card-bg); color: var(--text-main);
+        }
+        .ded-toggle {
+            flex: 0 0 auto; min-width: 34px; min-height: 30px; padding: 4px 8px;
+            font: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--card-bg); color: var(--text-muted);
+        }
+        .ded-toggle:hover { border-color: var(--primary); color: var(--primary); }
+        .ded-toggle.pre { background-color: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+        .ded-toggle.post { background-color: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+        html[data-scheme="dark"] .ded-toggle.pre { background-color: #1e3a5f; border-color: #2c4a72; color: #93c5fd; }
+        html[data-scheme="dark"] .ded-toggle.post { background-color: #431407; border-color: #6b2c0b; color: #fb923c; }
+        .ded-remove {
+            flex: 0 0 auto; background: none; border: none; cursor: pointer;
+            color: var(--negative); font-size: 0.85rem; line-height: 1;
+            padding: 6px; border-radius: 4px; min-height: 30px;
+        }
+        .ded-remove:hover { background-color: rgba(220, 38, 38, 0.1); }
+        .deduction-empty { color: var(--text-muted); font-size: 0.82rem; padding: 10px 2px; }
+        .deduction-quickadd { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 8px; }
+        .ded-chip {
+            font: inherit; font-size: 0.7rem; font-weight: 600; cursor: pointer;
+            padding: 4px 9px; min-height: 28px; border-radius: 999px;
+            border: 1px dashed var(--border-color); background-color: transparent; color: var(--text-muted);
+        }
+        .ded-chip:hover { border-style: solid; border-color: var(--primary); color: var(--primary); }
+        .deduction-add-btn { width: 100%; margin-top: 2px; }
+        .deductions-summary {
+            margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color);
+            font-size: 0.78rem; color: var(--text-muted);
+        }
+        .deductions-summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-variant-numeric: tabular-nums; }
+        .deductions-summary-row.warn { color: var(--negative); font-weight: 700; }
+        .deductions-note { margin: 8px 0 0; font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+
+        @media (max-width: 700px) {
+            .deduction-row { grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 6px; }
+            .deduction-name { grid-column: 1 / -1; }
+            .deduction-amt { grid-column: 1; }
+            .deduction-amt input { font-size: 16px; }
+            .ded-toggle { min-height: 38px; min-width: 42px; }
+            .ded-remove { min-height: 38px; min-width: 34px; }
+            .ded-chip { min-height: 34px; font-size: 0.74rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -2624,8 +2710,26 @@
                         <label data-lbl-weekly="Gross Weekly Income" data-lbl-biweekly="Gross Income (Per Period)">Gross Weekly Income</label>
                         <input type="text" id="grossWeekly" readonly>
                     </div>
+                    <!-- Per-period payroll deductions. Sits between gross and
+                         tax because that is the order the money actually leaves:
+                         pre-tax deductions reduce what gets taxed. -->
+                    <div class="deductions-block">
+                        <div class="deductions-head">
+                            <span class="deductions-title" data-lbl-weekly="Weekly Deductions" data-lbl-biweekly="Deductions (Per Period)">Weekly Deductions</span>
+                            <span class="deductions-total" id="deductionsTotal">$0.00</span>
+                        </div>
+                        <div id="deductionsList"></div>
+                        <div class="deduction-quickadd" id="deductionQuickAdd"></div>
+                        <button type="button" class="btn-action btn-small deduction-add-btn" onclick="addDeduction()">+ Add a deduction</button>
+                        <div class="deductions-summary" id="deductionsSummary"></div>
+                        <p class="deductions-note">
+                            <strong>Pre</strong> comes out before tax is applied; <strong>Post</strong> comes out after.
+                            Tap <strong>$</strong> to switch a row between a flat amount and a percentage of gross.
+                            Whatever is set here carries into every new pay period, and each saved period keeps its own figures.
+                        </p>
+                    </div>
                     <div class="input-group">
-                        <label>Estimated Tax Rate</label>
+                        <label data-lbl-weekly="Estimated Tax Rate" data-lbl-biweekly="Estimated Tax Rate">Estimated Tax Rate</label>
                         <div class="percent-field">
                             <input type="number" inputmode="decimal" id="taxRate" value="19.25" step="0.01" oninput="onPaycheckInput('taxRate');">
                             <span class="percent-symbol">%</span>
@@ -3986,6 +4090,7 @@
                 ccBreakdowns: {},
                 ccCardMeta: {},
                 defaultPaycheck: { hourlyRate: '25.00', hoursPerWeek: '40', taxRate: '19.25' },
+                defaultDeductions: defaultDeductionSeed(),
                 hourlyRate: '25.00',
                 hoursPerWeek: '40',
                 taxRate: '19.25'
@@ -4294,7 +4399,8 @@
                     miscExpenses: [{ note: "", amt: "0.00" }],
                     savingsThisWeek: "",
                     savingsManual: false,
-                    paycheck: { ...defaultPaycheck }
+                    paycheck: { ...defaultPaycheck },
+                    deductions: seedDeductionsFromDefault()
                 };
             }
 
@@ -4347,6 +4453,15 @@
             }
             if (draft.savingsThisWeek === undefined) draft.savingsThisWeek = "";
             if (typeof draft.savingsManual !== 'boolean') draft.savingsManual = false;
+
+            // A draft written before deductions existed has no list at all;
+            // seed it from the standing setup rather than leaving it undefined
+            // and making every reader guard for it.
+            if (!Array.isArray(draft.deductions)) {
+                draft.deductions = seedDeductionsFromDefault();
+            } else {
+                normalizeDeductionsInPlace(draft.deductions);
+            }
 
             ensureDraftPaycheck(key);
         }
@@ -4411,6 +4526,8 @@
                 const el = document.getElementById(f);
                 if (el) draft.paycheck[f] = el.value;
             });
+
+            syncDeductionsFromDOM();
 
             saveState();
         }
@@ -5091,6 +5208,386 @@
         // Every paycheck field now writes to the period's draft. Rate and tax
         // additionally update the standing default, since they describe your
         // job rather than one particular period.
+        // =====================================================================
+        // PAYROLL DEDUCTIONS
+        // ---------------------------------------------------------------------
+        // A deduction is { id, name, amt, mode, pre }:
+        //   mode: 'amount'  -- a flat figure per pay period
+        //         'percent' -- a share of gross (how a 401(k) is actually set)
+        //   pre:  true      -- taken before tax, so it lowers taxable income
+        //         false     -- taken after tax
+        //
+        // Storage mirrors how the paycheck figures already work. Each period's
+        // draft holds its own list, so a saved period keeps the numbers that
+        // were true at the time; `defaultDeductions` is the standing setup that
+        // seeds every new period, and it tracks whatever is on screen so a
+        // raise in your premium doesn't have to be re-entered every week.
+        // =====================================================================
+        const DEDUCTION_PRESETS = [
+            { name: 'Health Insurance', pre: true, mode: 'amount' },
+            { name: 'Dental & Vision', pre: true, mode: 'amount' },
+            { name: '401(k)', pre: true, mode: 'percent' },
+            { name: 'Roth 401(k)', pre: false, mode: 'percent' },
+            { name: 'HSA / FSA', pre: true, mode: 'amount' },
+            { name: 'Life & Disability', pre: false, mode: 'amount' },
+            { name: 'Union Dues', pre: false, mode: 'amount' },
+            { name: 'Commuter / Parking', pre: true, mode: 'amount' },
+            { name: 'Pension', pre: true, mode: 'amount' },
+            { name: 'Garnishment', pre: false, mode: 'amount' }
+        ];
+
+        let dedIdCounter = 0;
+        function newDeductionId() {
+            dedIdCounter += 1;
+            return 'ded_' + Date.now().toString(36) + '_' + dedIdCounter;
+        }
+
+        function makeDeduction(name, pre, mode, amt) {
+            return {
+                id: newDeductionId(),
+                name: name || 'Deduction',
+                amt: amt === undefined ? '0.00' : String(amt),
+                mode: mode === 'percent' ? 'percent' : 'amount',
+                pre: pre !== false
+            };
+        }
+
+        // The out-of-the-box set: the four almost everyone has a line for.
+        // Anything else is one tap away from the quick-add chips.
+        function defaultDeductionSeed() {
+            return [
+                makeDeduction('Health Insurance', true, 'amount'),
+                makeDeduction('Dental & Vision', true, 'amount'),
+                makeDeduction('401(k)', true, 'percent'),
+                makeDeduction('Other Benefits', true, 'amount')
+            ];
+        }
+
+        let defaultDeductions = defaultDeductionSeed();
+
+        // Anything arriving from storage or another device gets squared up
+        // here: a malformed row from a hand-edited payload, or one written by
+        // a future version with fields this copy doesn't know about, must not
+        // be able to take the paycheck maths down.
+        function normalizeDeductions(list) {
+            if (!Array.isArray(list)) return [];
+            const seen = new Set();
+            return list.filter(d => d && typeof d === 'object').map(d => {
+                let id = typeof d.id === 'string' && d.id ? d.id : newDeductionId();
+                // Duplicate ids would make every lookup ambiguous.
+                while (seen.has(id)) id = newDeductionId();
+                seen.add(id);
+                return {
+                    id,
+                    name: typeof d.name === 'string' ? d.name : 'Deduction',
+                    amt: (d.amt === undefined || d.amt === null) ? '0.00' : String(d.amt),
+                    mode: d.mode === 'percent' ? 'percent' : 'amount',
+                    pre: d.pre !== false
+                };
+            });
+        }
+
+        // normalizeDeductions() builds a NEW array, which is right for data
+        // arriving from storage or another device. It is wrong for the live
+        // list: ensureDraftShape() runs on every save, so swapping the array
+        // out from under a caller meant any reference taken before that save
+        // pointed at an orphan -- which is exactly what made removing a
+        // deduction appear to do nothing (the splice landed on the old array).
+        // Tidy the live list in place instead.
+        function normalizeDeductionsInPlace(list) {
+            if (!Array.isArray(list)) return [];
+            for (let i = list.length - 1; i >= 0; i--) {
+                if (!list[i] || typeof list[i] !== 'object') list.splice(i, 1);
+            }
+            const seen = new Set();
+            list.forEach(d => {
+                if (typeof d.id !== 'string' || !d.id || seen.has(d.id)) d.id = newDeductionId();
+                seen.add(d.id);
+                if (typeof d.name !== 'string') d.name = 'Deduction';
+                d.amt = (d.amt === undefined || d.amt === null) ? '0.00' : String(d.amt);
+                d.mode = d.mode === 'percent' ? 'percent' : 'amount';
+                d.pre = d.pre !== false;
+            });
+            return list;
+        }
+
+        function cloneDeductions(list) {
+            return (list || []).map(d => ({ id: d.id, name: d.name, amt: d.amt, mode: d.mode, pre: d.pre }));
+        }
+
+        // A fresh period's list is a copy of the standing setup with NEW ids,
+        // so editing this week can never reach back into last week's saved row.
+        function seedDeductionsFromDefault() {
+            return (defaultDeductions || []).map(d => ({
+                id: newDeductionId(), name: d.name, amt: d.amt, mode: d.mode, pre: d.pre
+            }));
+        }
+
+        function getCurrentDeductions() {
+            if (!currentWeekKey) return [];
+            const draft = weeklyDrafts[currentWeekKey];
+            if (!draft) return [];
+            if (!Array.isArray(draft.deductions)) draft.deductions = seedDeductionsFromDefault();
+            return draft.deductions;
+        }
+
+        function findDeduction(id) {
+            return getCurrentDeductions().find(d => d.id === id) || null;
+        }
+
+        // Keeps the standing setup in step with what's on screen, without
+        // carrying this period's ids across (a new period mints its own).
+        function syncDefaultDeductions() {
+            defaultDeductions = cloneDeductions(getCurrentDeductions());
+        }
+
+        function deductionsDifferFromDefault(list) {
+            const a = Array.isArray(list) ? list : [];
+            const b = defaultDeductions || [];
+            if (a.length !== b.length) return true;
+            for (let i = 0; i < a.length; i++) {
+                const x = a[i], y = b[i];
+                if ((x.name || '') !== (y.name || '')) return true;
+                if ((x.mode || 'amount') !== (y.mode || 'amount')) return true;
+                if ((x.pre !== false) !== (y.pre !== false)) return true;
+                const xa = parseFloat(x.amt) || 0, ya = parseFloat(y.amt) || 0;
+                if (Math.abs(xa - ya) > 0.001) return true;
+            }
+            return false;
+        }
+
+        // The maths. Pre-tax comes out of gross first and shrinks the taxable
+        // figure; tax is charged on what's left; post-tax comes out after.
+        function computeDeductions(gross) {
+            const list = getCurrentDeductions();
+            let pre = 0, post = 0;
+            list.forEach(d => {
+                const v = parseFloat(d.amt);
+                if (!Number.isFinite(v) || v <= 0) return;
+                const amount = d.mode === 'percent' ? gross * (v / 100) : v;
+                if (!Number.isFinite(amount)) return;
+                if (d.pre !== false) pre += amount; else post += amount;
+            });
+            // A pre-tax total larger than gross can't reduce taxable income
+            // below nothing, and would otherwise hand back a negative tax.
+            const cappedPre = Math.min(pre, gross);
+            return {
+                pre, post, total: pre + post,
+                taxable: Math.max(0, gross - cappedPre)
+            };
+        }
+
+        function deductionRowHtml(d) {
+            const isPct = d.mode === 'percent';
+            const wrapClass = isPct ? 'percent-field deduction-amt' : 'money-field deduction-amt';
+            const lead = isPct ? '' : '<span class="currency-symbol">$</span>';
+            const trail = isPct ? '<span class="percent-symbol">%</span>' : '';
+            // The money-input class is what the global blur handler uses to
+            // round to two decimals -- right for dollars, wrong for "5%".
+            const inputClass = isPct ? 'deduction-amt-input' : 'deduction-amt-input money-input';
+            return `
+                <div class="deduction-row" data-ded-id="${escapeHtml(d.id)}">
+                    <input type="text" class="deduction-name" id="dedName-${escapeHtml(d.id)}"
+                           value="${escapeHtml(d.name)}" placeholder="Deduction name" maxlength="40"
+                           autocomplete="off" autocapitalize="words" spellcheck="false"
+                           oninput="setDeductionName('${escapeHtml(d.id)}', this.value)"
+                           onblur="if(!this.value.trim()){this.value='Deduction';setDeductionName('${escapeHtml(d.id)}', this.value);}">
+                    <div class="${wrapClass}">
+                        ${lead}
+                        <input type="number" inputmode="decimal" class="${inputClass}" id="dedAmt-${escapeHtml(d.id)}"
+                               value="${escapeHtml(d.amt)}" step="0.01" min="0"
+                               oninput="setDeductionAmt('${escapeHtml(d.id)}', this.value)">
+                        ${trail}
+                    </div>
+                    <button type="button" class="ded-toggle" onclick="toggleDeductionMode('${escapeHtml(d.id)}')"
+                            title="${isPct ? 'Percentage of gross — tap for a flat amount' : 'Flat amount — tap for a percentage of gross'}">${isPct ? '%' : '$'}</button>
+                    <button type="button" class="ded-toggle ${d.pre !== false ? 'pre' : 'post'}" onclick="toggleDeductionPre('${escapeHtml(d.id)}')"
+                            title="${d.pre !== false ? 'Taken before tax — tap to make it post-tax' : 'Taken after tax — tap to make it pre-tax'}">${d.pre !== false ? 'Pre' : 'Post'}</button>
+                    <button type="button" class="ded-remove" onclick="removeDeduction('${escapeHtml(d.id)}')" title="Remove this deduction">✕</button>
+                </div>
+            `;
+        }
+
+        // Same discipline as the card table: only rebuild when the shape of
+        // the list changes, and never write over a field that has focus.
+        let lastDedSignature = null;
+
+        function dedSignature() {
+            return getCurrentDeductions().map(d => `${d.id}:${d.mode}:${d.pre !== false ? 1 : 0}`).join('|');
+        }
+
+        function renderDeductions() {
+            const listEl = document.getElementById('deductionsList');
+            if (!listEl) return;
+            const list = getCurrentDeductions();
+            const sig = dedSignature();
+
+            if (sig === lastDedSignature && list.every(d => document.getElementById(`dedName-${d.id}`))) {
+                list.forEach(d => {
+                    const nameEl = document.getElementById(`dedName-${d.id}`);
+                    if (nameEl && document.activeElement !== nameEl && nameEl.value !== d.name) nameEl.value = d.name;
+                    const amtEl = document.getElementById(`dedAmt-${d.id}`);
+                    if (amtEl && document.activeElement !== amtEl && amtEl.value !== String(d.amt)) amtEl.value = d.amt;
+                });
+                renderDeductionQuickAdd();
+                return;
+            }
+
+            const active = document.activeElement;
+            const restore = (active && active.id && /^ded(?:Name|Amt)-/.test(active.id))
+                ? { id: active.id, value: active.value, selStart: active.selectionStart, selEnd: active.selectionEnd }
+                : null;
+
+            listEl.innerHTML = list.length
+                ? list.map(deductionRowHtml).join('')
+                : '<div class="deduction-empty">No deductions yet — add the ones that come out of your cheque and they\'ll carry forward.</div>';
+            lastDedSignature = sig;
+
+            if (restore) {
+                const el = document.getElementById(restore.id);
+                if (el) {
+                    el.value = restore.value;
+                    el.focus({ preventScroll: true });
+                    try { el.setSelectionRange(restore.selStart, restore.selEnd); } catch (e) { /* number inputs refuse this */ }
+                }
+            }
+
+            renderDeductionQuickAdd();
+        }
+
+        function renderDeductionQuickAdd() {
+            const wrap = document.getElementById('deductionQuickAdd');
+            if (!wrap) return;
+            const have = new Set(getCurrentDeductions().map(d => (d.name || '').trim().toLowerCase()));
+            const offer = DEDUCTION_PRESETS.filter(pre => !have.has(pre.name.toLowerCase()));
+            wrap.innerHTML = offer.map((pre, i) =>
+                `<button type="button" class="ded-chip" onclick="quickAddDeduction(${DEDUCTION_PRESETS.indexOf(pre)})">+ ${escapeHtml(pre.name)}</button>`
+            ).join('');
+            wrap.style.display = offer.length ? 'flex' : 'none';
+        }
+
+        function updateDeductionTotalsUI(gross, ded, taxAmount) {
+            const totalEl = document.getElementById('deductionsTotal');
+            if (totalEl) totalEl.innerText = ded.total > 0 ? '-' + formatCurrency(ded.total) : formatCurrency(0);
+
+            const sumEl = document.getElementById('deductionsSummary');
+            if (!sumEl) return;
+            if (getCurrentDeductions().length === 0) { sumEl.innerHTML = ''; return; }
+
+            const over = (ded.pre + ded.post + taxAmount) > gross + 0.005;
+            sumEl.innerHTML = `
+                <div class="deductions-summary-row"><span>Pre-tax</span><span>${formatCurrency(ded.pre)}</span></div>
+                <div class="deductions-summary-row"><span>Taxable income</span><span>${formatCurrency(ded.taxable)}</span></div>
+                <div class="deductions-summary-row"><span>Estimated tax</span><span>${formatCurrency(taxAmount)}</span></div>
+                <div class="deductions-summary-row"><span>Post-tax</span><span>${formatCurrency(ded.post)}</span></div>
+                ${over ? '<div class="deductions-summary-row warn"><span>⚠️ Deductions and tax exceed gross pay</span><span></span></div>' : ''}
+            `;
+        }
+
+        // ---- mutations ------------------------------------------------------
+        // Every one of these updates the period's draft, mirrors the change
+        // into the standing setup, and then recalculates. saveCurrentWeekDraft
+        // is coalesced through scheduleDraftSave for the two that fire on
+        // every keystroke, and immediate for the ones that are single taps.
+        function setDeductionName(id, value) {
+            const d = findDeduction(id);
+            if (!d) return;
+            d.name = value;
+            syncDefaultDeductions();
+            renderDeductionQuickAdd();
+            scheduleDraftSave('other');
+        }
+
+        function setDeductionAmt(id, value) {
+            const d = findDeduction(id);
+            if (!d) return;
+            d.amt = value;
+            syncDefaultDeductions();
+            scheduleDraftSave('other');
+        }
+
+        function toggleDeductionMode(id) {
+            const d = findDeduction(id);
+            if (!d) return;
+            d.mode = d.mode === 'percent' ? 'amount' : 'percent';
+            // The figure means something completely different in the other
+            // mode ("5" as dollars vs 5% of gross), so carrying it across
+            // would silently change the paycheck. Start the new mode clean.
+            d.amt = '0.00';
+            syncDefaultDeductions();
+            renderDeductions();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+            const el = document.getElementById(`dedAmt-${id}`);
+            if (el) { el.focus({ preventScroll: true }); el.select(); }
+        }
+
+        function toggleDeductionPre(id) {
+            const d = findDeduction(id);
+            if (!d) return;
+            d.pre = d.pre === false;
+            syncDefaultDeductions();
+            renderDeductions();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
+
+        function addDeduction(name, pre, mode) {
+            if (!currentWeekKey) return;
+            initDraft(currentWeekKey);
+            const list = getCurrentDeductions();
+            const d = makeDeduction(name || 'New Deduction', pre, mode);
+            list.push(d);
+            syncDefaultDeductions();
+            renderDeductions();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+            const el = document.getElementById(`dedName-${d.id}`);
+            if (el) { el.focus({ preventScroll: true }); el.select(); }
+        }
+
+        function quickAddDeduction(presetIndex) {
+            const pre = DEDUCTION_PRESETS[presetIndex];
+            if (!pre) return;
+            addDeduction(pre.name, pre.pre, pre.mode);
+            // A preset already has its name; the useful place to land is the
+            // figure, not a name the user just picked from a list.
+            const list = getCurrentDeductions();
+            const added = list[list.length - 1];
+            const el = added && document.getElementById(`dedAmt-${added.id}`);
+            if (el) { el.focus({ preventScroll: true }); el.select(); }
+        }
+
+        function removeDeduction(id) {
+            if (!findDeduction(id)) return;
+            // Snapshot for undo first -- and only then take the list, because
+            // saving runs the draft through its shape check.
+            flushDraftSave();
+            saveCurrentWeekDraft();
+            const list = getCurrentDeductions();
+            const idx = list.findIndex(d => d.id === id);
+            if (idx === -1) return;
+            offerUndo(`Removed "${list[idx].name || 'deduction'}"`);
+            list.splice(idx, 1);
+            syncDefaultDeductions();
+            renderDeductions();
+            calculateAll('other');
+            saveCurrentWeekDraft();
+        }
+
+        // The blur handler rounds dollar fields to two decimals by writing
+        // straight to the element, which fires no input event -- so read the
+        // boxes back before the draft is written, rather than trusting that
+        // the model saw every change.
+        function syncDeductionsFromDOM() {
+            getCurrentDeductions().forEach(d => {
+                const nameEl = document.getElementById(`dedName-${d.id}`);
+                if (nameEl) d.name = nameEl.value;
+                const amtEl = document.getElementById(`dedAmt-${d.id}`);
+                if (amtEl) d.amt = amtEl.value;
+            });
+        }
+
         function onPaycheckInput(field) {
             if (field === 'hourlyRate' || field === 'taxRate') {
                 const el = document.getElementById(field);
@@ -5133,7 +5630,15 @@
             const tax = parseFloat(document.getElementById('taxRate').value) || 0;
 
             const grossWeekly = hourly * hours;
-            const netWeekly = grossWeekly * (1 - (tax / 100));
+
+            // Pre-tax deductions come out first and shrink what gets taxed;
+            // post-tax come out of what's left after tax. Net is what actually
+            // lands in the account, and that's what the rest of the app treats
+            // as this period's income.
+            const ded = computeDeductions(grossWeekly);
+            const taxAmount = ded.taxable * (tax / 100);
+            const netWeekly = Math.max(0, grossWeekly - ded.pre - taxAmount - ded.post);
+            updateDeductionTotalsUI(grossWeekly, ded, taxAmount);
 
             document.getElementById('grossWeekly').value = formatCurrency(grossWeekly);
             document.getElementById('netWeekly').value = formatCurrency(netWeekly);
@@ -5411,6 +5916,15 @@
                 // period would seed itself with a single week's hours.
                 const stdHrs = parseFloat(defaultPaycheck.hoursPerWeek);
                 if (Number.isFinite(stdHrs) && stdHrs > 0) defaultPaycheck.hoursPerWeek = scale(stdHrs);
+                // Flat deductions are per period as well, so a $40 weekly
+                // premium is $80 on a fortnightly cheque. Percentages are a
+                // share of gross and are already correct in either shape.
+                defaultDeductions = (defaultDeductions || []).map(d => {
+                    if (d.mode === 'percent') return { ...d };
+                    const v = parseFloat(d.amt);
+                    if (!Number.isFinite(v) || v === 0) return { ...d };
+                    return { ...d, amt: (next === 'biweekly' ? v * 2 : v / 2).toFixed(2) };
+                });
                 // Existing drafts are left exactly as they are: each one is
                 // keyed to a period of the OLD shape and still describes what
                 // was worked in that span. They become reachable again if the
@@ -5613,6 +6127,7 @@
                 if (v !== undefined && v !== null && v !== '') el.value = v;
             });
             updateHoursStandardHint();
+            renderDeductions();
 
             updateDisplays();
         }
@@ -5789,8 +6304,24 @@
                 taxRate: document.getElementById('taxRate')?.value || ''
             };
 
+            // Record what each deduction actually came to in dollars for this
+            // period, not just its setting -- a percentage row means nothing
+            // later without the gross it was taken from.
+            const loggedGross = (parseFloat(paycheck.hourlyRate) || 0) * (parseFloat(paycheck.hoursPerWeek) || 0);
+            const deductions = getCurrentDeductions().map(d => {
+                const v = parseFloat(d.amt) || 0;
+                return {
+                    name: d.name || 'Deduction',
+                    mode: d.mode,
+                    pre: d.pre !== false,
+                    setting: d.amt,
+                    amount: d.mode === 'percent' ? loggedGross * (v / 100) : v
+                };
+            }).filter(d => d.amount > 0);
+
             const entry = {
                 id: Date.now(),
+                deductions,
                 weekKey: currentWeekKey,
                 rangeLabel,
                 netIncome: currentNetIncome,
@@ -6501,6 +7032,22 @@
                 `;
             }
 
+            if (Array.isArray(log.deductions) && log.deductions.length > 0) {
+                const dedTotal = log.deductions.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+                html += `
+                    <div class="log-detail-section">
+                        <strong>Payroll Deductions</strong>
+                        ${log.deductions.map(d => `
+                            <div class="log-detail-row">
+                                <span>${escapeHtml(d.name)}${d.mode === 'percent' ? ` (${escapeHtml(String(d.setting))}%)` : ''} · ${d.pre ? 'pre-tax' : 'post-tax'}</span>
+                                <span>${formatCurrency(d.amount)}</span>
+                            </div>
+                        `).join('')}
+                        <div class="log-detail-row"><span><strong>Total</strong></span><span><strong>${formatCurrency(dedTotal)}</strong></span></div>
+                    </div>
+                `;
+            }
+
             html += `
                 <div class="log-detail-section">
                     <strong>Credit Card Payments</strong>
@@ -6862,6 +7409,7 @@
                 payPeriod,
                 payAnchor,
                 defaultPaycheck,
+                defaultDeductions,
                 // The three flat keys stay in the payload for one more
                 // release so an older copy of the app still open on another
                 // device (or a stale cached PWA) keeps reading a sane
@@ -6888,6 +7436,12 @@
             if (Array.isArray(draft.expenses) && draft.expenses.some(e => !zero(e))) return false;
             if (Array.isArray(draft.miscExpenses) && draft.miscExpenses.some(m => (m.note || '').trim() !== '' || !zero(m.amt))) return false;
             if (draft.savingsManual) return false;
+            // Deductions matching the standing setup are just the seed every
+            // new draft gets -- not something the user entered for this
+            // period, so they must not keep an otherwise-blank week alive in
+            // storage and the sync payload. A period where they actually
+            // differ IS real data.
+            if (deductionsDifferFromDefault(draft.deductions)) return false;
             if (draft.savingsThisWeek !== '' && draft.savingsThisWeek !== undefined && !zero(draft.savingsThisWeek)) return false;
             // A paycheck block matching the standing default is just the
             // seed initDraft() puts in every new draft -- it is not something
@@ -7030,6 +7584,12 @@
                     : state[f];
                 if (v !== undefined && v !== null && v !== '') defaultPaycheck[f] = String(v);
             });
+
+            // Must land before migrateDraftPaychecks()/loadCurrentWeekDraft():
+            // both seed missing per-period lists from this one.
+            if (Array.isArray(state.defaultDeductions)) {
+                defaultDeductions = normalizeDeductions(state.defaultDeductions);
+            }
 
             migrateDraftPaychecks();
 
