@@ -2415,6 +2415,49 @@
         }
 
     </style>
+<style>
+  /* Shared return-to-hub control — scoped so it won't collide with app styles */
+  .cm-hub-btn {
+    position: fixed;
+    z-index: 80;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    background: rgba(10, 10, 10, 0.86);
+    color: #f0ede8;
+    border: 1px solid rgba(200, 240, 74, 0.5);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    line-height: 1;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  }
+  .cm-hub-btn:hover {
+    transform: translateY(-2px);
+    background: rgba(10, 10, 10, 0.96);
+    border-color: #c8f04a;
+    color: #c8f04a;
+  }
+  .cm-hub-btn:focus-visible {
+    outline: 2px solid #c8f04a;
+    outline-offset: 3px;
+  }
+  .cm-hub-btn svg { width: 13px; height: 13px; flex: 0 0 auto; }
+  @media (max-width: 640px) {
+    .cm-hub-btn { height: 36px; padding: 0 13px 0 11px; }
+  }
+</style>
 </head>
 <body>
 
@@ -7797,5 +7840,14 @@
             });
         }
     </script>
+
+<a class="cm-hub-btn" href="https://consistency.ink/" title="Back to landing page">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 11.5L12 4l8 7.5"/>
+    <path d="M7 10.5V20h10v-9.5"/>
+  </svg>
+  Hub
+</a>
+
 </body>
 </html>
