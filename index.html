@@ -643,7 +643,18 @@
             .balance-menu-section #historyList { max-height: 260px; }
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;}
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        /* .modal-close was used by the Theme, Charts and Rename dialogs and
+           had no rule at all -- those three showed a native grey button where
+           every other dialog has a plain ×. Same control, same look. */
+        .close-btn, .modal-close {
+            background: none; border: none; font-size: 1.5rem; cursor: pointer;
+            color: var(--text-muted); line-height: 1; padding: 2px 6px; border-radius: 6px;
+        }
+        .close-btn:hover, .modal-close:hover { color: var(--text-main); background-color: var(--surface-muted); }
+        .close-btn:focus-visible, .modal-close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        @media (max-width: 700px) {
+            .close-btn, .modal-close { min-width: 44px; min-height: 44px; font-size: 1.7rem; }
+        }
 
         .edit-mode td.editable { background-color: #fef3c7; border: 1px dashed #d97706; cursor: text; }
         .budget-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
@@ -2196,8 +2207,11 @@
             .cc-add-form .link-btn { min-height: 42px; padding: 0 8px; }
 
             /* Touch targets. 0.6rem text in a 2px box is a desktop
-               control that happened to be shown on a phone. */
-            .cc-quick-bar .iq-btn { min-height: 30px; padding: 4px 9px; font-size: 0.7rem; }
+               control that happened to be shown on a phone. Padding stays
+               tight on purpose: the stacked card layout below 600px gives
+               this row the full card width and all six increments have to
+               fit across it without a sideways scroll. */
+            .cc-quick-bar .iq-btn { min-height: 30px; padding: 4px 5px; font-size: 0.66rem; }
             .cc-item { padding: 9px 10px; font-size: 0.9rem; }
             .cc-item .link-btn { min-height: 34px; padding: 6px 8px; }
             .cc-item-text { padding: 4px; }
@@ -2314,6 +2328,92 @@
             .ded-chip { min-height: 34px; font-size: 0.74rem; }
         }
 
+
+        /* ==========================================================
+           MOBILE MODAL PASS — the Discretionary Balance menu
+           ----------------------------------------------------------
+           This dialog is the one with the most typing in it, and on iOS
+           the on-screen keyboard does NOT shrink the layout viewport.
+           A fixed, full-height overlay therefore keeps its full height,
+           the bottom third of it sits under the keyboard, and the field
+           you're typing in can be down there with it. visualViewport
+           reports what's actually visible; --vv-height carries that into
+           the overlay so its scrollable area stops where the keyboard
+           starts. Falls back to 100dvh wherever the API is missing.
+           ========================================================== */
+        .modal-overlay { height: var(--vv-height, 100dvh); }
+
+        /* Declared before the media query below, or the unconditional rule
+           would win at every width and the button would never show. */
+        .modal-done-row { display: none; margin-top: 14px; }
+
+        @media (max-width: 700px) {
+            /* Paired action buttons: percentage widths left an awkward
+               dead strip between them and could overflow once the gap was
+               counted. Let them share the row properly. */
+            .btn-half { flex: 1 1 0; width: auto; min-width: 0; }
+
+            /* Search and the category filter were splitting one narrow line
+               between them; at 16px type neither ended up readable. Give
+               each its own row. */
+            .history-filter { flex-wrap: wrap; }
+            .history-filter input { flex: 1 1 100%; }
+            .history-filter select { flex: 1 1 100%; max-width: none; }
+
+            /* A scroller inside a scroller: stop a flick that reaches the
+               end of the history from dragging the whole dialog. */
+            .balance-menu-section #historyList {
+                max-height: 300px;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Eight increment buttons wrapping raggedly against the right
+               edge is the messiest thing in this dialog. Four across, two
+               rows, each a real touch target. */
+            .bm-balance .inline-quick-bar {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 6px;
+                width: 100%;
+                margin-top: 6px;
+            }
+            .bm-balance .inline-quick-bar .iq-btn {
+                width: 100%; min-height: 38px; padding: 6px 4px; font-size: 0.78rem;
+            }
+            .bm-balance .input-with-controls { width: 100%; }
+
+            /* Stacked, each section is a full-width panel rather than a
+               column, so it can afford a little more breathing room. */
+            .balance-menu-section { padding: 14px 12px; }
+            .balance-menu-section h4 { font-size: 0.98rem; }
+
+            /* Tapping the dimmed backdrop is the usual way out, but at full
+               width there is barely any backdrop left to tap. */
+            .modal-done-row { display: block; }
+        }
+
+        /* ==========================================================
+           MOBILE LOG TABLE
+           Eight columns will never fit a phone, so the table scrolls
+           sideways — but losing sight of WHICH period a row belongs to
+           while you scroll makes the numbers meaningless. Pin the date
+           range, and keep the expanded detail panel inside the screen
+           instead of off in the scrolled-away part of the row.
+           ========================================================== */
+        @media (max-width: 700px) {
+            .log-section .table-container { -webkit-overflow-scrolling: touch; }
+            #logTable tr:not(.log-details) > td:first-child,
+            #logTable th:first-child {
+                position: sticky; left: 0; z-index: 1;
+                background-color: var(--card-bg);
+                box-shadow: 1px 0 0 var(--border-color);
+            }
+            #logTable th:first-child { background-color: var(--surface-muted); z-index: 2; }
+            #logTable tr.total-row > td:first-child { background-color: var(--surface-muted); }
+            .log-details-inner { position: sticky; left: 0; width: calc(100vw - 72px); }
+        }
+
     </style>
 </head>
 <body>
@@ -2421,6 +2521,10 @@
                         <div id="aiBudgetOutput"></div>
                     </div>
                 </div>
+            </div>
+
+            <div class="modal-done-row">
+                <button class="btn btn-action" onclick="closeModal('purchaseModal')">Done</button>
             </div>
         </div>
     </div>
@@ -7261,6 +7365,33 @@
                 window.scrollTo(0, y);
             }
         }
+
+        // Keeps --vv-height in step with the space the keyboard leaves. See
+        // the mobile modal CSS for why a fixed overlay needs telling.
+        function syncViewportHeight() {
+            const vv = window.visualViewport;
+            if (!vv) return;
+            document.documentElement.style.setProperty('--vv-height', vv.height + 'px');
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', syncViewportHeight);
+            window.addEventListener('orientationchange', () => setTimeout(syncViewportHeight, 250));
+            syncViewportHeight();
+        }
+
+        // iOS will scroll a focused field into view on its own, but not
+        // reliably inside a scrolling overlay that just changed height. Do it
+        // once the keyboard has finished animating.
+        document.addEventListener('focusin', (e) => {
+            if (!isEditableField(e.target)) return;
+            const overlay = e.target.closest && e.target.closest('.modal-overlay.open');
+            if (!overlay) return;
+            setTimeout(() => {
+                if (document.activeElement !== e.target) return;
+                try { e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (err) {}
+            }, 320);
+        });
 
         function getOpenModals() {
             return Array.from(document.querySelectorAll('.modal-overlay.open'));
